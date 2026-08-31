@@ -13,7 +13,6 @@ async function callWithHedge(
     const duplicateController = new AbortController();
     
     let isResolved = false;
-    let primaryTimeoutId: NodeJS.Timeout | null = null;
     let globalTimeoutId: NodeJS.Timeout | null = null;
 
     const makeRequest = async (controller: AbortController) => {
@@ -33,11 +32,12 @@ async function callWithHedge(
       ).asResponse(); // Access raw response to extract headers
       
       const devshardId = response.headers.get('x-devshard-id') || 'unknown-node';
+      const requestId = response.headers.get('x-request-id') || 'unavailable';
       const data = await response.json();
-      return { data, devshardId };
+      return { data, devshardId, requestId };
     };
 
-    return new Promise<{ data: any; devshardId: string; modelUsed: string }>(async (resolve, reject) => {
+    return new Promise<{ data: any; devshardId: string; modelUsed: string; requestId: string }>(async (resolve, reject) => {
       let primaryFailed = false;
       let duplicateStarted = false;
       let duplicateFailed = false;
@@ -79,7 +79,6 @@ async function callWithHedge(
         .then((res) => {
           if (isResolved) return;
           isResolved = true;
-          if (primaryTimeoutId) clearTimeout(primaryTimeoutId);
           if (globalTimeoutId) clearTimeout(globalTimeoutId);
           duplicateController.abort();
           resolve({ ...res, modelUsed: targetModel });
@@ -88,22 +87,14 @@ async function callWithHedge(
           primaryFailed = true;
           primaryError = err;
           console.warn(`Primary request failed for ${targetModel}:`, err.message);
-          // If duplicate hasn't started yet, spawn it immediately without waiting for the 1.8s timer
-          if (!duplicateStarted) {
-            if (primaryTimeoutId) clearTimeout(primaryTimeoutId);
-            startDuplicate();
-          } else if (duplicateFailed) {
+          if (duplicateFailed) {
             if (globalTimeoutId) clearTimeout(globalTimeoutId);
             reject(primaryError || duplicateError);
           }
         });
 
-      // Deferred hedge timer: 1.8 seconds delay
-      primaryTimeoutId = setTimeout(() => {
-        if (!isResolved && !primaryFailed && !duplicateStarted) {
-          startDuplicate();
-        }
-      }, 1800);
+      // Switch to Immediate Hedging (No Delay) - fire duplicate tied request instantly in parallel
+      startDuplicate();
     });
   };
 
@@ -437,8 +428,8 @@ Content to analyze:\n\n${finalContentPayload}`
     const consensusNote = consensusNotes.join('. ');
 
     // Verification ID values validation
-    const model1IdVerified = !!res1.data?.id;
-    const model2IdVerified = !!res2.data?.id;
+    const model1IdVerified = res1.requestId !== 'unavailable';
+    const model2IdVerified = res2.requestId !== 'unavailable';
 
     return NextResponse.json({
       summary: {
@@ -458,8 +449,8 @@ Content to analyze:\n\n${finalContentPayload}`
         discrepancy_delta: discrepancyDelta,
         consensus_note: consensusNote,
       },
-      model1RequestId: res1.data?.id || 'unavailable',
-      model2RequestId: res2.data?.id || 'unavailable',
+      model1RequestId: res1.requestId,
+      model2RequestId: res2.requestId,
       model1IdVerified,
       model2IdVerified,
       model1UsedFallback,
