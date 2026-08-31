@@ -81,23 +81,31 @@ export async function POST(request: Request) {
       [
         {
           role: 'system',
-          content: `You are a helpful content extractor and context analyst. Your job is to analyze user text (e.g. news article, suspicious SMS, WhatsApp forward, job/investment pitch, or rumor) and categorize it.
-You MUST write all values in the JSON object (title, keyPoints, impactOrRiskAssessment, actionableAdvice) strictly and entirely in the ${targetLanguage} language. Under no circumstance should you use any other language.
-You MUST respond ONLY with a valid JSON object in the following format:
-{
-  "title": "A simplified title or subject description of the text in ${targetLanguage}",
-  "contentType": "NEWS_POLICY", // Must be EXACTLY one of: 'NEWS_POLICY' | 'SCAM_PHISHING' | 'JOB_INVESTMENT' | 'VIRAL_RUMOR'
-  "keyPoints": [
-    "Key takeaway point 1 in ${targetLanguage}",
-    "Key takeaway point 2 in ${targetLanguage}",
-    "Key takeaway point 3 in ${targetLanguage}"
-  ],
-  "impactOrRiskAssessment": "1-2 sentences explaining either the everyday citizen's daily life/wallet impact (for NEWS_POLICY / VIRAL_RUMOR) OR the security/identity/financial risk to the user (for SCAM_PHISHING / JOB_INVESTMENT) in ${targetLanguage}.",
-  "actionableAdvice": "1-2 sentences outlining either the recommended civic/policy action steps (for NEWS_POLICY / VIRAL_RUMOR) OR safety/precaution instructions (for SCAM_PHISHING / JOB_INVESTMENT) in ${targetLanguage}.",
-  "preliminaryScore": 85 // A number between 0 and 100 representing the factual credibility or legitimacy (100 means highly legitimate/truthful, 0 means completely fake/malicious/scam).
-}
+          content: `You are an expert news analyst, civic fact-checker, and media literacy specialist.
+Your task is to analyze the provided text and output a structured JSON response in ${targetLanguage}.
 
-IMPORTANT: Classify, translate and output every string in the JSON object strictly into ${targetLanguage}.`
+STRICT FACTUAL & SAFETY GUIDELINES:
+1. CITATION & PROVENANCE PENALTY: If the text describes specific government policies, cash handouts, deadlines, or mandatory registration but lacks verifiable links/sources/named officials, assign a preliminaryScore <= 45.
+2. ADAPTIVE CIVIC GUIDANCE:
+   - If the claim is SUSPICIOUS, UNVERIFIED, or HIGH RISK: 
+     * "citizenImpact" must explain the potential harm or scam danger to the public (e.g., risk of identity theft, phishing, or financial loss).
+     * "actionableGuidance" must explicitly warn the user NOT to click unverified links, NOT to submit bank/e-KYC details, and to verify exclusively via official government domains (e.g., .gov.my).
+   - If the claim is VERIFIED / SAFE: Provide standard civic steps and deadlines as described.
+
+Respond ONLY with a valid JSON object matching this schema:
+{
+  "title": "A concise headline in ${targetLanguage}",
+  "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT",
+  "preliminaryScore": 50, // Number 0-100
+  "scoreLabel": "VERIFIED" | "SAFE" | "MIXED" | "SUSPICIOUS" | "HIGH RISK",
+  "keyPoints": [
+    "Key summary point 1 in ${targetLanguage}",
+    "Key summary point 2 in ${targetLanguage}",
+    "Key summary point 3 in ${targetLanguage}"
+  ],
+  "citizenImpact": "Explanation of citizen impact or potential scam/misinformation risk in ${targetLanguage}.",
+  "actionableGuidance": "Safety warning or official verification steps in ${targetLanguage}."
+}`
         },
         {
           role: 'user',
@@ -173,15 +181,16 @@ Content to analyze:\n\n${articleText}`
       console.error('Failed to parse Model 1 output as JSON:', res1Text);
       model1Data = {
         title: 'Universal Analysis',
-        contentType: 'NEWS_POLICY',
+        category: 'NEWS_POLICY',
         keyPoints: [
           'Could not parse analysis details correctly.',
           'Please check the raw input content.',
           'Try processing again.',
         ],
-        impactOrRiskAssessment: 'Unable to analyze impact due to parsing failure.',
-        actionableAdvice: 'Try processing again.',
+        citizenImpact: 'Unable to analyze impact due to parsing failure.',
+        actionableGuidance: 'Try processing again.',
         preliminaryScore: 50,
+        scoreLabel: 'MIXED',
       };
     }
 
@@ -222,16 +231,16 @@ Content to analyze:\n\n${articleText}`
     return NextResponse.json({
       summary: {
         title: model1Data.title || 'Direct Input Analysis',
-        contentType: model1Data.contentType || 'NEWS_POLICY',
+        contentType: model1Data.category || 'NEWS_POLICY',
         summary_points: model1Data.keyPoints.slice(0, 3),
-        citizen_impact: model1Data.impactOrRiskAssessment || '',
-        actionable_advice: model1Data.actionableAdvice || '',
-        category: model1Data.contentType || 'NEWS_POLICY',
+        citizen_impact: model1Data.citizenImpact || '',
+        actionable_advice: model1Data.actionableGuidance || '',
+        category: model1Data.category || 'NEWS_POLICY',
       },
       verification: {
         truth_score: finalTruthScore,
         independent_score: score2,
-        score_label: model2Data.scoreLabel || 'MIXED',
+        score_label: model2Data.scoreLabel || model1Data.scoreLabel || 'MIXED',
         reasoning_trace: model2Data.credibilityAnalysis || '',
         red_flags: model2Data.redFlags || [],
         discrepancy_delta: discrepancyDelta,
