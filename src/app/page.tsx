@@ -561,6 +561,74 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Truth/Scam Score Gauge & Credibility Analysis */}
+              <div className={`p-5 rounded-xl border ${
+                highContrast 
+                  ? 'border-2 border-white bg-black' 
+                  : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
+              } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
+                
+                {/* Score Column */}
+                <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${
+                  highContrast 
+                    ? 'md:border-r-2 md:border-white' 
+                    : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
+                }`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                    highContrast ? 'text-white' : 'text-stone-550'
+                  }`}>
+                    {isScam ? 'Scam Risk' : 'Truth Score'}
+                  </span>
+                  <span className={`text-4xl font-black ${styles.text}`}>
+                    {scoreDisplay}%
+                  </span>
+                  <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
+                    {isScam 
+                      ? (scamRiskScore >= 75 ? 'HIGH RISK' : scamRiskScore >= 40 ? 'SUSPICIOUS' : 'SAFE')
+                      : (result.verification.score_label || 'MIXED')}
+                  </span>
+                  
+                  {/* Gauge Severity Bar */}
+                  <div className="w-28 mt-2.5 space-y-1">
+                    <div className={`h-2 w-full rounded-full overflow-hidden border ${
+                      highContrast ? 'bg-zinc-900 border-white' : 'bg-stone-200/50 border-[#ebdcb8]/20'
+                    }`}>
+                      <div 
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          highContrast 
+                            ? 'bg-white' 
+                            : (isScam 
+                                ? (scamRiskScore >= 75 ? 'bg-rose-500' : scamRiskScore >= 40 ? 'bg-orange-500' : 'bg-emerald-500')
+                                : (result.verification.truth_score >= 80 ? 'bg-emerald-500' : result.verification.truth_score >= 50 ? 'bg-orange-500' : 'bg-rose-500')
+                              )
+                        }`}
+                        style={{ width: `${scoreDisplay}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 text-[#8c7960] uppercase">
+                      <span>{isScam ? 'Safe' : 'Risk'}</span>
+                      <span>50%</span>
+                      <span>{isScam ? 'Risk' : 'Safe'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reasoning Trace Column */}
+                <div className="md:col-span-3 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldAlert className={`h-4 w-4 ${styles.text}`} />
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                      highContrast ? 'text-white' : 'text-stone-500'
+                    }`}>
+                      Consensus Credibility Audit
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed">
+                    {result.verification.reasoning_trace}
+                  </p>
+                </div>
+              </div>
+
               {/* Key Summary points */}
               <div className="space-y-3.5">
                 <h3 className={`text-[10px] font-bold uppercase tracking-wider ${
@@ -647,50 +715,6 @@ export default function Home() {
                   </p>
                 </div>
               )}
-
-              {/* Truth/Scam Score Gauge & Credibility Analysis */}
-              <div className={`p-5 rounded-xl border ${
-                highContrast 
-                  ? 'border-2 border-white bg-black' 
-                  : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
-              } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
-                
-                {/* Score Column */}
-                <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${
-                  highContrast 
-                    ? 'md:border-r-2 md:border-white' 
-                    : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
-                }`}>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : 'text-stone-550'
-                  }`}>
-                    {isScam ? 'Scam Risk' : 'Truth Score'}
-                  </span>
-                  <span className={`text-4xl font-black ${styles.text}`}>
-                    {scoreDisplay}%
-                  </span>
-                  <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
-                    {isScam 
-                      ? (scamRiskScore >= 75 ? 'HIGH RISK' : scamRiskScore >= 40 ? 'SUSPICIOUS' : 'SAFE')
-                      : (result.verification.score_label || 'MIXED')}
-                  </span>
-                </div>
-
-                {/* Reasoning Trace Column */}
-                <div className="md:col-span-3 space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldAlert className={`h-4 w-4 ${styles.text}`} />
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                      highContrast ? 'text-white' : 'text-stone-500'
-                    }`}>
-                      Consensus Credibility Audit
-                    </span>
-                  </div>
-                  <p className="text-sm font-medium leading-relaxed">
-                    {result.verification.reasoning_trace}
-                  </p>
-                </div>
-              </div>
 
               {/* Audit / Gonka Proof Footer */}
               <div className={`border-t pt-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
