@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
 export async function GET() {
   const apiKey = process.env.GONKA_API_KEY;
@@ -12,21 +11,41 @@ export async function GET() {
   }
 
   try {
-    const openai = new OpenAI({
-      baseURL: 'https://api.gonkarouter.io/v1',
-      apiKey: apiKey,
+    const res = await fetch('https://api.gonkarouter.io/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
+        messages: [
+          { role: 'system', content: 'You are Gonka. Respond in exactly one short sentence confirming your identity.' },
+          { role: 'user', content: 'Say hello and confirm you are Gonka' }
+        ],
+        temperature: 0.7,
+        max_tokens: 30,
+        frequency_penalty: 1.5
+      }),
     });
 
-    // We use deepseek-ai/DeepSeek-V4-Flash-0731 as specified by the user's provider-prefixed model list
-    const response = await openai.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
-      messages: [
-        { role: 'user', content: 'Say hello and confirm you are Gonka' }
-      ],
-    });
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json({ error: errText || 'Verification failed' }, { status: res.status });
+    }
 
-    const text = response.choices[0]?.message?.content || '';
-    const requestId = response.id;
+    const data = await res.json();
+    let text = data.choices[0]?.message?.content || '';
+    
+    // Programmatic deduplication of repeated sentences
+    text = text.trim();
+    if (text) {
+      const sentences = text.split(/(?<=\.|\?|\!)\s*/);
+      const uniqueSentences = Array.from(new Set(sentences));
+      text = uniqueSentences.join(' ').trim();
+    }
+
+    const requestId = res.headers.get('x-request-id') || data.id || 'unavailable';
 
     return NextResponse.json({ text, requestId });
   } catch (error: any) {
