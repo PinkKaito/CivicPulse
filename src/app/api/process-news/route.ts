@@ -56,17 +56,17 @@ async function safeCall(
 
 function cleanAndParseJSON(text: string) {
   let cleaned = text.trim();
-  
+
   // 1. Strip markdown code blocks
   cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
-  
+
   // 2. Extract content between first '{' and last '}' to strip pre/post conversational text
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
-  
+
   return JSON.parse(cleaned);
 }
 
@@ -255,7 +255,7 @@ Content to analyze:\n\n${finalContentPayload}`
 
     const rawIndep = typeof model2Data.independentScore !== 'undefined' ? model2Data.independentScore : model2Data.independent_score;
     const score2 = Number.isFinite(Number(rawIndep)) ? Math.max(0, Math.min(100, Number(rawIndep))) : 50;
-    
+
     const finalTruthScore = Math.round((score1 + score2) / 2);
     const discrepancyDelta = Math.abs(score1 - score2);
 
@@ -265,10 +265,26 @@ Content to analyze:\n\n${finalContentPayload}`
     // Consensus notes assembly
     const consensusNotes: string[] = [];
     if (discrepancyDelta > 25) {
-      consensusNotes.push('Models exhibited divergence on claim certainty; human verification advised');
+      if (targetLanguage === 'Chinese') {
+        consensusNotes.push('模型在判断确定性上存在明显分歧，建议人工核实');
+      } else if (targetLanguage === 'Bahasa Melayu') {
+        consensusNotes.push('Model menunjukkan perbezaan pendapat mengenai kepastian tuntutan; pengesahan manusia disyorkan');
+      } else if (targetLanguage === 'Tamil') {
+        consensusNotes.push('உரிமைகோரல் நிச்சயத்தன்மையில் மாதிரிகள் வேறுபாட்டைக் காட்டின; மனித சரிபார்ப்பு பரிந்துரைக்கப்படுகிறது');
+      } else {
+        consensusNotes.push('Models exhibited divergence on claim certainty; human verification advised');
+      }
     }
     if (model1UsedFallback || model2UsedFallback) {
-      consensusNotes.push('Reduced confidence — one model ran on a fallback engine');
+      if (targetLanguage === 'Chinese') {
+        consensusNotes.push('置信度有所降低 — 其中一个分析步骤启用了备用AI模型');
+      } else if (targetLanguage === 'Bahasa Melayu') {
+        consensusNotes.push('Tahap keyakinan dikurangkan — salah satu langkah analisis menggunakan model AI sandaran');
+      } else if (targetLanguage === 'Tamil') {
+        consensusNotes.push('நம்பிக்கை நிலை குறைக்கப்பட்டது — பகுப்பாய்வு படிகளில் ஒன்று காப்புப்பிரதி AI மாதிரியைப் பயன்படுத்தியது');
+      } else {
+        consensusNotes.push('Reduced confidence — one analysis step switched to a backup AI model');
+      }
     }
     const consensusNote = consensusNotes.join('. ');
 
