@@ -41,6 +41,12 @@ interface AnalysisResult {
   model2RequestId: string;
   model1Used: string;
   model2Used: string;
+  model1IdVerified: boolean;
+  model2IdVerified: boolean;
+  model1UsedFallback: boolean;
+  model2UsedFallback: boolean;
+  model1DevshardId?: string;
+  model2DevshardId?: string;
 }
 
 export default function Home() {
@@ -734,25 +740,71 @@ export default function Home() {
                     highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
                   }`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
+                      {/* Model 1 Column */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
+                            result.model1UsedFallback
+                              ? 'bg-orange-100 text-orange-850 border border-orange-350'
+                              : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
+                          }`}>
+                            {result.model1UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
+                          </span>
+                        </div>
                         <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
                         <div className={`p-2.5 rounded border select-all break-all ${
                           highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
-                          {result.model1RequestId}
+                          <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
+                          <span className={!result.model1IdVerified ? 'text-rose-600 font-bold' : ''}>
+                            {result.model1RequestId}
+                          </span>
+                          {!result.model1IdVerified && (
+                            <span className="ml-1.5 text-[8px] font-bold bg-rose-100 text-rose-800 px-1 rounded">UNVERIFIED</span>
+                          )}
                         </div>
+                        {result.model1DevshardId && (
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
+                            <span className="font-bold select-all">{result.model1DevshardId}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-1">
-                        <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
+
+                      {/* Model 2 Column */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
+                            result.model2UsedFallback
+                              ? 'bg-orange-100 text-orange-850 border border-orange-350'
+                              : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
+                          }`}>
+                            {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
+                          </span>
+                        </div>
                         <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
                         <div className={`p-2.5 rounded border select-all break-all ${
                           highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
-                          {result.model2RequestId}
+                          <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
+                          <span className={!result.model2IdVerified ? 'text-rose-600 font-bold' : ''}>
+                            {result.model2RequestId}
+                          </span>
+                          {!result.model2IdVerified && (
+                            <span className="ml-1.5 text-[8px] font-bold bg-rose-100 text-rose-800 px-1 rounded">UNVERIFIED</span>
+                          )}
                         </div>
+                        {result.model2DevshardId && (
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
+                            <span className="font-bold select-all">{result.model2DevshardId}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
+                    
                     <div className={`pt-2 border-t text-[9px] flex items-center justify-between ${
                       highContrast ? 'border-white text-white' : 'border-[#ebdcb8] text-[#8c7960]'
                     }`}>

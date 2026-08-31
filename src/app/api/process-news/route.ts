@@ -1,52 +1,124 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-async function safeCall(
+async function callWithHedge(
   openai: OpenAI,
   model: string,
   messages: any[],
   temperature: number,
   fallbackModel?: string
 ) {
-  const runCall = async (targetModel: string) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, 20000); // 20-second timeout
+  const runHedgedRequest = async (targetModel: string) => {
+    const primaryController = new AbortController();
+    const duplicateController = new AbortController();
+    
+    let isResolved = false;
+    let primaryTimeoutId: NodeJS.Timeout | null = null;
+    let globalTimeoutId: NodeJS.Timeout | null = null;
 
-    try {
+    const makeRequest = async (controller: AbortController) => {
       const response = await openai.chat.completions.create(
         {
           model: targetModel,
           messages,
           temperature,
-          max_tokens: 1500, // Bumped max_tokens to 1500 for CJK density support
+          max_tokens: 1500, // 1500 max tokens to avoid CJK truncation
         },
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-      return response;
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError' || err.message?.includes('aborted')) {
-        throw new Error(`Request timed out after 20 seconds on model ${targetModel}`);
-      }
-      throw err;
-    }
+        {
+          signal: controller.signal,
+          headers: {
+            'X-Gonka-No-Fallback': 'true', // Pin the model identity, prevent upstream fallback substitution
+          },
+        }
+      ).asResponse(); // Access raw response to extract headers
+      
+      const devshardId = response.headers.get('x-devshard-id') || 'unknown-node';
+      const data = await response.json();
+      return { data, devshardId };
+    };
+
+    return new Promise<{ data: any; devshardId: string; modelUsed: string }>(async (resolve, reject) => {
+      let primaryFailed = false;
+      let duplicateStarted = false;
+      let duplicateFailed = false;
+      let primaryError: any = null;
+      let duplicateError: any = null;
+
+      // Global 20s timeout limit
+      globalTimeoutId = setTimeout(() => {
+        primaryController.abort();
+        duplicateController.abort();
+        reject(new Error(`Timeout: both requests for ${targetModel} failed to respond within 20s.`));
+      }, 20000);
+
+      // Function to trigger the duplicate tied request
+      const startDuplicate = () => {
+        duplicateStarted = true;
+        console.log(`Launching duplicate hedged request for ${targetModel}`);
+        makeRequest(duplicateController)
+          .then((res) => {
+            if (isResolved) return;
+            isResolved = true;
+            if (globalTimeoutId) clearTimeout(globalTimeoutId);
+            primaryController.abort();
+            resolve({ ...res, modelUsed: targetModel });
+          })
+          .catch((err) => {
+            duplicateFailed = true;
+            duplicateError = err;
+            console.warn(`Duplicate request failed for ${targetModel}:`, err.message);
+            if (primaryFailed) {
+              if (globalTimeoutId) clearTimeout(globalTimeoutId);
+              reject(primaryError || duplicateError);
+            }
+          });
+      };
+
+      // Execute primary request
+      makeRequest(primaryController)
+        .then((res) => {
+          if (isResolved) return;
+          isResolved = true;
+          if (primaryTimeoutId) clearTimeout(primaryTimeoutId);
+          if (globalTimeoutId) clearTimeout(globalTimeoutId);
+          duplicateController.abort();
+          resolve({ ...res, modelUsed: targetModel });
+        })
+        .catch((err) => {
+          primaryFailed = true;
+          primaryError = err;
+          console.warn(`Primary request failed for ${targetModel}:`, err.message);
+          // If duplicate hasn't started yet, spawn it immediately without waiting for the 1.8s timer
+          if (!duplicateStarted) {
+            if (primaryTimeoutId) clearTimeout(primaryTimeoutId);
+            startDuplicate();
+          } else if (duplicateFailed) {
+            if (globalTimeoutId) clearTimeout(globalTimeoutId);
+            reject(primaryError || duplicateError);
+          }
+        });
+
+      // Deferred hedge timer: 1.8 seconds delay
+      primaryTimeoutId = setTimeout(() => {
+        if (!isResolved && !primaryFailed && !duplicateStarted) {
+          startDuplicate();
+        }
+      }, 1800);
+    });
   };
 
   try {
-    const response = await runCall(model);
-    return { response, modelUsed: model, usedFallback: false };
+    const res = await runHedgedRequest(model);
+    return { ...res, usedFallback: false };
   } catch (err: any) {
-    console.warn(`Failed call with model ${model}:`, err.message);
+    console.warn(`Both hedged calls failed with primary model ${model}:`, err.message);
     if (fallbackModel) {
-      console.log(`Retrying call with fallback model ${fallbackModel}`);
+      console.log(`Attempting fallback model ${fallbackModel} with hedging...`);
       try {
-        const response = await runCall(fallbackModel);
-        return { response, modelUsed: fallbackModel, usedFallback: true };
+        const res = await runHedgedRequest(fallbackModel);
+        return { ...res, usedFallback: true };
       } catch (fallbackErr: any) {
-        console.warn(`Failed fallback call with model ${fallbackModel}:`, fallbackErr.message);
+        console.error(`Both hedged calls failed on fallback model ${fallbackModel}:`, fallbackErr.message);
         throw fallbackErr;
       }
     }
@@ -56,17 +128,17 @@ async function safeCall(
 
 function cleanAndParseJSON(text: string) {
   let cleaned = text.trim();
-
+  
   // 1. Strip markdown code blocks
   cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
-
+  
   // 2. Extract content between first '{' and last '}' to strip pre/post conversational text
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
-
+  
   return JSON.parse(cleaned);
 }
 
@@ -107,7 +179,9 @@ export async function POST(request: Request) {
     const finalContentPayload = processedArticleText + truncationNotice;
 
     // Model 1 (Extractor & Context Analyst)
-    const model1Promise = safeCall(
+    // Primary: deepseek-ai/DeepSeek-V4-Flash-0731
+    // Fallback: moonshotai/Kimi-K2.6
+    const model1Promise = callWithHedge(
       openai,
       'deepseek-ai/DeepSeek-V4-Flash-0731',
       [
@@ -144,15 +218,16 @@ Respond ONLY with a valid JSON object matching this schema:
           content: `Analyze this content and output the JSON entirely in ${targetLanguage}:\n\n${finalContentPayload}`
         }
       ],
-      0.3
+      0.3,
+      'moonshotai/Kimi-K2.6'
     );
 
     // Model 2 (Fact & Credibility Auditor)
-    // Primary model: moonshotai/Kimi-K2.6
-    // Fallback model: MiniMaxAI/MiniMax-M2.7 (Distinct model to prevent collision)
-    const model2Promise = safeCall(
+    // Primary: MiniMaxAI/MiniMax-M2.7 (Distinct primary from Model 1)
+    // Fallback: moonshotai/Kimi-K2.6 (Shared fallback to prevent collision)
+    const model2Promise = callWithHedge(
       openai,
-      'moonshotai/Kimi-K2.6',
+      'MiniMaxAI/MiniMax-M2.7',
       [
         {
           role: 'system',
@@ -198,14 +273,14 @@ Content to analyze:\n\n${finalContentPayload}`
         }
       ],
       0.2,
-      'MiniMaxAI/MiniMax-M2.7' // Distinct fallback model to prevent collision
+      'moonshotai/Kimi-K2.6'
     );
 
     // Await parallel promises
     const [res1, res2] = await Promise.all([model1Promise, model2Promise]);
 
-    const res1Text = res1.response.choices[0]?.message?.content || '';
-    const res2Text = res2.response.choices[0]?.message?.content || '';
+    const res1Text = res1.data.choices[0]?.message?.content || '';
+    const res2Text = res2.data.choices[0]?.message?.content || '';
 
     let model1Data: any = {};
     let model2Data: any = {};
@@ -255,14 +330,14 @@ Content to analyze:\n\n${finalContentPayload}`
 
     const rawIndep = typeof model2Data.independentScore !== 'undefined' ? model2Data.independentScore : model2Data.independent_score;
     const score2 = Number.isFinite(Number(rawIndep)) ? Math.max(0, Math.min(100, Number(rawIndep))) : 50;
-
+    
     const finalTruthScore = Math.round((score1 + score2) / 2);
     const discrepancyDelta = Math.abs(score1 - score2);
 
     const model1UsedFallback = res1.usedFallback;
     const model2UsedFallback = res2.usedFallback;
 
-    // Consensus notes assembly
+    // Consensus notes assembly with localization options
     const consensusNotes: string[] = [];
     if (discrepancyDelta > 25) {
       if (targetLanguage === 'Chinese') {
@@ -289,8 +364,8 @@ Content to analyze:\n\n${finalContentPayload}`
     const consensusNote = consensusNotes.join('. ');
 
     // Verification ID values validation
-    const model1IdVerified = !!res1.response.id;
-    const model2IdVerified = !!res2.response.id;
+    const model1IdVerified = !!res1.data?.id;
+    const model2IdVerified = !!res2.data?.id;
 
     return NextResponse.json({
       summary: {
@@ -310,14 +385,16 @@ Content to analyze:\n\n${finalContentPayload}`
         discrepancy_delta: discrepancyDelta,
         consensus_note: consensusNote,
       },
-      model1RequestId: res1.response.id || 'unavailable', // Replaced fake ID fallback with 'unavailable'
-      model2RequestId: res2.response.id || 'unavailable', // Replaced fake ID fallback with 'unavailable'
+      model1RequestId: res1.data?.id || 'unavailable',
+      model2RequestId: res2.data?.id || 'unavailable',
       model1IdVerified,
       model2IdVerified,
       model1UsedFallback,
       model2UsedFallback,
       model1Used: res1.modelUsed,
       model2Used: res2.modelUsed,
+      model1DevshardId: res1.devshardId,
+      model2DevshardId: res2.devshardId,
     });
   } catch (error: any) {
     console.error('Error in process-news route:', error);
