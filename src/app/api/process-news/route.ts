@@ -8,25 +8,47 @@ async function safeCall(
   temperature: number,
   fallbackModel?: string
 ) {
+  const runCall = async (targetModel: string) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 20000); // 20-second timeout
+
+    try {
+      const response = await openai.chat.completions.create(
+        {
+          model: targetModel,
+          messages,
+          temperature,
+          max_tokens: 1500, // Bumped max_tokens to 1500 for CJK density support
+        },
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      return response;
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+        throw new Error(`Request timed out after 20 seconds on model ${targetModel}`);
+      }
+      throw err;
+    }
+  };
+
   try {
-    const response = await openai.chat.completions.create({
-      model,
-      messages,
-      temperature,
-      max_tokens: 1000,
-    });
-    return { response, modelUsed: model };
+    const response = await runCall(model);
+    return { response, modelUsed: model, usedFallback: false };
   } catch (err: any) {
     console.warn(`Failed call with model ${model}:`, err.message);
     if (fallbackModel) {
       console.log(`Retrying call with fallback model ${fallbackModel}`);
-      const response = await openai.chat.completions.create({
-        model: fallbackModel,
-        messages,
-        temperature,
-        max_tokens: 1000,
-      });
-      return { response, modelUsed: fallbackModel };
+      try {
+        const response = await runCall(fallbackModel);
+        return { response, modelUsed: fallbackModel, usedFallback: true };
+      } catch (fallbackErr: any) {
+        console.warn(`Failed fallback call with model ${fallbackModel}:`, fallbackErr.message);
+        throw fallbackErr;
+      }
     }
     throw err;
   }
@@ -74,6 +96,16 @@ export async function POST(request: Request) {
 
     const targetLanguage = language || 'English';
 
+    // Ingest length cap: Truncate input if it exceeds 12,000 characters
+    let processedArticleText = articleText;
+    let truncationNotice = '';
+    if (articleText.length > 12000) {
+      processedArticleText = articleText.substring(0, 12000);
+      truncationNotice = '\n\n[WARNING: The input text was extremely long and has been truncated to the first 12,000 characters for analysis latency and context limits. Please analyze only this truncated portion and acknowledge the truncation if relevant.]';
+    }
+
+    const finalContentPayload = processedArticleText + truncationNotice;
+
     // Model 1 (Extractor & Context Analyst)
     const model1Promise = safeCall(
       openai,
@@ -109,12 +141,15 @@ Respond ONLY with a valid JSON object matching this schema:
         },
         {
           role: 'user',
-          content: `Analyze this content and output the JSON entirely in ${targetLanguage}:\n\n${articleText}`
+          content: `Analyze this content and output the JSON entirely in ${targetLanguage}:\n\n${finalContentPayload}`
         }
       ],
       0.3
     );
 
+    // Model 2 (Fact & Credibility Auditor)
+    // Primary model: moonshotai/Kimi-K2.6
+    // Fallback model: MiniMaxAI/MiniMax-M2.7 (Distinct model to prevent collision)
     const model2Promise = safeCall(
       openai,
       'moonshotai/Kimi-K2.6',
@@ -123,7 +158,7 @@ Respond ONLY with a valid JSON object matching this schema:
           role: 'system',
           content: `You are an expert fact-checker, media literacy analyst, and cybersecurity/anti-fraud auditor. Your job is to independently audit the text for factual plausibility, missing official citations, manipulative urgency, or financial red flags.
 
-STRICT FACTUAL VERIFICATION RULES:
+STRICT FACTUAL & SAFETY VERIFICATION RULES:
 1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
 2. CITATION PENALTY: Any text making specific factual claims about new laws, mandatory registration deadlines, or national policy changes that lacks traceable provenance (no official gazette reference, named minister, or verifiable official URL) must be capped at a Truth Score of MAXIMUM 40%.
 3. SCORING SCALE:
@@ -159,11 +194,11 @@ STRICT FACTUAL VERIFICATION RULES:
    - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
    - 0-29%: Blatant scams, phishing, or proven fabrications.
 
-Content to analyze:\n\n${articleText}`
+Content to analyze:\n\n${finalContentPayload}`
         }
       ],
       0.2,
-      'deepseek-ai/DeepSeek-V4-Flash-0731' // Fallback to DeepSeek if Kimi is unavailable
+      'MiniMaxAI/MiniMax-M2.7' // Distinct fallback model to prevent collision
     );
 
     // Await parallel promises
@@ -223,10 +258,23 @@ Content to analyze:\n\n${articleText}`
     
     const finalTruthScore = Math.round((score1 + score2) / 2);
     const discrepancyDelta = Math.abs(score1 - score2);
-    const consensusNote =
-      discrepancyDelta > 25
-        ? 'Models exhibited divergence on claim certainty; human verification advised'
-        : '';
+
+    const model1UsedFallback = res1.usedFallback;
+    const model2UsedFallback = res2.usedFallback;
+
+    // Consensus notes assembly
+    const consensusNotes: string[] = [];
+    if (discrepancyDelta > 25) {
+      consensusNotes.push('Models exhibited divergence on claim certainty; human verification advised');
+    }
+    if (model1UsedFallback || model2UsedFallback) {
+      consensusNotes.push('Reduced confidence — one model ran on a fallback engine');
+    }
+    const consensusNote = consensusNotes.join('. ');
+
+    // Verification ID values validation
+    const model1IdVerified = !!res1.response.id;
+    const model2IdVerified = !!res2.response.id;
 
     return NextResponse.json({
       summary: {
@@ -246,8 +294,12 @@ Content to analyze:\n\n${articleText}`
         discrepancy_delta: discrepancyDelta,
         consensus_note: consensusNote,
       },
-      model1RequestId: res1.response.id || 'devshard-m1-verified',
-      model2RequestId: res2.response.id || 'devshard-m2-verified',
+      model1RequestId: res1.response.id || 'unavailable', // Replaced fake ID fallback with 'unavailable'
+      model2RequestId: res2.response.id || 'unavailable', // Replaced fake ID fallback with 'unavailable'
+      model1IdVerified,
+      model2IdVerified,
+      model1UsedFallback,
+      model2UsedFallback,
       model1Used: res1.modelUsed,
       model2Used: res2.modelUsed,
     });
