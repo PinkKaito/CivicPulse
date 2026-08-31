@@ -58,6 +58,19 @@ export default function Home() {
   // Accessibility States
   const [fontSizePercent, setFontSizePercent] = useState<number>(100);
   const [highContrast, setHighContrast] = useState<boolean>(false);
+  const [sepiaMode, setSepiaMode] = useState<boolean>(false);
+
+  // Dynamic theme class style tokens
+  const textLabelColor = highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]';
+  const textTitleColor = highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]';
+  const textDescriptionColor = highContrast ? 'text-white' : sepiaMode ? 'text-[#5a4834]' : 'text-[#3c3020]';
+  const borderColor = highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e9e2d3]';
+  const borderLightColor = highContrast ? 'border-white' : sepiaMode ? 'border-[#eadaaf]' : 'border-[#f6efe2]';
+  const cardBgColor = highContrast ? 'bg-black' : sepiaMode ? 'bg-[#fdfbf7]' : 'bg-white';
+  const inputBgColor = highContrast ? 'bg-black' : sepiaMode ? 'bg-[#fcf8ef]' : 'bg-[#faf6ee]';
+  const hoverBgColor = highContrast ? 'hover:bg-stone-900' : sepiaMode ? 'hover:bg-[#ebdcb8]' : 'hover:bg-[#f6efe2]';
+  const tabButtonActiveColor = highContrast ? 'bg-white text-black' : sepiaMode ? 'bg-[#433422] text-[#f4ecd8]' : 'bg-[#3c3020] text-[#faf6ee]';
+  const tabButtonInactiveColor = highContrast ? 'text-white hover:underline' : sepiaMode ? 'text-[#7c6244] hover:text-[#433422]' : 'text-[#5c4a36] hover:text-[#2c2214]';
 
   // Inputs
   const [articleText, setArticleText] = useState<string>('');
@@ -218,28 +231,36 @@ export default function Home() {
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-150 ${
       highContrast 
         ? 'bg-black text-white selection:bg-white selection:text-black' 
-        : 'bg-[#faf6ee] text-[#2c2214] selection:bg-[#eddcb8] selection:text-[#2c2214]'
+        : sepiaMode
+          ? 'bg-[#f4ecd8] text-[#433422] selection:bg-[#dfd0b0] selection:text-[#433422]'
+          : 'bg-[#faf6ee] text-[#2c2214] selection:bg-[#eddcb8] selection:text-[#2c2214]'
     }`}>
       
       {/* Header */}
       <header className={`border-b sticky top-0 z-50 transition-colors ${
         highContrast 
           ? 'border-white bg-black' 
-          : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
+          : sepiaMode
+            ? 'border-[#e4d4b5] bg-[#f4ecd8]/95 backdrop-blur-md'
+            : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
       }`}>
         <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className={`h-8 w-8 rounded-lg flex items-center justify-center border ${
-              highContrast ? 'bg-black border-white' : 'bg-[#faf6ee] border-[#ebdcb8]'
+              highContrast 
+                ? 'bg-black border-white' 
+                : sepiaMode
+                  ? 'bg-[#f4ecd8] border-[#e4d4b5]'
+                  : 'bg-[#faf6ee] border-[#ebdcb8]'
             }`}>
-              <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
+              <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
             </div>
             <div>
-              <span className={`font-bold text-lg tracking-tight ${highContrast ? 'text-white' : 'text-[#2c2214]'}`}>
+              <span className={`font-bold text-lg tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
                 CivicPulse
               </span>
               <span className={`text-[9px] block font-semibold tracking-wider uppercase ml-0.5 ${
-                highContrast ? 'text-white' : 'text-amber-700'
+                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'
               }`}>
                 Consensus Truth Engine
               </span>
@@ -251,7 +272,7 @@ export default function Home() {
             
             {/* Font Size Adjusters */}
             <div className={`flex items-center gap-1.5 border-r pr-3 ${
-              highContrast ? 'border-white' : 'border-[#e6decb]'
+              highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
             }`}>
               <button 
                 onClick={handleDecreaseFont} 
@@ -259,7 +280,9 @@ export default function Home() {
                 className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${
                   highContrast 
                     ? 'bg-black text-white border-white hover:bg-stone-900' 
-                    : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                    : sepiaMode
+                      ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                      : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
                 }`}
                 title="Decrease font size (-10%)"
                 aria-label="Decrease font size"
@@ -267,7 +290,7 @@ export default function Home() {
                 A-
               </button>
               <span className={`text-[10px] font-bold px-1 ${
-                highContrast ? 'text-white' : 'text-[#7c6950]'
+                highContrast ? 'text-white' : sepiaMode ? 'text-[#7c6244]' : 'text-[#7c6950]'
               }`}>
                 {fontSizePercent}%
               </span>
@@ -277,7 +300,9 @@ export default function Home() {
                 className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${
                   highContrast 
                     ? 'bg-black text-white border-white hover:bg-[#222]' 
-                    : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                    : sepiaMode
+                      ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                      : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
                 }`}
                 title="Increase font size (+10%)"
                 aria-label="Increase font size"
@@ -286,13 +311,37 @@ export default function Home() {
               </button>
             </div>
 
+            {/* Sepia Mode Toggle */}
+            <button
+              onClick={() => {
+                setSepiaMode(!sepiaMode);
+                setHighContrast(false);
+              }}
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                sepiaMode
+                  ? 'bg-[#433422] text-[#f4ecd8] border-[#433422]'
+                  : highContrast
+                    ? 'bg-black text-white border-white'
+                    : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+              }`}
+              aria-label="Toggle Sepia Mode"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              Sepia
+            </button>
+
             {/* High Contrast Mode Toggle */}
             <button
-              onClick={() => setHighContrast(!highContrast)}
+              onClick={() => {
+                setHighContrast(!highContrast);
+                setSepiaMode(false);
+              }}
               className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
                 highContrast 
                   ? 'bg-white text-black border-white' 
-                  : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                  : sepiaMode
+                    ? 'bg-[#f4ecd8] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                    : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
               }`}
               aria-label="Toggle High Contrast Mode"
             >
@@ -307,25 +356,17 @@ export default function Home() {
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-10 space-y-8">
 
         {/* Search & Paste Inputs */}
-        <section className={`border rounded-xl p-6 space-y-6 shadow-sm ${
-          highContrast ? 'bg-black border-white' : 'bg-white border-[#e9e2d3]'
-        }`}>
+        <section className={`border rounded-xl p-6 space-y-6 shadow-sm ${cardBgColor} ${borderColor}`}>
           
           {/* Header tabs & Language Selection */}
-          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 ${
-            highContrast ? 'border-white' : 'border-[#f6efe2]'
-          }`}>
+          <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 ${borderLightColor}`}>
             
             {/* Input Method Tabs */}
-            <div className={`flex p-1 rounded-lg border w-full sm:w-auto ${
-              highContrast ? 'bg-black border-white' : 'bg-[#faf6ee] border-[#e6decb]'
-            }`}>
+            <div className={`flex p-1 rounded-lg border w-full sm:w-auto ${inputBgColor} ${borderColor}`}>
               <button
                 onClick={() => { setActiveTab('text'); setError(null); }}
                 className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'text'
-                    ? (highContrast ? 'bg-white text-black' : 'bg-[#3c3020] text-[#faf6ee]')
-                    : (highContrast ? 'text-white hover:underline' : 'text-[#5c4a36] hover:text-[#2c2214]')
+                  activeTab === 'text' ? tabButtonActiveColor : tabButtonInactiveColor
                 }`}
               >
                 <FileText className="h-3.5 w-3.5" />
@@ -334,9 +375,7 @@ export default function Home() {
               <button
                 onClick={() => { setActiveTab('url'); setError(null); }}
                 className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'url'
-                    ? (highContrast ? 'bg-white text-black' : 'bg-[#3c3020] text-[#faf6ee]')
-                    : (highContrast ? 'text-white hover:underline' : 'text-[#5c4a36] hover:text-[#2c2214]')
+                  activeTab === 'url' ? tabButtonActiveColor : tabButtonInactiveColor
                 }`}
               >
                 <LinkIcon className="h-3.5 w-3.5" />
@@ -346,8 +385,8 @@ export default function Home() {
 
             {/* Language Selector */}
             <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-              <Globe className={`h-3.5 w-3.5 shrink-0 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
-              <label htmlFor="language-select" className={`text-xs font-semibold whitespace-nowrap ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Translate To:</label>
+              <Globe className={`h-3.5 w-3.5 shrink-0 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
+              <label htmlFor="language-select" className={`text-xs font-semibold whitespace-nowrap ${textLabelColor}`}>Translate To:</label>
               <div className="flex gap-2 w-full sm:w-auto">
                 <select
                   id="language-select"
@@ -356,7 +395,9 @@ export default function Home() {
                   className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all cursor-pointer w-full sm:w-auto ${
                     highContrast 
                       ? 'bg-black text-white border-white focus:border-white' 
-                      : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
+                        : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
                   }`}
                 >
                   <option value="English">English</option>
@@ -374,7 +415,9 @@ export default function Home() {
                     className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all w-full sm:w-32 ${
                       highContrast 
                         ? 'bg-black text-white border-white focus:border-white' 
-                        : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
+                          : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
                     }`}
                   />
                 )}
@@ -386,9 +429,7 @@ export default function Home() {
             
             {activeTab === 'text' ? (
               <div className="space-y-1.5">
-                <label htmlFor="article-text-area" className={`text-[10px] font-bold uppercase tracking-wider ${
-                  highContrast ? 'text-white' : 'text-[#7c6950]'
-                }`}>Claim, Message or Investment Pitch</label>
+                <label htmlFor="article-text-area" className={`text-[10px] font-bold uppercase tracking-wider ${textLabelColor}`}>Claim, Message or Investment Pitch</label>
                 <textarea
                   id="article-text-area"
                   rows={6}
@@ -398,21 +439,21 @@ export default function Home() {
                   className={`w-full border rounded-xl p-4 placeholder-[#a89f91] focus:outline-none transition-all font-sans leading-relaxed text-sm resize-y ${
                     highContrast 
                       ? 'bg-black text-white border-white focus:border-white' 
-                      : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
+                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
                   }`}
                 />
                 <div className="flex justify-between items-center text-[10px] font-bold mt-1 px-1">
-                  <span className={highContrast ? 'text-white' : 'text-[#7c6950]'}>Character Count</span>
-                  <span className={articleText.length > 10000 ? "text-rose-500 font-extrabold animate-pulse" : (highContrast ? 'text-white' : 'text-[#7c6950]')}>
+                  <span className={textLabelColor}>Character Count</span>
+                  <span className={articleText.length > 10000 ? "text-rose-500 font-extrabold animate-pulse" : textLabelColor}>
                     {articleText.length.toLocaleString()} / 10,000 max limit
                   </span>
                 </div>
               </div>
             ) : (
               <div className="space-y-1.5">
-                <label htmlFor="article-url-input" className={`text-[10px] font-bold uppercase tracking-wider ${
-                  highContrast ? 'text-white' : 'text-[#7c6950]'
-                }`}>Article URL</label>
+                <label htmlFor="article-url-input" className={`text-[10px] font-bold uppercase tracking-wider ${textLabelColor}`}>Article URL</label>
                 <div className="relative">
                   <input
                     id="article-url-input"
@@ -423,7 +464,9 @@ export default function Home() {
                     className={`w-full border rounded-xl py-3.5 pl-4 pr-10 placeholder-[#a89f91] focus:outline-none transition-all text-sm ${
                       highContrast 
                         ? 'bg-black text-white border-white focus:border-white' 
-                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
+                          : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
                     }`}
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-700">
@@ -435,9 +478,7 @@ export default function Home() {
 
             {/* Presets Row */}
             <div className="space-y-1.5">
-              <span className={`text-[9px] font-bold uppercase tracking-wider block ${
-                highContrast ? 'text-white' : 'text-[#7c6950]'
-              }`}>Presets for Testing:</span>
+              <span className={`text-[9px] font-bold uppercase tracking-wider block ${textLabelColor}`}>Presets for Testing:</span>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -445,7 +486,9 @@ export default function Home() {
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                     highContrast 
                       ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                   }`}
                 >
                   🚌 Transit Subsidy Policy
@@ -456,7 +499,9 @@ export default function Home() {
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                     highContrast 
                       ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                   }`}
                 >
                   🏦 Bank Account Freeze SMS
@@ -467,7 +512,9 @@ export default function Home() {
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                     highContrast 
                       ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                   }`}
                 >
                   💼 Telegram Crypto Job Offer
@@ -480,8 +527,8 @@ export default function Home() {
               disabled={loading}
               className={`w-full py-3.5 px-6 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border ${
                 loading
-                  ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed')
-                  : (highContrast ? 'bg-white text-black border-white hover:bg-black hover:text-white' : 'bg-[#3c3020] hover:bg-[#2c2317] text-[#faf6ee] border-transparent active:scale-98')
+                  ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed' : sepiaMode ? 'bg-[#fcf8ef] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed')
+                  : (highContrast ? 'bg-white text-black border-white hover:bg-black hover:text-white' : sepiaMode ? 'bg-[#433422] hover:bg-[#342718] text-[#f4ecd8] border-transparent active:scale-98' : 'bg-[#3c3020] hover:bg-[#2c2317] text-[#faf6ee] border-transparent active:scale-98')
               }`}
             >
               {loading ? (
@@ -499,16 +546,14 @@ export default function Home() {
 
             {loading && loadingStep && (
               <div className="py-2.5 text-center">
-                <p className={`text-[11px] font-bold animate-pulse ${
-                  highContrast ? 'text-white' : 'text-[#7c6950]'
-                }`}>{loadingStep}</p>
+                <p className={`text-[11px] font-bold animate-pulse ${textLabelColor}`}>{loadingStep}</p>
               </div>
             )}
           </form>
 
           {error && (
             <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${
-              highContrast ? 'bg-black border-white text-white' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
+              highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
             }`}>
               <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
               <div>
@@ -533,15 +578,17 @@ export default function Home() {
             <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 ${
               highContrast 
                 ? 'bg-black border-white' 
-                : (isScam ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
+                : sepiaMode
+                  ? 'bg-[#fcf8ef] border-[#e4d4b5]'
+                  : (isScam ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
             }`}>
               
               {/* Header / Category Badge */}
               <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-                highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')
+                highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')
               }`}>
                 <h2 className={`text-lg font-bold tracking-tight leading-snug ${
-                  highContrast ? 'text-white' : (isScam ? 'text-rose-950' : 'text-[#2c2214]')
+                  highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : (isScam ? 'text-rose-950' : 'text-[#2c2214]')
                 }`}>
                   {result.summary.title}
                 </h2>
@@ -549,7 +596,9 @@ export default function Home() {
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${
                     highContrast 
                       ? 'bg-black text-white border-white' 
-                      : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
+                      : sepiaMode
+                        ? 'bg-[#f4ecd8] text-[#8c745a] border-[#e4d4b5]'
+                        : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
                   }`}>
                     <TrendingUp className="h-3 w-3" />
                     {result.summary.category}
@@ -560,7 +609,11 @@ export default function Home() {
               {/* Consensus Divergence Warnings Banner */}
               {result.verification.consensus_note && (
                 <div className={`p-4 border rounded-xl text-xs flex items-center gap-2.5 ${
-                  highContrast ? 'bg-black border-white text-white animate-pulse' : 'bg-amber-50 border-amber-200 text-amber-800'
+                  highContrast 
+                    ? 'bg-black border-white text-white animate-pulse' 
+                    : sepiaMode
+                      ? 'bg-[#ebdcb8]/20 border-[#e4d4b5] text-[#5a4834]'
+                      : 'bg-amber-50 border-amber-200 text-amber-800'
                 }`}>
                   <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
                   <span className="font-bold">{result.verification.consensus_note}</span>
@@ -571,17 +624,21 @@ export default function Home() {
               <div className={`p-5 rounded-xl border ${
                 highContrast 
                   ? 'border-2 border-white bg-black' 
-                  : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
+                  : sepiaMode
+                    ? 'border-[#e4d4b5] bg-[#faf6ee]/40'
+                    : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
               } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
                 
                 {/* Score Column */}
                 <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${
                   highContrast 
                     ? 'md:border-r-2 md:border-white' 
-                    : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
+                    : sepiaMode
+                      ? 'md:border-r border-[#e4d4b5]'
+                      : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
                 }`}>
                   <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : 'text-stone-550'
+                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-stone-555'
                   }`}>
                     {isScam ? 'Scam Risk' : 'Truth Score'}
                   </span>
@@ -597,7 +654,7 @@ export default function Home() {
                   {/* Gauge Severity Bar */}
                   <div className="w-28 mt-2.5 space-y-1">
                     <div className={`h-2 w-full rounded-full overflow-hidden border ${
-                      highContrast ? 'bg-zinc-900 border-white' : 'bg-stone-200/50 border-[#ebdcb8]/20'
+                      highContrast ? 'bg-zinc-900 border-white' : sepiaMode ? 'bg-[#dfd5bf] border-[#e4d4b5]/40' : 'bg-stone-200/50 border-[#ebdcb8]/20'
                     }`}>
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ${
@@ -611,7 +668,9 @@ export default function Home() {
                         style={{ width: `${scoreDisplay}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 text-[#8c7960] uppercase">
+                    <div className={`flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 uppercase ${
+                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'
+                    }`}>
                       <span>{isScam ? 'Safe' : 'Risk'}</span>
                       <span>50%</span>
                       <span>{isScam ? 'Risk' : 'Safe'}</span>
@@ -624,7 +683,7 @@ export default function Home() {
                   <div className="flex items-center gap-1.5">
                     <ShieldAlert className={`h-4 w-4 ${styles.text}`} />
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                      highContrast ? 'text-white' : 'text-stone-500'
+                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-stone-500'
                     }`}>
                       Consensus Credibility Audit
                     </span>
@@ -638,17 +697,19 @@ export default function Home() {
               {/* Key Summary points */}
               <div className="space-y-3.5">
                 <h3 className={`text-[10px] font-bold uppercase tracking-wider ${
-                  highContrast ? 'text-white' : 'text-[#7c6950]'
+                  highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'
                 }`}>Analyzed Details</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {result.summary.summary_points.map((point, idx) => (
                     <div key={idx} className={`flex items-start gap-3 p-4 border rounded-xl ${
                       highContrast 
                         ? 'bg-black border-white' 
-                        : (isScam ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
+                          : (isScam ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
                     }`}>
                       <span className={`text-sm font-semibold pt-0.5 shrink-0 ${
-                        highContrast ? 'text-white' : (isScam ? 'text-rose-600' : 'text-amber-800')
+                        highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-rose-600' : 'text-amber-800')
                       }`}>
                         0{idx + 1}.
                       </span>
@@ -662,14 +723,16 @@ export default function Home() {
               {isScam && result.verification.red_flags && result.verification.red_flags.length > 0 && (
                 <div className="space-y-2.5">
                   <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : 'text-rose-700'
+                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-rose-700'
                   }`}>Red Flags Detected</h4>
                   <div className="flex flex-wrap gap-2">
                     {result.verification.red_flags.map((flag, idx) => (
                       <span key={idx} className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
                         highContrast 
                           ? 'bg-black text-white border-white' 
-                          : 'bg-rose-50 border-rose-200 text-rose-800'
+                          : sepiaMode
+                            ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#8c745a]'
+                            : 'bg-rose-50 border-rose-200 text-rose-800'
                       }`}>
                         ⚠️ {flag}
                       </span>
@@ -682,14 +745,16 @@ export default function Home() {
               <div className={`border rounded-xl p-5 ${
                 highContrast 
                   ? 'bg-black border-2 border-white' 
-                  : (isScam ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
+                  : sepiaMode
+                    ? 'bg-[#fcf8ef] border-[#e4d4b5]'
+                    : (isScam ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`h-1.5 w-1.5 rounded-full ${
-                    highContrast ? 'bg-white' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
+                    highContrast ? 'bg-white' : sepiaMode ? 'bg-[#8c745a]' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
                   }`} />
                   <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : (isScam ? 'text-rose-700' : 'text-amber-800')
+                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-rose-700' : 'text-amber-800')
                   }`}>
                     {isScam ? 'Financial Risk / Threat Assessment' : 'Citizen Impact'}
                   </h4>
@@ -704,14 +769,16 @@ export default function Home() {
                 <div className={`border rounded-xl p-5 ${
                   highContrast 
                     ? 'bg-black border-2 border-white' 
-                    : (isScam ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
+                    : sepiaMode
+                      ? 'border-[#e4d4b5] bg-[#faf6ee]/30'
+                      : (isScam ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
                 }`}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`h-1.5 w-1.5 rounded-full ${
-                      highContrast ? 'bg-white' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
+                      highContrast ? 'bg-white' : sepiaMode ? 'bg-[#8c745a]' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
                     }`} />
                     <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                      highContrast ? 'text-white' : (isScam ? 'text-amber-700' : 'text-stone-600')
+                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-amber-700' : 'text-stone-600')
                     }`}>
                       {isScam ? 'Actionable Precautionary Advice' : 'Actionable Civic Guidance'}
                     </h4>
@@ -723,13 +790,15 @@ export default function Home() {
               )}
 
               {/* Audit / Gonka Proof Footer */}
-              <div className={`border-t pt-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
+              <div className={`border-t pt-4 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
                 <button
                   onClick={() => setShowAudit(!showAudit)}
-                  className="w-full flex items-center justify-between text-[11px] font-semibold text-[#7c6950] hover:text-[#3c3020] transition-colors py-2 cursor-pointer"
+                  className={`w-full flex items-center justify-between text-[11px] font-semibold transition-colors py-2 cursor-pointer ${
+                    highContrast ? 'text-white hover:text-stone-200' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#3c3020]'
+                  }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
+                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
                     Gonka Proof of Execution (Request Audit)
                   </span>
                   {showAudit ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -737,13 +806,17 @@ export default function Home() {
 
                 {showAudit && (
                   <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${
-                    highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
+                    highContrast 
+                      ? 'bg-black border-white text-white' 
+                      : sepiaMode
+                        ? 'bg-[#fdfbf7] border-[#e4d4b5] text-[#5a4834]'
+                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
                   }`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Model 1 Column */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
+                          <span className={`font-bold block ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
                             result.model1UsedFallback
                               ? 'bg-orange-100 text-orange-850 border border-orange-350'
@@ -752,9 +825,13 @@ export default function Home() {
                             {result.model1UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
+                        <span className={`block text-[9px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
                         <div className={`p-2.5 rounded border select-all break-all ${
-                          highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
+                          highContrast 
+                            ? 'bg-black border-white text-white' 
+                            : sepiaMode
+                              ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
+                              : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
                           <span className={!result.model1IdVerified ? 'text-rose-600 font-bold' : ''}>
@@ -765,8 +842,8 @@ export default function Home() {
                           )}
                         </div>
                         {result.model1DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
-                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
+                          <div className={`text-[9px] flex flex-wrap gap-1 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>
+                            <span className={`font-semibold ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Serving Node:</span>
                             <span className="font-bold select-all">{result.model1DevshardId}</span>
                           </div>
                         )}
@@ -775,7 +852,7 @@ export default function Home() {
                       {/* Model 2 Column */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
+                          <span className={`font-bold block ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
                             result.model2UsedFallback
                               ? 'bg-orange-100 text-orange-850 border border-orange-350'
@@ -784,9 +861,13 @@ export default function Home() {
                             {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
+                        <span className={`block text-[9px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
                         <div className={`p-2.5 rounded border select-all break-all ${
-                          highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
+                          highContrast 
+                            ? 'bg-black border-white text-white' 
+                            : sepiaMode
+                              ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
+                              : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
                           <span className={!result.model2IdVerified ? 'text-rose-600 font-bold' : ''}>
@@ -797,8 +878,8 @@ export default function Home() {
                           )}
                         </div>
                         {result.model2DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
-                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
+                          <div className={`text-[9px] flex flex-wrap gap-1 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>
+                            <span className={`font-semibold ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Serving Node:</span>
                             <span className="font-bold select-all">{result.model2DevshardId}</span>
                           </div>
                         )}
@@ -806,7 +887,7 @@ export default function Home() {
                     </div>
                     
                     <div className={`pt-2 border-t text-[9px] flex items-center justify-between ${
-                      highContrast ? 'border-white text-white' : 'border-[#ebdcb8] text-[#8c7960]'
+                      highContrast ? 'border-white text-white' : sepiaMode ? 'border-[#e4d4b5] text-[#8c745a]' : 'border-[#ebdcb8] text-[#8c7960]'
                     }`}>
                       <span>Base API: https://api.gonkarouter.io/v1</span>
                       <a 
@@ -814,7 +895,7 @@ export default function Home() {
                         target="_blank" 
                         rel="noopener noreferrer" 
                         className={`flex items-center gap-1 ${
-                          highContrast ? 'text-white underline' : 'text-amber-800 hover:text-amber-900'
+                          highContrast ? 'text-white underline' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422] underline' : 'text-amber-800 hover:text-amber-900'
                         }`}
                       >
                         gonkarouter.io <ExternalLink className="h-2.5 w-2.5" />
@@ -829,10 +910,12 @@ export default function Home() {
         })()}
 
         {/* Collapsible Connection Diagnostic (Developer/Judge Verification Tool) */}
-        <div className="pt-4 border-t border-[#ebdcb8]/45">
+        <div className={`pt-4 border-t ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#ebdcb8]/45'}`}>
           <button
             onClick={() => setShowDevTest(!showDevTest)}
-            className="flex items-center gap-1.5 text-[10px] font-bold text-[#7c6950] hover:text-[#2c2214] transition-colors cursor-pointer"
+            className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors cursor-pointer ${
+              highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#2c2214]'
+            }`}
           >
             <Info className="h-3 w-3" />
             {showDevTest ? 'Hide Connection Test' : 'Run Gonka Gateway Connection Test'}
@@ -840,17 +923,17 @@ export default function Home() {
           
           {showDevTest && (
             <div className={`mt-3 border rounded-xl p-5 space-y-4 animate-in slide-in-from-top-2 duration-200 ${
-              highContrast ? 'bg-black border-white' : 'bg-[#fcfbfa] border-[#ebdcb8] shadow-sm'
+              highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#fcf8ef] border-[#e4d4b5]' : 'bg-[#fcfbfa] border-[#ebdcb8] shadow-sm'
             }`}>
               <div className={`flex items-center justify-between border-b pb-3 ${
-                highContrast ? 'border-white' : 'border-[#e6decb]'
+                highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
               }`}>
                 <div>
                   <h3 className="font-bold text-xs flex items-center gap-1.5">
-                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
+                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
                     Gonka Router Connection
                   </h3>
-                  <p className={`text-[11px] ${highContrast ? 'text-white' : 'text-[#7c6950]'}`}>Validation for direct endpoint authentication.</p>
+                  <p className={`text-[11px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>Validation for direct endpoint authentication.</p>
                 </div>
                 <button
                   onClick={handleVerifyGonka}
@@ -858,7 +941,9 @@ export default function Home() {
                   className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer ${
                     highContrast 
                       ? 'bg-black text-white border-white hover:bg-zinc-900' 
-                      : 'bg-[#3c3020] text-[#faf6ee] border-[#3c3020] hover:bg-[#2c2317]'
+                      : sepiaMode
+                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                        : 'bg-[#3c3020] text-[#faf6ee] border-[#3c3020] hover:bg-[#2c2317]'
                   }`}
                 >
                   {devLoading ? <RefreshCw className="h-3 w-3 animate-spin" /> : 'Run Test'}
@@ -869,19 +954,19 @@ export default function Home() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                   {devResult.error ? (
                     <div className={`col-span-2 p-3 border rounded-lg ${
-                      highContrast ? 'bg-black border-white text-white' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
+                      highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
                     }`}>
                       <span className="font-bold">Error:</span> {devResult.error}
                     </div>
                   ) : (
                     <>
-                      <div className={`p-3 rounded-lg border ${highContrast ? 'bg-black border-white' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
-                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : 'text-[#7c6950]'}`}>Response:</span>
+                      <div className={`p-3 rounded-lg border ${highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#faf6ee]/70 border-[#e4d4b5]' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
+                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>Response:</span>
                         <p className={highContrast ? 'text-white' : 'text-[#3c3020]'}>{devResult.text}</p>
                       </div>
-                      <div className={`p-2.5 rounded-lg border ${highContrast ? 'bg-black border-white' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
-                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : 'text-[#7c6950]'}`}>Request ID:</span>
-                        <p className={highContrast ? 'text-white' : 'text-amber-850 font-bold break-all select-all'}>{devResult.requestId}</p>
+                      <div className={`p-2.5 rounded-lg border ${highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#faf6ee]/70 border-[#e4d4b5]' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
+                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>Request ID:</span>
+                        <p className={highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] font-bold break-all select-all' : 'text-amber-850 font-bold break-all select-all'}>{devResult.requestId}</p>
                       </div>
                     </>
                   )}
