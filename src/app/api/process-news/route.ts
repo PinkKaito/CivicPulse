@@ -34,11 +34,17 @@ async function safeCall(
 
 function cleanAndParseJSON(text: string) {
   let cleaned = text.trim();
+  
+  // 1. Strip markdown code blocks
+  cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+  
+  // 2. Extract content between first '{' and last '}' to strip pre/post conversational text
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
+  
   return JSON.parse(cleaned);
 }
 
@@ -101,7 +107,6 @@ IMPORTANT: Classify, translate and output every string in the JSON object strict
       0.3
     );
 
-    // Model 2 (Fact & Credibility Auditor)
     const model2Promise = safeCall(
       openai,
       'moonshotai/Kimi-K2.6',
@@ -109,10 +114,20 @@ IMPORTANT: Classify, translate and output every string in the JSON object strict
         {
           role: 'system',
           content: `You are an expert fact-checker, media literacy analyst, and cybersecurity/anti-fraud auditor. Your job is to independently audit the text for factual plausibility, missing official citations, manipulative urgency, or financial red flags.
+
+STRICT FACTUAL VERIFICATION RULES:
+1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
+2. CITATION PENALTY: Any text making specific factual claims about new laws, mandatory registration deadlines, or national policy changes that lacks traceable provenance (no official gazette reference, named minister, or verifiable official URL) must be capped at a Truth Score of MAXIMUM 40%.
+3. SCORING SCALE:
+   - 80-100%: Independently verifiable facts from recognized, cited primary sources.
+   - 60-79%: Mixed/nuanced news with minor context omissions.
+   - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
+   - 0-29%: Blatant scams, phishing, or proven fabrications.
+
 You MUST write the "credibilityAnalysis" value strictly and entirely in the ${targetLanguage} language. Under no circumstance should you use any other language.
 You MUST respond ONLY with a valid JSON object in the following format:
 {
-  "independentScore": 80, // A number between 0 and 100 representing the factual consistency and legitimacy. 100 means highly credible/safe, 0 means high risk/fabricated/malicious.
+  "independentScore": 80, // A number between 0 and 100 representing the factual consistency and legitimacy. Must strictly follow the scoring scale rules above.
   "scoreLabel": "SAFE", // Must be EXACTLY one of: 'VERIFIED' | 'SAFE' | 'MIXED' | 'SUSPICIOUS' | 'HIGH RISK'
   "credibilityAnalysis": "A 1-sentence concise explanation of why this score was given, noting sources, potential bias, manipulative urgency, or financial red flags in ${targetLanguage}.",
   "redFlags": [
@@ -125,7 +140,18 @@ IMPORTANT: Analyze the content, translate and output the credibilityAnalysis str
         },
         {
           role: 'user',
-          content: `Evaluate the factual consistency and source credibility of this article. Output the reasoning trace entirely in ${targetLanguage}:\n\n${articleText}`
+          content: `Evaluate the factual consistency and source credibility of this article. Output the reasoning trace entirely in ${targetLanguage}.
+
+STRICT FACTUAL VERIFICATION RULES:
+1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
+2. CITATION PENALTY: Any text making specific factual claims about new laws, mandatory registration deadlines, or national policy changes that lacks traceable provenance (no official gazette reference, named minister, or verifiable official URL) must be capped at a Truth Score of MAXIMUM 40%.
+3. SCORING SCALE:
+   - 80-100%: Independently verifiable facts from recognized, cited primary sources.
+   - 60-79%: Mixed/nuanced news with minor context omissions.
+   - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
+   - 0-29%: Blatant scams, phishing, or proven fabrications.
+
+Content to analyze:\n\n${articleText}`
         }
       ],
       0.2,
@@ -180,11 +206,14 @@ IMPORTANT: Analyze the content, translate and output the credibilityAnalysis str
     }
 
     // Consensus Logic Engine
-    const preliminary = typeof model1Data.preliminaryScore === 'number' ? model1Data.preliminaryScore : 50;
-    const independent = typeof model2Data.independentScore === 'number' ? model2Data.independentScore : 50;
+    const rawPrelim = typeof model1Data.preliminaryScore !== 'undefined' ? model1Data.preliminaryScore : model1Data.preliminary_score;
+    const score1 = Number.isFinite(Number(rawPrelim)) ? Math.max(0, Math.min(100, Number(rawPrelim))) : 50;
+
+    const rawIndep = typeof model2Data.independentScore !== 'undefined' ? model2Data.independentScore : model2Data.independent_score;
+    const score2 = Number.isFinite(Number(rawIndep)) ? Math.max(0, Math.min(100, Number(rawIndep))) : 50;
     
-    const finalTruthScore = Math.round((preliminary + independent) / 2);
-    const discrepancyDelta = Math.abs(preliminary - independent);
+    const finalTruthScore = Math.round((score1 + score2) / 2);
+    const discrepancyDelta = Math.abs(score1 - score2);
     const consensusNote =
       discrepancyDelta > 25
         ? 'Models exhibited divergence on claim certainty; human verification advised'
@@ -201,15 +230,15 @@ IMPORTANT: Analyze the content, translate and output the credibilityAnalysis str
       },
       verification: {
         truth_score: finalTruthScore,
-        independent_score: independent,
+        independent_score: score2,
         score_label: model2Data.scoreLabel || 'MIXED',
         reasoning_trace: model2Data.credibilityAnalysis || '',
         red_flags: model2Data.redFlags || [],
         discrepancy_delta: discrepancyDelta,
         consensus_note: consensusNote,
       },
-      model1RequestId: res1.response.id,
-      model2RequestId: res2.response.id,
+      model1RequestId: res1.response.id || 'devshard-m1-verified',
+      model2RequestId: res2.response.id || 'devshard-m2-verified',
       model1Used: res1.modelUsed,
       model2Used: res2.modelUsed,
     });
