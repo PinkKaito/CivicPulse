@@ -58,7 +58,7 @@ export default function Home() {
   // Accessibility States
   const [fontSizePercent, setFontSizePercent] = useState<number>(100);
   const [highContrast, setHighContrast] = useState<boolean>(false);
-  const [sepiaMode, setSepiaMode] = useState<boolean>(false);
+  const [sepiaMode, setSepiaMode] = useState<boolean>(true);
 
   // Dynamic theme class style tokens
   const textLabelColor = highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]';
@@ -253,14 +253,14 @@ export default function Home() {
                   ? 'bg-[#f4ecd8] border-[#e4d4b5]'
                   : 'bg-[#faf6ee] border-[#ebdcb8]'
             }`}>
-              <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
+              <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
             </div>
             <div>
               <span className={`font-bold text-lg tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
                 CivicPulse
               </span>
               <span className={`text-[9px] block font-semibold tracking-wider uppercase ml-0.5 ${
-                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'
+                highContrast ? 'text-white' : 'text-amber-700'
               }`}>
                 Consensus Truth Engine
               </span>
@@ -385,7 +385,7 @@ export default function Home() {
 
             {/* Language Selector */}
             <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-              <Globe className={`h-3.5 w-3.5 shrink-0 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
+              <Globe className={`h-3.5 w-3.5 shrink-0 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
               <label htmlFor="language-select" className={`text-xs font-semibold whitespace-nowrap ${textLabelColor}`}>Translate To:</label>
               <div className="flex gap-2 w-full sm:w-auto">
                 <select
@@ -524,10 +524,10 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (activeTab === 'text' ? !articleText.trim() : !newsUrl.trim())}
               className={`w-full py-3.5 px-6 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border ${
-                loading
-                  ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed' : sepiaMode ? 'bg-[#fcf8ef] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed')
+                (loading || (activeTab === 'text' ? !articleText.trim() : !newsUrl.trim()))
+                  ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed opacity-50' : sepiaMode ? 'bg-[#fcf8ef] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60')
                   : (highContrast ? 'bg-white text-black border-white hover:bg-black hover:text-white' : sepiaMode ? 'bg-[#433422] hover:bg-[#342718] text-[#f4ecd8] border-transparent active:scale-98' : 'bg-[#3c3020] hover:bg-[#2c2317] text-[#faf6ee] border-transparent active:scale-98')
               }`}
             >
@@ -798,7 +798,7 @@ export default function Home() {
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
+                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
                     Gonka Proof of Execution (Request Audit)
                   </span>
                   {showAudit ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -834,11 +834,20 @@ export default function Home() {
                               : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
-                          <span className={!result.model1IdVerified ? 'text-rose-600 font-bold' : ''}>
-                            {result.model1RequestId}
-                          </span>
-                          {!result.model1IdVerified && (
-                            <span className="ml-1.5 text-[8px] font-bold bg-rose-100 text-rose-800 px-1 rounded">UNVERIFIED</span>
+                          {result.model1RequestId === 'unavailable' ? (
+                            <span className="text-rose-600 font-bold">unavailable</span>
+                          ) : (
+                            <a 
+                              href={`https://api.gonkarouter.io/v1/receipts/${result.model1RequestId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${
+                                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-850'
+                              }`}
+                            >
+                              {result.model1RequestId}
+                              <ExternalLink className="h-2 w-2 shrink-0" />
+                            </a>
                           )}
                         </div>
                         {result.model1DevshardId && (
@@ -870,11 +879,20 @@ export default function Home() {
                               : 'bg-white border-[#ebdcb8] text-[#3c3020]'
                         }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
-                          <span className={!result.model2IdVerified ? 'text-rose-600 font-bold' : ''}>
-                            {result.model2RequestId}
-                          </span>
-                          {!result.model2IdVerified && (
-                            <span className="ml-1.5 text-[8px] font-bold bg-rose-100 text-rose-800 px-1 rounded">UNVERIFIED</span>
+                          {result.model2RequestId === 'unavailable' ? (
+                            <span className="text-rose-600 font-bold">unavailable</span>
+                          ) : (
+                            <a 
+                              href={`https://api.gonkarouter.io/v1/receipts/${result.model2RequestId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${
+                                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-850'
+                              }`}
+                            >
+                              {result.model2RequestId}
+                              <ExternalLink className="h-2 w-2 shrink-0" />
+                            </a>
                           )}
                         </div>
                         {result.model2DevshardId && (
@@ -930,7 +948,7 @@ export default function Home() {
               }`}>
                 <div>
                   <h3 className="font-bold text-xs flex items-center gap-1.5">
-                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-700'}`} />
+                    <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
                     Gonka Router Connection
                   </h3>
                   <p className={`text-[11px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>Validation for direct endpoint authentication.</p>
