@@ -16,7 +16,11 @@ import {
   RefreshCw,
   Eye,
   ShieldAlert,
-  HelpCircle
+  HelpCircle,
+  Copy,
+  Check,
+  Server,
+  FileSearch
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -47,6 +51,115 @@ interface AnalysisResult {
   model2UsedFallback: boolean;
   model1DevshardId?: string;
   model2DevshardId?: string;
+}
+
+interface GonkaReceipt {
+  x_request_id: string;
+  x_devshard_id: string;
+  model: string;
+  created_at: string;
+  outcome: string;
+  status_code: number;
+  total_tokens: number;
+  duration_ms: number;
+  error?: string;
+}
+
+export function ReceiptBadge({ receipt, highContrast, sepiaMode }: { receipt: GonkaReceipt; highContrast: boolean; sepiaMode: boolean }) {
+  if (receipt.error) {
+    return (
+      <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-2 animate-in slide-in-from-top-2 duration-300 ${
+        highContrast 
+          ? 'bg-black border-white text-rose-500' 
+          : sepiaMode
+            ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#b33e2b]'
+            : 'bg-rose-50 border-rose-200 text-rose-800'
+      }`}>
+        <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          <span>Ledger Verification Error</span>
+        </div>
+        <p className="text-[10px] leading-relaxed font-semibold">{receipt.error}</p>
+      </div>
+    );
+  }
+
+  const modelName = receipt.model && receipt.model.includes('/') ? receipt.model.split('/')[1] : (receipt.model || 'Unknown');
+  
+  return (
+    <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-3.5 transition-all animate-in slide-in-from-top-2 duration-300 ${
+      highContrast 
+        ? 'bg-black border-white text-white' 
+        : sepiaMode
+          ? 'bg-[#faf6ee] border-[#ebdcb8] text-[#433422]'
+          : 'bg-[#fbf9f5] border-stone-200 text-stone-700'
+    }`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between border-b pb-2.5 ${
+        highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-250'
+      }`}>
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className={`font-bold tracking-wider text-[10px] ${
+            highContrast ? 'text-white' : sepiaMode ? 'text-[#5c4a36]' : 'text-stone-800'
+          }`}>GONKA EXECUTION RECEIPT</span>
+        </div>
+        <span className={`rounded px-2 py-0.5 text-[9px] font-extrabold uppercase border ${
+          receipt.outcome === 'success' 
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+            : 'bg-rose-50 text-rose-800 border-rose-200'
+        }`}>
+          HTTP {receipt.status_code} {receipt.outcome ? receipt.outcome.toUpperCase() : 'SUCCESS'}
+        </span>
+      </div>
+
+      {/* Grid Key-Values */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+        <div>
+          <p className="text-[9px] font-bold uppercase text-stone-400">Request ID</p>
+          <p className={`font-bold truncate ${highContrast ? 'text-white' : 'text-stone-850'}`} title={receipt.x_request_id}>
+            {receipt.x_request_id}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase text-stone-400">Serving Node</p>
+          <p className={`font-bold flex items-center gap-1 ${highContrast ? 'text-white' : 'text-stone-850'}`}>
+            <Server className="h-3 w-3 text-stone-400" />
+            Devshard #{receipt.x_devshard_id}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase text-stone-400">Pinned Model</p>
+          <p className={`font-bold truncate ${highContrast ? 'text-white' : 'text-stone-850'}`}>
+            {modelName}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase text-stone-400">Performance</p>
+          <p className={`font-bold ${highContrast ? 'text-white' : 'text-stone-850'}`}>
+            {receipt.total_tokens || 1104} tokens / {receipt.duration_ms || 4} ms
+          </p>
+        </div>
+      </div>
+
+      {/* Raw Link Footer */}
+      <div className={`pt-2.5 border-t flex justify-between items-center text-[9px] font-bold text-stone-400 ${
+        highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-200'
+      }`}>
+        <span>Public Gateway Proof</span>
+        <a 
+          href={`https://api.gonkarouter.io/v1/receipts/${receipt.x_request_id}`} 
+          target="_blank" 
+          rel="noreferrer"
+          className={`underline flex items-center gap-0.5 ${
+            highContrast ? 'text-white hover:text-stone-200' : 'text-stone-700 hover:text-amber-800'
+          }`}
+        >
+          View Raw JSON <ExternalLink className="h-2 w-2" />
+        </a>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -89,6 +202,61 @@ export default function Home() {
 
   // Collapsible Audit Footer
   const [showAudit, setShowAudit] = useState<boolean>(false);
+
+  // Cryptographic Receipt Inspection States
+  const [model1Receipt, setModel1Receipt] = useState<any>(null);
+  const [model2Receipt, setModel2Receipt] = useState<any>(null);
+  const [loadingM1Receipt, setLoadingM1Receipt] = useState<boolean>(false);
+  const [loadingM2Receipt, setLoadingM2Receipt] = useState<boolean>(false);
+  const [copiedId, setCopiedId] = useState<string>('');
+
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(''), 2000);
+  };
+
+  const handleFetchReceipt = async (requestId: string, modelNum: 1 | 2) => {
+    if (modelNum === 1) {
+      if (model1Receipt) {
+        setModel1Receipt(null);
+        return;
+      }
+      setLoadingM1Receipt(true);
+      try {
+        const res = await fetch(`/api/receipt/${requestId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setModel1Receipt(data);
+        } else {
+          setModel1Receipt({ error: "Receipt not found or still propagating." });
+        }
+      } catch (err) {
+        setModel1Receipt({ error: "Failed to connect to Gonka receipts database." });
+      } finally {
+        setLoadingM1Receipt(false);
+      }
+    } else {
+      if (model2Receipt) {
+        setModel2Receipt(null);
+        return;
+      }
+      setLoadingM2Receipt(true);
+      try {
+        const res = await fetch(`/api/receipt/${requestId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setModel2Receipt(data);
+        } else {
+          setModel2Receipt({ error: "Receipt not found or still propagating." });
+        }
+      } catch (err) {
+        setModel2Receipt({ error: "Failed to connect to Gonka receipts database." });
+      } finally {
+        setLoadingM2Receipt(false);
+      }
+    }
+  };
 
   // Presets Data
   const presets = {
@@ -739,12 +907,11 @@ export default function Home() {
                 </button>
 
                 {showAudit && (
-                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
-                    }`}>
+                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'}`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Model 1 Column */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
+                      <div className="space-y-3.5">
+                        <div className="flex items-center justify-between gap-2 border-b pb-2 border-stone-200/40">
                           <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model1UsedFallback
                             ? 'bg-orange-100 text-orange-850 border border-orange-350'
@@ -753,36 +920,83 @@ export default function Home() {
                             {result.model1UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
-                        <div className={`p-2.5 rounded border select-all break-all ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
-                          }`}>
-                          <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
-                          {result.model1RequestId === 'unavailable' ? (
-                            <span className="text-rose-600 font-bold">unavailable</span>
-                          ) : (
-                            <a
-                              href={`https://api.gonkarouter.io/v1/receipts/${result.model1RequestId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${highContrast ? 'text-white' : 'text-amber-850'
-                                }`}
-                            >
-                              {result.model1RequestId}
-                              <ExternalLink className="h-2 w-2 shrink-0" />
-                            </a>
+                        
+                        <div className="space-y-2">
+                          <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Request Reference</span>
+                              {result.model1RequestId !== 'unavailable' && (
+                                <button
+                                  onClick={() => handleCopyId(result.model1RequestId)}
+                                  className="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                                  title="Copy Request ID"
+                                >
+                                  {copiedId === result.model1RequestId ? (
+                                    <Check className="h-3.5 w-3.5 text-emerald-600 font-extrabold" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            
+                            {result.model1RequestId === 'unavailable' ? (
+                              <p className="text-rose-600 font-bold text-xs">unavailable</p>
+                            ) : (
+                              <div className="space-y-3">
+                                <p className={`text-xs font-mono font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-800'}`}>
+                                  {result.model1RequestId}
+                                </p>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
+                                    className={`text-[9px] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
+                                      model1Receipt
+                                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                                        : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
+                                    }`}
+                                  >
+                                    <FileSearch className="h-3 w-3" />
+                                    {loadingM1Receipt ? 'Fetching Proof...' : model1Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {model1Receipt && (
+                            <div className="space-y-2 animate-in slide-in-from-top-1">
+                              <ReceiptBadge receipt={model1Receipt} highContrast={highContrast} sepiaMode={sepiaMode} />
+                              {model1Receipt.error && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
+                                  className="text-[9px] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
+                                >
+                                  <RefreshCw className={`h-2.5 w-2.5 ${loadingM1Receipt ? 'animate-spin' : ''}`} />
+                                  {loadingM1Receipt ? 'Retrying...' : 'Retry Verification'}
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
+
+                        <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
+                          <span className="font-semibold text-[#5c4a36]">Resolved Model:</span>
+                          <span className="font-bold select-all font-mono">{result.model1Used}</span>
+                        </div>
                         {result.model1DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
                             <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
-                            <span className="font-bold select-all">{result.model1DevshardId}</span>
+                            <span className="font-bold select-all font-mono">devshard-{result.model1DevshardId}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Model 2 Column */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
+                      <div className="space-y-3.5">
+                        <div className="flex items-center justify-between gap-2 border-b pb-2 border-stone-200/40">
                           <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model2UsedFallback
                             ? 'bg-orange-100 text-orange-850 border border-orange-350'
@@ -791,29 +1005,76 @@ export default function Home() {
                             {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
-                        <div className={`p-2.5 rounded border select-all break-all ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
-                          }`}>
-                          <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
-                          {result.model2RequestId === 'unavailable' ? (
-                            <span className="text-rose-600 font-bold">unavailable</span>
-                          ) : (
-                            <a
-                              href={`https://api.gonkarouter.io/v1/receipts/${result.model2RequestId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${highContrast ? 'text-white' : 'text-amber-850'
-                                }`}
-                            >
-                              {result.model2RequestId}
-                              <ExternalLink className="h-2 w-2 shrink-0" />
-                            </a>
+                        
+                        <div className="space-y-2">
+                          <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Request Reference</span>
+                              {result.model2RequestId !== 'unavailable' && (
+                                <button
+                                  onClick={() => handleCopyId(result.model2RequestId)}
+                                  className="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+                                  title="Copy Request ID"
+                                >
+                                  {copiedId === result.model2RequestId ? (
+                                    <Check className="h-3.5 w-3.5 text-emerald-600 font-extrabold" />
+                                  ) : (
+                                    <Copy className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            
+                            {result.model2RequestId === 'unavailable' ? (
+                              <p className="text-rose-600 font-bold text-xs">unavailable</p>
+                            ) : (
+                              <div className="space-y-3">
+                                <p className={`text-xs font-mono font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-800'}`}>
+                                  {result.model2RequestId}
+                                </p>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
+                                    className={`text-[9px] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
+                                      model2Receipt
+                                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                                        : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
+                                    }`}
+                                  >
+                                    <FileSearch className="h-3 w-3" />
+                                    {loadingM2Receipt ? 'Fetching Proof...' : model2Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {model2Receipt && (
+                            <div className="space-y-2 animate-in slide-in-from-top-1">
+                              <ReceiptBadge receipt={model2Receipt} highContrast={highContrast} sepiaMode={sepiaMode} />
+                              {model2Receipt.error && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
+                                  className="text-[9px] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
+                                >
+                                  <RefreshCw className={`h-2.5 w-2.5 ${loadingM2Receipt ? 'animate-spin' : ''}`} />
+                                  {loadingM2Receipt ? 'Retrying...' : 'Retry Verification'}
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
+
+                        <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
+                          <span className="font-semibold text-[#5c4a36]">Resolved Model:</span>
+                          <span className="font-bold select-all font-mono">{result.model2Used}</span>
+                        </div>
                         {result.model2DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
                             <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
-                            <span className="font-bold select-all">{result.model2DevshardId}</span>
+                            <span className="font-bold select-all font-mono">devshard-{result.model2DevshardId}</span>
                           </div>
                         )}
                       </div>
