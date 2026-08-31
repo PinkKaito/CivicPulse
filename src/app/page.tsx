@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  FileText, 
-  Link as LinkIcon, 
-  Globe, 
-  ChevronDown, 
-  ChevronUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  TrendingUp, 
-  Sparkles, 
+import {
+  FileText,
+  Link as LinkIcon,
+  Globe,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  Sparkles,
   Info,
   ExternalLink,
   RefreshCw,
@@ -54,7 +54,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'text' | 'url'>('text');
   const [language, setLanguage] = useState<string>('English');
   const [customLanguage, setCustomLanguage] = useState<string>('');
-  
+
   // Accessibility States
   const [fontSizePercent, setFontSizePercent] = useState<number>(100);
   const [highContrast, setHighContrast] = useState<boolean>(false);
@@ -75,13 +75,13 @@ export default function Home() {
   // Inputs
   const [articleText, setArticleText] = useState<string>('');
   const [newsUrl, setNewsUrl] = useState<string>('');
-  
+
   // States
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  
+
   // Dev Gonka Test Section Collapse
   const [showDevTest, setShowDevTest] = useState<boolean>(false);
   const [devLoading, setDevLoading] = useState<boolean>(false);
@@ -149,7 +149,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
-    
+
     try {
       let textToProcess = articleText;
 
@@ -159,13 +159,13 @@ export default function Home() {
           throw new Error('Please enter a valid News URL.');
         }
         setLoadingStep('Ingesting news article and extracting clean text...');
-        
+
         const parseRes = await fetch('/api/parse-news', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: newsUrl }),
         });
-        
+
         const parseData = await parseRes.json();
         if (!parseRes.ok || parseData.error) {
           throw new Error(parseData.error || 'Failed to parse news webpage.');
@@ -209,9 +209,9 @@ export default function Home() {
   // Helper to dynamically style truth/scam score components
   const getTruthScoreStyles = (score: number, isScam: boolean) => {
     if (highContrast) {
-      return { 
-        text: 'text-white font-black', 
-        badge: 'bg-black text-white border-2 border-white' 
+      return {
+        text: 'text-white font-black',
+        badge: 'bg-black text-white border-2 border-white'
       };
     }
     if (isScam) {
@@ -228,40 +228,36 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-150 ${
-      highContrast 
-        ? 'bg-black text-white selection:bg-white selection:text-black' 
-        : sepiaMode
-          ? 'bg-[#f4ecd8] text-[#433422] selection:bg-[#dfd0b0] selection:text-[#433422]'
-          : 'bg-[#faf6ee] text-[#2c2214] selection:bg-[#eddcb8] selection:text-[#2c2214]'
-    }`}>
-      
-      {/* Header */}
-      <header className={`border-b sticky top-0 z-50 transition-colors ${
-        highContrast 
-          ? 'border-white bg-black' 
-          : sepiaMode
-            ? 'border-[#e4d4b5] bg-[#f4ecd8]/95 backdrop-blur-md'
-            : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-150 ${highContrast
+      ? 'bg-black text-white selection:bg-white selection:text-black'
+      : sepiaMode
+        ? 'bg-[#f4ecd8] text-[#433422] selection:bg-[#dfd0b0] selection:text-[#433422]'
+        : 'bg-[#faf6ee] text-[#2c2214] selection:bg-[#eddcb8] selection:text-[#2c2214]'
       }`}>
+
+      {/* Header */}
+      <header className={`border-b sticky top-0 z-50 transition-colors ${highContrast
+        ? 'border-white bg-black'
+        : sepiaMode
+          ? 'border-[#e4d4b5] bg-[#f4ecd8]/95 backdrop-blur-md'
+          : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
+        }`}>
         <div className="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className={`h-8 w-8 rounded-lg flex items-center justify-center border ${
-              highContrast 
-                ? 'bg-black border-white' 
-                : sepiaMode
-                  ? 'bg-[#f4ecd8] border-[#e4d4b5]'
-                  : 'bg-[#faf6ee] border-[#ebdcb8]'
-            }`}>
+            <div className={`h-8 w-8 rounded-lg flex items-center justify-center border ${highContrast
+              ? 'bg-black border-white'
+              : sepiaMode
+                ? 'bg-[#f4ecd8] border-[#e4d4b5]'
+                : 'bg-[#faf6ee] border-[#ebdcb8]'
+              }`}>
               <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
             </div>
             <div>
               <span className={`font-bold text-lg tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
                 CivicPulse
               </span>
-              <span className={`text-[9px] block font-semibold tracking-wider uppercase ml-0.5 ${
-                highContrast ? 'text-white' : 'text-amber-700'
-              }`}>
+              <span className={`text-[9px] block font-semibold tracking-wider uppercase ml-0.5 ${highContrast ? 'text-white' : 'text-amber-700'
+                }`}>
                 Consensus Truth Engine
               </span>
             </div>
@@ -269,41 +265,37 @@ export default function Home() {
 
           {/* Accessibility & Developer Controls */}
           <div className="flex flex-wrap items-center gap-4">
-            
+
             {/* Font Size Adjusters */}
-            <div className={`flex items-center gap-1.5 border-r pr-3 ${
-              highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
-            }`}>
-              <button 
-                onClick={handleDecreaseFont} 
+            <div className={`flex items-center gap-1.5 border-r pr-3 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
+              }`}>
+              <button
+                onClick={handleDecreaseFont}
                 disabled={fontSizePercent <= 80}
-                className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${
-                  highContrast 
-                    ? 'bg-black text-white border-white hover:bg-stone-900' 
-                    : sepiaMode
-                      ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                      : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
-                }`}
+                className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${highContrast
+                  ? 'bg-black text-white border-white hover:bg-stone-900'
+                  : sepiaMode
+                    ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                    : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                  }`}
                 title="Decrease font size (-10%)"
                 aria-label="Decrease font size"
               >
                 A-
               </button>
-              <span className={`text-[10px] font-bold px-1 ${
-                highContrast ? 'text-white' : sepiaMode ? 'text-[#7c6244]' : 'text-[#7c6950]'
-              }`}>
+              <span className={`text-[10px] font-bold px-1 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#7c6244]' : 'text-[#7c6950]'
+                }`}>
                 {fontSizePercent}%
               </span>
-              <button 
-                onClick={handleIncreaseFont} 
+              <button
+                onClick={handleIncreaseFont}
                 disabled={fontSizePercent >= 200}
-                className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${
-                  highContrast 
-                    ? 'bg-black text-white border-white hover:bg-[#222]' 
-                    : sepiaMode
-                      ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                      : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
-                }`}
+                className={`px-2.5 py-1 text-xs rounded border transition-all cursor-pointer font-bold disabled:opacity-40 disabled:cursor-not-allowed ${highContrast
+                  ? 'bg-black text-white border-white hover:bg-[#222]'
+                  : sepiaMode
+                    ? 'bg-transparent text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                    : 'bg-transparent text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                  }`}
                 title="Increase font size (+10%)"
                 aria-label="Increase font size"
               >
@@ -317,13 +309,12 @@ export default function Home() {
                 setSepiaMode(!sepiaMode);
                 setHighContrast(false);
               }}
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
-                sepiaMode
-                  ? 'bg-[#433422] text-[#f4ecd8] border-[#433422]'
-                  : highContrast
-                    ? 'bg-black text-white border-white'
-                    : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
-              }`}
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${sepiaMode
+                ? 'bg-[#433422] text-[#f4ecd8] border-[#433422]'
+                : highContrast
+                  ? 'bg-black text-white border-white'
+                  : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                }`}
               aria-label="Toggle Sepia Mode"
             >
               <Eye className="h-3.5 w-3.5" />
@@ -336,13 +327,12 @@ export default function Home() {
                 setHighContrast(!highContrast);
                 setSepiaMode(false);
               }}
-              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
-                highContrast 
-                  ? 'bg-white text-black border-white' 
-                  : sepiaMode
-                    ? 'bg-[#f4ecd8] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                    : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
-              }`}
+              className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${highContrast
+                ? 'bg-white text-black border-white'
+                : sepiaMode
+                  ? 'bg-[#f4ecd8] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                  : 'bg-[#faf6ee] text-[#5c4a36] border-[#e2d5bd] hover:bg-[#f6efe2]'
+                }`}
               aria-label="Toggle High Contrast Mode"
             >
               <Eye className="h-3.5 w-3.5" />
@@ -357,26 +347,24 @@ export default function Home() {
 
         {/* Search & Paste Inputs */}
         <section className={`border rounded-xl p-6 space-y-6 shadow-sm ${cardBgColor} ${borderColor}`}>
-          
+
           {/* Header tabs & Language Selection */}
           <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 ${borderLightColor}`}>
-            
+
             {/* Input Method Tabs */}
             <div className={`flex p-1 rounded-lg border w-full sm:w-auto ${inputBgColor} ${borderColor}`}>
               <button
                 onClick={() => { setActiveTab('text'); setError(null); }}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'text' ? tabButtonActiveColor : tabButtonInactiveColor
-                }`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${activeTab === 'text' ? tabButtonActiveColor : tabButtonInactiveColor
+                  }`}
               >
                 <FileText className="h-3.5 w-3.5" />
                 Paste Claim
               </button>
               <button
                 onClick={() => { setActiveTab('url'); setError(null); }}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                  activeTab === 'url' ? tabButtonActiveColor : tabButtonInactiveColor
-                }`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${activeTab === 'url' ? tabButtonActiveColor : tabButtonInactiveColor
+                  }`}
               >
                 <LinkIcon className="h-3.5 w-3.5" />
                 News Link
@@ -392,13 +380,12 @@ export default function Home() {
                   id="language-select"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all cursor-pointer w-full sm:w-auto ${
-                    highContrast 
-                      ? 'bg-black text-white border-white focus:border-white' 
-                      : sepiaMode
-                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
-                        : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
-                  }`}
+                  className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all cursor-pointer w-full sm:w-auto ${highContrast
+                    ? 'bg-black text-white border-white focus:border-white'
+                    : sepiaMode
+                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
+                      : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
+                    }`}
                 >
                   <option value="English">English</option>
                   <option value="Bahasa Melayu">Bahasa Melayu</option>
@@ -412,13 +399,12 @@ export default function Home() {
                     placeholder="Enter language"
                     value={customLanguage}
                     onChange={(e) => setCustomLanguage(e.target.value)}
-                    className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all w-full sm:w-32 ${
-                      highContrast 
-                        ? 'bg-black text-white border-white focus:border-white' 
-                        : sepiaMode
-                          ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
-                          : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
-                    }`}
+                    className={`text-xs font-semibold border rounded-lg px-3 py-2 focus:outline-none transition-all w-full sm:w-32 ${highContrast
+                      ? 'bg-black text-white border-white focus:border-white'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] focus:border-[#433422]'
+                        : 'bg-[#faf6ee] text-[#2c2214] border-[#e6decb] focus:border-amber-700'
+                      }`}
                   />
                 )}
               </div>
@@ -426,7 +412,7 @@ export default function Home() {
           </div>
 
           <form onSubmit={handleProcessArticle} className="space-y-5">
-            
+
             {activeTab === 'text' ? (
               <div className="space-y-1.5">
                 <label htmlFor="article-text-area" className={`text-[10px] font-bold uppercase tracking-wider ${textLabelColor}`}>Claim, Message or Investment Pitch</label>
@@ -436,13 +422,12 @@ export default function Home() {
                   placeholder="Paste any news article URL, suspicious SMS, job/investment pitch, or viral claim..."
                   value={articleText}
                   onChange={(e) => setArticleText(e.target.value)}
-                  className={`w-full border rounded-xl p-4 placeholder-[#a89f91] focus:outline-none transition-all font-sans leading-relaxed text-sm resize-y ${
-                    highContrast 
-                      ? 'bg-black text-white border-white focus:border-white' 
-                      : sepiaMode
-                        ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
-                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
-                  }`}
+                  className={`w-full border rounded-xl p-4 placeholder-[#a89f91] focus:outline-none transition-all font-sans leading-relaxed text-sm resize-y ${highContrast
+                    ? 'bg-black text-white border-white focus:border-white'
+                    : sepiaMode
+                      ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
+                      : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
+                    }`}
                 />
                 <div className="flex justify-between items-center text-[10px] font-bold mt-1 px-1">
                   <span className={textLabelColor}>Character Count</span>
@@ -461,13 +446,12 @@ export default function Home() {
                     placeholder="https://example.com/news-story"
                     value={newsUrl}
                     onChange={(e) => setNewsUrl(e.target.value)}
-                    className={`w-full border rounded-xl py-3.5 pl-4 pr-10 placeholder-[#a89f91] focus:outline-none transition-all text-sm ${
-                      highContrast 
-                        ? 'bg-black text-white border-white focus:border-white' 
-                        : sepiaMode
-                          ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
-                          : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
-                    }`}
+                    className={`w-full border rounded-xl py-3.5 pl-4 pr-10 placeholder-[#a89f91] focus:outline-none transition-all text-sm ${highContrast
+                      ? 'bg-black text-white border-white focus:border-white'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422] focus:border-[#433422]'
+                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
+                      }`}
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-700">
                     <LinkIcon className="h-4 w-4" />
@@ -483,39 +467,36 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('transit')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                    highContrast 
-                      ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : sepiaMode
-                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                  }`}
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                    ? 'bg-black text-white border-white hover:bg-[#222]'
+                    : sepiaMode
+                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                    }`}
                 >
                   🚌 Transit Subsidy Policy
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('phishing')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                    highContrast 
-                      ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : sepiaMode
-                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                  }`}
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                    ? 'bg-black text-white border-white hover:bg-[#222]'
+                    : sepiaMode
+                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                    }`}
                 >
                   🏦 Bank Account Freeze SMS
                 </button>
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('cryptoJob')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                    highContrast 
-                      ? 'bg-black text-white border-white hover:bg-[#222]' 
-                      : sepiaMode
-                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                  }`}
+                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                    ? 'bg-black text-white border-white hover:bg-[#222]'
+                    : sepiaMode
+                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                    }`}
                 >
                   💼 Telegram Crypto Job Offer
                 </button>
@@ -525,11 +506,10 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading || (activeTab === 'text' ? !articleText.trim() : !newsUrl.trim())}
-              className={`w-full py-3.5 px-6 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border ${
-                (loading || (activeTab === 'text' ? !articleText.trim() : !newsUrl.trim()))
-                  ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed opacity-50' : sepiaMode ? 'bg-[#fcf8ef] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60')
-                  : (highContrast ? 'bg-white text-black border-white hover:bg-black hover:text-white' : sepiaMode ? 'bg-[#433422] hover:bg-[#342718] text-[#f4ecd8] border-transparent active:scale-98' : 'bg-[#3c3020] hover:bg-[#2c2317] text-[#faf6ee] border-transparent active:scale-98')
-              }`}
+              className={`w-full py-3.5 px-6 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer border ${(loading || (activeTab === 'text' ? !articleText.trim() : !newsUrl.trim()))
+                ? (highContrast ? 'bg-black text-[#555] border-[#333] cursor-not-allowed opacity-50' : sepiaMode ? 'bg-[#fcf8ef] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60' : 'bg-[#faf6ee] text-[#a89f91] border-[#ebdcb8] cursor-not-allowed opacity-60')
+                : (highContrast ? 'bg-white text-black border-white hover:bg-black hover:text-white' : sepiaMode ? 'bg-[#433422] hover:bg-[#342718] text-[#f4ecd8] border-transparent active:scale-98' : 'bg-[#3c3020] hover:bg-[#2c2317] text-[#faf6ee] border-transparent active:scale-98')
+                }`}
             >
               {loading ? (
                 <>
@@ -552,9 +532,8 @@ export default function Home() {
           </form>
 
           {error && (
-            <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${
-              highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
-            }`}>
+            <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
+              }`}>
               <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold">Error:</span> {error}
@@ -567,39 +546,31 @@ export default function Home() {
         {result && (() => {
           const type = result.summary.contentType || 'NEWS_POLICY';
           const isScam = type === 'SCAM_PHISHING' || type === 'JOB_INVESTMENT';
-          
+
           // Calculate Scam Risk Score: 100 - truth_score
           const scamRiskScore = Math.max(0, Math.min(100, 100 - result.verification.truth_score));
           const scoreDisplay = isScam ? scamRiskScore : result.verification.truth_score;
-          
+
           const styles = getTruthScoreStyles(scoreDisplay, isScam);
-          
+
           return (
-            <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 ${
-              highContrast 
-                ? 'bg-black border-white' 
-                : sepiaMode
-                  ? 'bg-[#fcf8ef] border-[#e4d4b5]'
-                  : (isScam ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
-            }`}>
-              
-              {/* Header / Category Badge */}
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-                highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')
+            <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 ${highContrast
+              ? 'bg-black border-white'
+              : (isScam ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
               }`}>
-                <h2 className={`text-lg font-bold tracking-tight leading-snug ${
-                  highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : (isScam ? 'text-rose-950' : 'text-[#2c2214]')
+
+              {/* Header / Category Badge */}
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')
                 }`}>
+                <h2 className={`text-lg font-bold tracking-tight leading-snug ${highContrast ? 'text-white' : (isScam ? 'text-rose-950' : 'text-[#2c2214]')
+                  }`}>
                   {result.summary.title}
                 </h2>
                 <div>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${
-                    highContrast 
-                      ? 'bg-black text-white border-white' 
-                      : sepiaMode
-                        ? 'bg-[#f4ecd8] text-[#8c745a] border-[#e4d4b5]'
-                        : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
-                  }`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${highContrast
+                    ? 'bg-black text-white border-white'
+                    : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
+                    }`}>
                     <TrendingUp className="h-3 w-3" />
                     {result.summary.category}
                   </span>
@@ -608,69 +579,54 @@ export default function Home() {
 
               {/* Consensus Divergence Warnings Banner */}
               {result.verification.consensus_note && (
-                <div className={`p-4 border rounded-xl text-xs flex items-center gap-2.5 ${
-                  highContrast 
-                    ? 'bg-black border-white text-white animate-pulse' 
-                    : sepiaMode
-                      ? 'bg-[#ebdcb8]/20 border-[#e4d4b5] text-[#5a4834]'
-                      : 'bg-amber-50 border-amber-200 text-amber-800'
-                }`}>
+                <div className={`p-4 border rounded-xl text-xs flex items-center gap-2.5 ${highContrast ? 'bg-black border-white text-white animate-pulse' : 'bg-amber-50 border-amber-200 text-amber-800'
+                  }`}>
                   <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
                   <span className="font-bold">{result.verification.consensus_note}</span>
                 </div>
               )}
 
               {/* Truth/Scam Score Gauge & Credibility Analysis */}
-              <div className={`p-5 rounded-xl border ${
-                highContrast 
-                  ? 'border-2 border-white bg-black' 
-                  : sepiaMode
-                    ? 'border-[#e4d4b5] bg-[#faf6ee]/40'
-                    : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
-              } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
-                
+              <div className={`p-5 rounded-xl border ${highContrast
+                ? 'border-2 border-white bg-black'
+                : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
+                } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
+
                 {/* Score Column */}
-                <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${
-                  highContrast 
-                    ? 'md:border-r-2 md:border-white' 
-                    : sepiaMode
-                      ? 'md:border-r border-[#e4d4b5]'
-                      : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
-                }`}>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-stone-555'
+                <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${highContrast
+                  ? 'md:border-r-2 md:border-white'
+                  : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
                   }`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-555'
+                    }`}>
                     {isScam ? 'Scam Risk' : 'Truth Score'}
                   </span>
                   <span className={`text-4xl font-black ${styles.text}`}>
                     {scoreDisplay}%
                   </span>
                   <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
-                    {isScam 
+                    {isScam
                       ? (scamRiskScore >= 75 ? 'HIGH RISK' : scamRiskScore >= 40 ? 'SUSPICIOUS' : 'SAFE')
                       : (result.verification.score_label || 'MIXED')}
                   </span>
-                  
+
                   {/* Gauge Severity Bar */}
                   <div className="w-28 mt-2.5 space-y-1">
-                    <div className={`h-2 w-full rounded-full overflow-hidden border ${
-                      highContrast ? 'bg-zinc-900 border-white' : sepiaMode ? 'bg-[#dfd5bf] border-[#e4d4b5]/40' : 'bg-stone-200/50 border-[#ebdcb8]/20'
-                    }`}>
-                      <div 
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          highContrast 
-                            ? 'bg-white' 
-                            : (isScam 
-                                ? (scamRiskScore >= 75 ? 'bg-rose-500' : scamRiskScore >= 40 ? 'bg-orange-500' : 'bg-emerald-500')
-                                : (result.verification.truth_score >= 80 ? 'bg-emerald-500' : result.verification.truth_score >= 50 ? 'bg-orange-500' : 'bg-rose-500')
-                              )
-                        }`}
+                    <div className={`h-2 w-full rounded-full overflow-hidden border ${highContrast ? 'bg-zinc-900 border-white' : 'bg-stone-200/50 border-[#ebdcb8]/20'
+                      }`}>
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${highContrast
+                          ? 'bg-white'
+                          : (isScam
+                            ? (scamRiskScore >= 75 ? 'bg-rose-500' : scamRiskScore >= 40 ? 'bg-orange-500' : 'bg-emerald-500')
+                            : (result.verification.truth_score >= 80 ? 'bg-emerald-500' : result.verification.truth_score >= 50 ? 'bg-orange-500' : 'bg-rose-500')
+                          )
+                          }`}
                         style={{ width: `${scoreDisplay}%` }}
                       />
                     </div>
-                    <div className={`flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 uppercase ${
-                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'
-                    }`}>
+                    <div className={`flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 uppercase ${highContrast ? 'text-white' : 'text-[#8c7960]'
+                      }`}>
                       <span>{isScam ? 'Safe' : 'Risk'}</span>
                       <span>50%</span>
                       <span>{isScam ? 'Risk' : 'Safe'}</span>
@@ -682,9 +638,8 @@ export default function Home() {
                 <div className="md:col-span-3 space-y-1.5">
                   <div className="flex items-center gap-1.5">
                     <ShieldAlert className={`h-4 w-4 ${styles.text}`} />
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-stone-500'
-                    }`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
+                      }`}>
                       Consensus Credibility Audit
                     </span>
                   </div>
@@ -696,21 +651,16 @@ export default function Home() {
 
               {/* Key Summary points */}
               <div className="space-y-3.5">
-                <h3 className={`text-[10px] font-bold uppercase tracking-wider ${
-                  highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'
-                }`}>Analyzed Details</h3>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-[#7c6950]'
+                  }`}>Analyzed Details</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {result.summary.summary_points.map((point, idx) => (
-                    <div key={idx} className={`flex items-start gap-3 p-4 border rounded-xl ${
-                      highContrast 
-                        ? 'bg-black border-white' 
-                        : sepiaMode
-                          ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
-                          : (isScam ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
-                    }`}>
-                      <span className={`text-sm font-semibold pt-0.5 shrink-0 ${
-                        highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-rose-600' : 'text-amber-800')
+                    <div key={idx} className={`flex items-start gap-3 p-4 border rounded-xl ${highContrast
+                      ? 'bg-black border-white'
+                      : (isScam ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
                       }`}>
+                      <span className={`text-sm font-semibold pt-0.5 shrink-0 ${highContrast ? 'text-white' : (isScam ? 'text-rose-600' : 'text-amber-800')
+                        }`}>
                         0{idx + 1}.
                       </span>
                       <p className="text-sm leading-relaxed font-medium">{point}</p>
@@ -722,18 +672,14 @@ export default function Home() {
               {/* Scam Red Flags Detected list */}
               {isScam && result.verification.red_flags && result.verification.red_flags.length > 0 && (
                 <div className="space-y-2.5">
-                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-rose-700'
-                  }`}>Red Flags Detected</h4>
+                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-rose-700'
+                    }`}>Red Flags Detected</h4>
                   <div className="flex flex-wrap gap-2">
                     {result.verification.red_flags.map((flag, idx) => (
-                      <span key={idx} className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                        highContrast 
-                          ? 'bg-black text-white border-white' 
-                          : sepiaMode
-                            ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#8c745a]'
-                            : 'bg-rose-50 border-rose-200 text-rose-800'
-                      }`}>
+                      <span key={idx} className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${highContrast
+                        ? 'bg-black text-white border-white'
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                        }`}>
                         ⚠️ {flag}
                       </span>
                     ))}
@@ -742,20 +688,15 @@ export default function Home() {
               )}
 
               {/* Citizen Impact / Financial Risk Box */}
-              <div className={`border rounded-xl p-5 ${
-                highContrast 
-                  ? 'bg-black border-2 border-white' 
-                  : sepiaMode
-                    ? 'bg-[#fcf8ef] border-[#e4d4b5]'
-                    : (isScam ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
-              }`}>
+              <div className={`border rounded-xl p-5 ${highContrast
+                ? 'bg-black border-2 border-white'
+                : (isScam ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
+                }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`h-1.5 w-1.5 rounded-full ${
-                    highContrast ? 'bg-white' : sepiaMode ? 'bg-[#8c745a]' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
-                  }`} />
-                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                    highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-rose-700' : 'text-amber-800')
-                  }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
+                    }`} />
+                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-rose-700' : 'text-amber-800')
+                    }`}>
                     {isScam ? 'Financial Risk / Threat Assessment' : 'Citizen Impact'}
                   </h4>
                 </div>
@@ -766,20 +707,15 @@ export default function Home() {
 
               {/* Actionable Advice / Civic Steps */}
               {result.summary.actionable_advice && (
-                <div className={`border rounded-xl p-5 ${
-                  highContrast 
-                    ? 'bg-black border-2 border-white' 
-                    : sepiaMode
-                      ? 'border-[#e4d4b5] bg-[#faf6ee]/30'
-                      : (isScam ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
-                }`}>
+                <div className={`border rounded-xl p-5 ${highContrast
+                  ? 'bg-black border-2 border-white'
+                  : (isScam ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
+                  }`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`h-1.5 w-1.5 rounded-full ${
-                      highContrast ? 'bg-white' : sepiaMode ? 'bg-[#8c745a]' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
-                    }`} />
-                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${
-                      highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : (isScam ? 'text-amber-700' : 'text-stone-600')
-                    }`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
+                      }`} />
+                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-amber-700' : 'text-stone-600')
+                      }`}>
                       {isScam ? 'Actionable Precautionary Advice' : 'Actionable Civic Guidance'}
                     </h4>
                   </div>
@@ -790,12 +726,10 @@ export default function Home() {
               )}
 
               {/* Audit / Gonka Proof Footer */}
-              <div className={`border-t pt-4 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
+              <div className={`border-t pt-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
                 <button
                   onClick={() => setShowAudit(!showAudit)}
-                  className={`w-full flex items-center justify-between text-[11px] font-semibold transition-colors py-2 cursor-pointer ${
-                    highContrast ? 'text-white hover:text-stone-200' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#3c3020]'
-                  }`}
+                  className="w-full flex items-center justify-between text-[11px] font-semibold text-[#7c6950] hover:text-[#3c3020] transition-colors py-2 cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5">
                     <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
@@ -805,45 +739,33 @@ export default function Home() {
                 </button>
 
                 {showAudit && (
-                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${
-                    highContrast 
-                      ? 'bg-black border-white text-white' 
-                      : sepiaMode
-                        ? 'bg-[#fdfbf7] border-[#e4d4b5] text-[#5a4834]'
-                        : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
-                  }`}>
+                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'
+                    }`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Model 1 Column */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`font-bold block ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
-                            result.model1UsedFallback
-                              ? 'bg-orange-100 text-orange-850 border border-orange-350'
-                              : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
-                          }`}>
+                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 1 (Extractor):</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model1UsedFallback
+                            ? 'bg-orange-100 text-orange-850 border border-orange-350'
+                            : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
+                            }`}>
                             {result.model1UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
-                        <div className={`p-2.5 rounded border select-all break-all ${
-                          highContrast 
-                            ? 'bg-black border-white text-white' 
-                            : sepiaMode
-                              ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
-                              : 'bg-white border-[#ebdcb8] text-[#3c3020]'
-                        }`}>
+                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model1Used}</span>
+                        <div className={`p-2.5 rounded border select-all break-all ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
+                          }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
                           {result.model1RequestId === 'unavailable' ? (
                             <span className="text-rose-600 font-bold">unavailable</span>
                           ) : (
-                            <a 
+                            <a
                               href={`https://api.gonkarouter.io/v1/receipts/${result.model1RequestId}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${
-                                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-850'
-                              }`}
+                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${highContrast ? 'text-white' : 'text-amber-850'
+                                }`}
                             >
                               {result.model1RequestId}
                               <ExternalLink className="h-2 w-2 shrink-0" />
@@ -851,8 +773,8 @@ export default function Home() {
                           )}
                         </div>
                         {result.model1DevshardId && (
-                          <div className={`text-[9px] flex flex-wrap gap-1 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>
-                            <span className={`font-semibold ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Serving Node:</span>
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
                             <span className="font-bold select-all">{result.model1DevshardId}</span>
                           </div>
                         )}
@@ -861,34 +783,27 @@ export default function Home() {
                       {/* Model 2 Column */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`font-bold block ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${
-                            result.model2UsedFallback
-                              ? 'bg-orange-100 text-orange-850 border border-orange-350'
-                              : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
-                          }`}>
+                          <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>Model 2 (Auditor):</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model2UsedFallback
+                            ? 'bg-orange-100 text-orange-850 border border-orange-350'
+                            : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
+                            }`}>
                             {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
                           </span>
                         </div>
-                        <span className={`block text-[9px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
-                        <div className={`p-2.5 rounded border select-all break-all ${
-                          highContrast 
-                            ? 'bg-black border-white text-white' 
-                            : sepiaMode
-                              ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#433422]'
-                              : 'bg-white border-[#ebdcb8] text-[#3c3020]'
-                        }`}>
+                        <span className={`block text-[9px] ${highContrast ? 'text-white' : 'text-[#8c7960]'}`}>{result.model2Used}</span>
+                        <div className={`p-2.5 rounded border select-all break-all ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'
+                          }`}>
                           <div className="font-semibold text-[8px] text-stone-400 mb-0.5">REQUEST ID:</div>
                           {result.model2RequestId === 'unavailable' ? (
                             <span className="text-rose-600 font-bold">unavailable</span>
                           ) : (
-                            <a 
+                            <a
                               href={`https://api.gonkarouter.io/v1/receipts/${result.model2RequestId}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${
-                                highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-amber-850'
-                              }`}
+                              className={`hover:underline font-bold break-all inline-flex items-center gap-0.5 ${highContrast ? 'text-white' : 'text-amber-850'
+                                }`}
                             >
                               {result.model2RequestId}
                               <ExternalLink className="h-2 w-2 shrink-0" />
@@ -896,25 +811,23 @@ export default function Home() {
                           )}
                         </div>
                         {result.model2DevshardId && (
-                          <div className={`text-[9px] flex flex-wrap gap-1 ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#8c7960]'}`}>
-                            <span className={`font-semibold ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#5c4a36]'}`}>Serving Node:</span>
+                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1">
+                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
                             <span className="font-bold select-all">{result.model2DevshardId}</span>
                           </div>
                         )}
                       </div>
                     </div>
-                    
-                    <div className={`pt-2 border-t text-[9px] flex items-center justify-between ${
-                      highContrast ? 'border-white text-white' : sepiaMode ? 'border-[#e4d4b5] text-[#8c745a]' : 'border-[#ebdcb8] text-[#8c7960]'
-                    }`}>
+
+                    <div className={`pt-2 border-t text-[9px] flex items-center justify-between ${highContrast ? 'border-white text-white' : 'border-[#ebdcb8] text-[#8c7960]'
+                      }`}>
                       <span>Base API: https://api.gonkarouter.io/v1</span>
-                      <a 
-                        href="https://gonkarouter.io" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className={`flex items-center gap-1 ${
-                          highContrast ? 'text-white underline' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422] underline' : 'text-amber-800 hover:text-amber-900'
-                        }`}
+                      <a
+                        href="https://gonkarouter.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-1 ${highContrast ? 'text-white underline' : 'text-amber-800 hover:text-amber-900'
+                          }`}
                       >
                         gonkarouter.io <ExternalLink className="h-2.5 w-2.5" />
                       </a>
@@ -931,21 +844,18 @@ export default function Home() {
         <div className={`pt-4 border-t ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#ebdcb8]/45'}`}>
           <button
             onClick={() => setShowDevTest(!showDevTest)}
-            className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors cursor-pointer ${
-              highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#2c2214]'
-            }`}
+            className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors cursor-pointer ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#2c2214]'
+              }`}
           >
             <Info className="h-3 w-3" />
             {showDevTest ? 'Hide Connection Test' : 'Run Gonka Gateway Connection Test'}
           </button>
-          
+
           {showDevTest && (
-            <div className={`mt-3 border rounded-xl p-5 space-y-4 animate-in slide-in-from-top-2 duration-200 ${
-              highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#fcf8ef] border-[#e4d4b5]' : 'bg-[#fcfbfa] border-[#ebdcb8] shadow-sm'
-            }`}>
-              <div className={`flex items-center justify-between border-b pb-3 ${
-                highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
+            <div className={`mt-3 border rounded-xl p-5 space-y-4 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#fcf8ef] border-[#e4d4b5]' : 'bg-[#fcfbfa] border-[#ebdcb8] shadow-sm'
               }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#e4d4b5]' : 'border-[#e6decb]'
+                }`}>
                 <div>
                   <h3 className="font-bold text-xs flex items-center gap-1.5">
                     <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
@@ -956,13 +866,12 @@ export default function Home() {
                 <button
                   onClick={handleVerifyGonka}
                   disabled={devLoading}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer ${
-                    highContrast 
-                      ? 'bg-black text-white border-white hover:bg-zinc-900' 
-                      : sepiaMode
-                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
-                        : 'bg-[#3c3020] text-[#faf6ee] border-[#3c3020] hover:bg-[#2c2317]'
-                  }`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer ${highContrast
+                    ? 'bg-black text-white border-white hover:bg-zinc-900'
+                    : sepiaMode
+                      ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                      : 'bg-[#3c3020] text-[#faf6ee] border-[#3c3020] hover:bg-[#2c2317]'
+                    }`}
                 >
                   {devLoading ? <RefreshCw className="h-3 w-3 animate-spin" /> : 'Run Test'}
                 </button>
@@ -971,9 +880,8 @@ export default function Home() {
               {devResult && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                   {devResult.error ? (
-                    <div className={`col-span-2 p-3 border rounded-lg ${
-                      highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
-                    }`}>
+                    <div className={`col-span-2 p-3 border rounded-lg ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
+                      }`}>
                       <span className="font-bold">Error:</span> {devResult.error}
                     </div>
                   ) : (
@@ -996,9 +904,8 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className={`border-t py-6 text-center text-xs mt-auto ${
-        highContrast ? 'bg-black border-white text-white' : 'border-[#ebdcb8] bg-[#fbf8f3] text-[#8c7960]'
-      }`}>
+      <footer className={`border-t py-6 text-center text-xs mt-auto ${highContrast ? 'bg-black border-white text-white' : 'border-[#ebdcb8] bg-[#fbf8f3] text-[#8c7960]'
+        }`}>
         <p>© 2026 CivicPulse Explainer. Powering citizens with media transparency via Gonka Network.</p>
       </footer>
     </div>
