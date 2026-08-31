@@ -158,6 +158,11 @@ export default function Home() {
         throw new Error('Content is too short to analyze. Please provide a longer text or URL.');
       }
 
+      // Truncate to maximum character limit to prevent token overflows and high latency
+      if (textToProcess.length > 10000) {
+        textToProcess = textToProcess.slice(0, 10000) + '\n\n... [Content truncated for length limit]';
+      }
+
       // Step 3 & 4: Multi-Model Process Pipeline
       setLoadingStep('Analyzing context, fact-checking, and scoring in parallel...');
       const targetLanguage = language === 'Other' ? (customLanguage.trim() || 'English') : language;
@@ -390,6 +395,12 @@ export default function Home() {
                       : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
                   }`}
                 />
+                <div className="flex justify-between items-center text-[10px] font-bold mt-1 px-1">
+                  <span className={highContrast ? 'text-white' : 'text-[#7c6950]'}>Character Count</span>
+                  <span className={articleText.length > 10000 ? "text-rose-500 font-extrabold animate-pulse" : (highContrast ? 'text-white' : 'text-[#7c6950]')}>
+                    {articleText.length.toLocaleString()} / 10,000 max limit
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="space-y-1.5">
