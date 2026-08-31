@@ -139,7 +139,80 @@ function cleanAndParseJSON(text: string) {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
   
-  return JSON.parse(cleaned);
+  try {
+    return JSON.parse(cleaned);
+  } catch (parseError) {
+    console.warn("JSON.parse failed, attempting regex recovery for text:", cleaned);
+    try {
+      // Try resolving trailing commas in object or array definitions
+      const fixedCleaned = cleaned
+        .replace(/,\s*}/g, '}')
+        .replace(/,\s*\]/g, ']');
+      return JSON.parse(fixedCleaned);
+    } catch (secondError) {
+      // Regex-based robust data extraction fallback
+      const result: any = {};
+      
+      // Parse preliminary/independent scores
+      const scoreMatch = cleaned.match(/"(?:independentScore|preliminaryScore|independent_score|preliminary_score)"\s*:\s*"?(\d+)"?/i);
+      if (scoreMatch) {
+        const val = parseInt(scoreMatch[1], 10);
+        result.independentScore = val;
+        result.preliminaryScore = val;
+      }
+      
+      // Parse scoreLabel
+      const labelMatch = cleaned.match(/"(?:scoreLabel|score_label)"\s*:\s*"([^"]+)"/i);
+      if (labelMatch) {
+        result.scoreLabel = labelMatch[1];
+      }
+      
+      // Parse text blocks
+      const analysisMatch = cleaned.match(/"(?:credibilityAnalysis|credibility_analysis)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+      if (analysisMatch) {
+        result.credibilityAnalysis = analysisMatch[1].replace(/\\"/g, '"');
+      }
+      const impactMatch = cleaned.match(/"(?:citizenImpact|citizen_impact)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+      if (impactMatch) {
+        result.citizenImpact = impactMatch[1].replace(/\\"/g, '"');
+      }
+      const guidanceMatch = cleaned.match(/"(?:actionableGuidance|actionable_guidance)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+      if (guidanceMatch) {
+        result.actionableGuidance = guidanceMatch[1].replace(/\\"/g, '"');
+      }
+      const titleMatch = cleaned.match(/"title"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+      if (titleMatch) {
+        result.title = titleMatch[1].replace(/\\"/g, '"');
+      }
+      const categoryMatch = cleaned.match(/"category"\s*:\s*"([^"]+)"/i);
+      if (categoryMatch) {
+        result.category = categoryMatch[1];
+      }
+
+      // Parse arrays of points or flags
+      const keyPointsMatch = cleaned.match(/"(?:keyPoints|key_points)"\s*:\s*\[([\s\S]*?)\]/i);
+      if (keyPointsMatch) {
+        const itemsText = keyPointsMatch[1];
+        result.keyPoints = itemsText
+          .split(/",?\s*"/)
+          .map(item => item.replace(/^"|"$/g, '').trim())
+          .filter(Boolean);
+      }
+      const redFlagsMatch = cleaned.match(/"(?:redFlags|red_flags)"\s*:\s*\[([\s\S]*?)\]/i);
+      if (redFlagsMatch) {
+        const itemsText = redFlagsMatch[1];
+        result.redFlags = itemsText
+          .split(/",?\s*"/)
+          .map(item => item.replace(/^"|"$/g, '').trim())
+          .filter(Boolean);
+      }
+      
+      if (result.title || result.independentScore || result.preliminaryScore || result.credibilityAnalysis) {
+        return result;
+      }
+      throw parseError;
+    }
+  }
 }
 
 export async function POST(request: Request) {
@@ -235,7 +308,7 @@ Respond ONLY with a valid JSON object matching this schema:
 
 STRICT FACTUAL & SAFETY VERIFICATION RULES:
 1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
-2. CITATION PENALTY: Any text making specific factual claims about new laws, mandatory registration deadlines, or national policy changes that lacks traceable provenance (no official gazette reference, named minister, or verifiable official URL) must be capped at a Truth Score of MAXIMUM 40%.
+2. CITATION PENALTY: Only apply this penalty to critical claims (such as new laws, mandatory registration deadlines, cash handouts, or national policy changes). Do NOT penalize general harmless news (like sports reports, entertainment, or cultural articles) for lacking official links or government citations; score general harmless news based on standard consistency and plausibility.
 3. SCORING SCALE:
    - 80-100%: Independently verifiable facts from recognized, cited primary sources.
    - 60-79%: Mixed/nuanced news with minor context omissions.
@@ -262,7 +335,7 @@ IMPORTANT: Analyze the content, translate and output the credibilityAnalysis str
 
 STRICT FACTUAL VERIFICATION RULES:
 1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
-2. CITATION PENALTY: Any text making specific factual claims about new laws, mandatory registration deadlines, or national policy changes that lacks traceable provenance (no official gazette reference, named minister, or verifiable official URL) must be capped at a Truth Score of MAXIMUM 40%.
+2. CITATION PENALTY: Only apply this penalty to critical claims (such as new laws, mandatory registration deadlines, cash handouts, or national policy changes). Do NOT penalize general harmless news (like sports reports, entertainment, or cultural articles) for lacking official links or government citations; score general harmless news based on standard consistency and plausibility.
 3. SCORING SCALE:
    - 80-100%: Independently verifiable facts from recognized, cited primary sources.
    - 60-79%: Mixed/nuanced news with minor context omissions.
