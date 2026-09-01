@@ -115,11 +115,14 @@ export function ReceiptBadge({ receipt, highContrast, sepiaMode }: { receipt: Go
 
       {/* Grid Key-Values */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
-        <div>
-          <p className="text-[9px] font-bold uppercase text-stone-400">Request ID</p>
-          <p className={`font-bold truncate ${highContrast ? 'text-white' : 'text-stone-850'}`} title={receipt.x_request_id}>
+        <div className="col-span-2 sm:col-span-1">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400">Request ID</p>
+          <div 
+            className={`font-mono text-xs font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-850'}`}
+            title={receipt.x_request_id}
+          >
             {receipt.x_request_id}
-          </p>
+          </div>
         </div>
         <div>
           <p className="text-[9px] font-bold uppercase text-stone-400">Serving Node</p>
@@ -280,11 +283,13 @@ export default function Home() {
     setArticleText(presets[key].text);
     setError(null);
     setResult(null);
+    setModel1Receipt(null);
+    setModel2Receipt(null);
   };
 
   // Accessibility Font Adjusters
   const handleDecreaseFont = () => {
-    setFontSizePercent((prev) => Math.max(80, prev - 10));
+    setFontSizePercent((prev) => Math.max(70, prev - 10));
   };
 
   const handleIncreaseFont = () => {
@@ -317,6 +322,8 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setModel1Receipt(null);
+    setModel2Receipt(null);
 
     try {
       let textToProcess = articleText;
