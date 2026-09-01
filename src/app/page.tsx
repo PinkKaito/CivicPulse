@@ -260,22 +260,22 @@ export default function Home() {
 
   // Presets Data
   const presets = {
-    transit: {
-      text: 'KUALA LUMPUR — The Ministry of Transport has announced a new targeted public transit subsidy framework set to take effect starting November 1. Under the revised initiative, eligible tertiary students and senior citizens will receive a 50% flat discount on all rail and rapid bus networks nationwide through their MyKad registration. The ministry confirmed that existing monthly unlimited passes will remain active until the end of the year, after which users must link their identification cards via the central digital portal to continue enjoying subsidized transit fares.',
-      title: 'Transit Subsidy Policy'
-    },
-    phishing: {
+    cimb: {
       text: 'RM0.00: CIMB Alert! Your bank account has been temporarily frozen due to suspicious login attempts. To restore access and verify your identity immediately, click the secure link to update your details: https://cimb-online-security-verify.com/login. Failure to act within 24 hours will result in permanent account suspension.',
-      title: 'Bank Account Freeze SMS'
+      title: 'CIMB Frozen Account Alert'
     },
-    cryptoJob: {
-      text: "Earn $500 - $1500 daily working from home! We are looking for remote transaction evaluators to process global crypto transfers. No experience required. We guarantee full training and immediate daily payouts. Must have Telegram and a personal crypto wallet. Reply 'START' to begin your registration and claim your $100 sign-up bonus now!",
-      title: 'Telegram Crypto Job Offer'
+    strAid: {
+      text: 'RM0.00: KERAJAAN MALAYSIA: Kredit Bantuan Sumbangan Tunai Rahmah (STR) RM800 Fasa 3 telah dikreditkan ke akaun anda. Sila semak kelayakan dan tebus bantuan bayaran secara dalam talian melalui portal rasmi: https://str-bantuan-gov-my.com/tebus',
+      title: 'STR RM800 Aid Payout'
+    },
+    lhdnTax: {
+      text: 'RM0.00: LHDN MALAYSIA: Makluman terlebih bayar cukai pendapatan (Tax Refund) sebanyak RM1,450.00 bagi tahun taksiran 2025. Sila sahkan akaun bank anda untuk tuntutan bayaran balik segera di: https://mytax-lhdn-gov.org/refund',
+      title: 'LHDN Tax Refund SMS'
     }
   };
 
   // Preset Trigger
-  const handleApplyPreset = (key: 'transit' | 'phishing' | 'cryptoJob') => {
+  const handleApplyPreset = (key: 'cimb' | 'strAid' | 'lhdnTax') => {
     setActiveTab('text');
     setArticleText(presets[key].text);
     setError(null);
@@ -630,11 +630,11 @@ export default function Home() {
 
             {/* Presets Row */}
             <div className="space-y-1.5">
-              <span className={`text-[9px] font-bold uppercase tracking-wider block ${textLabelColor}`}>Presets for Testing:</span>
+              <span className={`text-[9px] font-bold uppercase tracking-wider block ${textLabelColor}`}>Try Sample Scams:</span>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => handleApplyPreset('transit')}
+                  onClick={() => handleApplyPreset('cimb')}
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
@@ -642,11 +642,11 @@ export default function Home() {
                       : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                     }`}
                 >
-                  🚌 Transit Subsidy Policy
+                  🏦 CIMB Frozen Account Alert
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleApplyPreset('phishing')}
+                  onClick={() => handleApplyPreset('strAid')}
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
@@ -654,11 +654,11 @@ export default function Home() {
                       : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                     }`}
                 >
-                  🏦 Bank Account Freeze SMS
+                  💵 STR RM800 Aid Payout
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleApplyPreset('cryptoJob')}
+                  onClick={() => handleApplyPreset('lhdnTax')}
                   className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
@@ -666,7 +666,7 @@ export default function Home() {
                       : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
                     }`}
                 >
-                  💼 Telegram Crypto Job Offer
+                  📋 LHDN Tax Refund SMS
                 </button>
               </div>
             </div>
@@ -692,9 +692,21 @@ export default function Home() {
               )}
             </button>
 
-            {loading && loadingStep && (
-              <div className="py-2.5 text-center">
-                <p className={`text-[11px] font-bold animate-pulse ${textLabelColor}`}>{loadingStep}</p>
+            {loading && (
+              <div className={`p-6 border rounded-xl space-y-4 animate-pulse mt-4 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf8ef] border-[#e4d4b5]' : 'bg-white border-[#ebdcb8]'}`}>
+                <div className="flex items-center gap-3">
+                  <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0" />
+                  <div className="space-y-1">
+                    <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{loadingStep || 'Executing Tied-Parallel Dual AI Verification...'}</p>
+                    <p className="text-[10px] text-stone-400 font-mono">Gonka Router Hedged Pipeline (Primary + Duplicate Immediate)</p>
+                  </div>
+                </div>
+                <div className="h-3.5 bg-stone-300/40 rounded w-3/4 animate-pulse" />
+                <div className="h-3.5 bg-stone-300/40 rounded w-1/2 animate-pulse" />
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="h-14 bg-stone-300/30 rounded-lg animate-pulse" />
+                  <div className="h-14 bg-stone-300/30 rounded-lg animate-pulse" />
+                </div>
               </div>
             )}
           </form>
@@ -958,8 +970,16 @@ export default function Home() {
                                     }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
-                                    {loadingM1Receipt ? 'Fetching Proof...' : model1Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
+                                    {loadingM1Receipt ? 'Fetching Proof...' : model1Receipt ? 'Hide Receipt Badge' : 'Inspect Proof'}
                                   </button>
+                                  <a
+                                    href={`https://api.gonkarouter.io/v1/receipts/${result.model1RequestId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-mono text-[9px] text-blue-600 underline hover:text-blue-800 font-bold inline-flex items-center gap-0.5 self-center"
+                                  >
+                                    (Verify on Gonka ↗)
+                                  </a>
                                 </div>
                               </div>
                             )}
@@ -1043,8 +1063,16 @@ export default function Home() {
                                     }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
-                                    {loadingM2Receipt ? 'Fetching Proof...' : model2Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
+                                    {loadingM2Receipt ? 'Fetching Proof...' : model2Receipt ? 'Hide Receipt Badge' : 'Inspect Proof'}
                                   </button>
+                                  <a
+                                    href={`https://api.gonkarouter.io/v1/receipts/${result.model2RequestId}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="font-mono text-[9px] text-blue-600 underline hover:text-blue-800 font-bold inline-flex items-center gap-0.5 self-center"
+                                  >
+                                    (Verify on Gonka ↗)
+                                  </a>
                                 </div>
                               </div>
                             )}
