@@ -970,16 +970,8 @@ export default function Home() {
                                     }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
-                                    {loadingM1Receipt ? 'Fetching Proof...' : model1Receipt ? 'Hide Receipt Badge' : 'Inspect Proof'}
+                                    {loadingM1Receipt ? 'Fetching Proof...' : model1Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
                                   </button>
-                                  <a
-                                    href={`https://api.gonkarouter.io/v1/receipts/${result.model1RequestId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-mono text-[9px] text-blue-600 underline hover:text-blue-800 font-bold inline-flex items-center gap-0.5 self-center"
-                                  >
-                                    (Verify on Gonka ↗)
-                                  </a>
                                 </div>
                               </div>
                             )}
@@ -1001,17 +993,6 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-
-                        <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
-                          <span className="font-semibold text-[#5c4a36]">Resolved Model:</span>
-                          <span className="font-bold select-all font-mono">{result.model1Used}</span>
-                        </div>
-                        {result.model1DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
-                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
-                            <span className="font-bold select-all font-mono">devshard-{result.model1DevshardId}</span>
-                          </div>
-                        )}
                       </div>
 
                       {/* Model 2 Column */}
@@ -1022,7 +1003,7 @@ export default function Home() {
                             ? 'bg-orange-100 text-orange-850 border border-orange-350'
                             : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
                             }`}>
-                            {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'PRIMARY ENGINE'}
+                            {result.model2UsedFallback ? 'FALLBACK ENGINE' : 'AUDIT CONSENSUS'}
                           </span>
                         </div>
                         
@@ -1063,16 +1044,8 @@ export default function Home() {
                                     }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
-                                    {loadingM2Receipt ? 'Fetching Proof...' : model2Receipt ? 'Hide Receipt Badge' : 'Inspect Proof'}
+                                    {loadingM2Receipt ? 'Fetching Proof...' : model2Receipt ? 'Hide Receipt Badge' : 'Verify on Gonka'}
                                   </button>
-                                  <a
-                                    href={`https://api.gonkarouter.io/v1/receipts/${result.model2RequestId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-mono text-[9px] text-blue-600 underline hover:text-blue-800 font-bold inline-flex items-center gap-0.5 self-center"
-                                  >
-                                    (Verify on Gonka ↗)
-                                  </a>
                                 </div>
                               </div>
                             )}
@@ -1094,17 +1067,6 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-
-                        <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
-                          <span className="font-semibold text-[#5c4a36]">Resolved Model:</span>
-                          <span className="font-bold select-all font-mono">{result.model2Used}</span>
-                        </div>
-                        {result.model2DevshardId && (
-                          <div className="text-[9px] text-[#8c7960] flex flex-wrap gap-1 px-1">
-                            <span className="font-semibold text-[#5c4a36]">Serving Node:</span>
-                            <span className="font-bold select-all font-mono">devshard-{result.model2DevshardId}</span>
-                          </div>
-                        )}
                       </div>
                     </div>
 
