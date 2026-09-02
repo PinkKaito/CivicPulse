@@ -1,567 +1,343 @@
-# CivicPulse — Session Log
+# CivicPulse — Project Session Log
 
-Running record of working sessions, for reflection, revision, and as a learning
-reference (the developer comes from Python/ML with no prior JS/TS/Next.js).
+**What this is:** a running, plain-English record of the working sessions on
+CivicPulse — what changed, why, what broke, and what we learned. Read it
+top-to-bottom to catch up, or jump to a date. It doubles as a learning doc: the
+original author is coming from Python/ML with no prior JavaScript / TypeScript /
+Next.js, so the "what we learned" sections explain the new concepts as we hit
+them.
 
-- **Session 1 — 2026-09-01:** recover the project after a re-clone, wire up Gonka,
-  build an analysis endpoint, then consolidate it into the pipeline that already
-  existed.
-- **Session 2 — 2026-09-02:** frontend experience pass — make everything the
-  backend computes visible, usable, and non-broken for a real user or judge.
-
----
-
-# Session 1 — 2026-09-01
-
-## 0. Starting point
-
-- Project re-cloned into `c:\PROJECTS\CivicPulse` because the old copy lived
-  inside OneDrive and was causing sync errors.
-- **CivicPulse** = AI-powered scam / misinformation checker, built for the
-  **Gonka** track of a hackathon.
-- `.env.local` was gone (gitignored, never in the clone).
-- Goal for the session: get back to a working state, then keep building.
+**Project in one line:** CivicPulse is a dual-AI public fact-checker and
+phishing guard for the **Gonka** hackathon track. A user pastes a claim, an SMS,
+a job pitch, or a news link; two AI models on the Gonka network independently
+analyse it; the app shows a combined credibility score, red flags, plain-language
+advice, and a cryptographic "proof of execution" (Gonka request receipts).
 
 ---
 
-## 1. Repo recovery
+## Where the project stands right now
 
-### 1.1 What the clone actually contained
-
-Inspected `package.json` and the tree **before assuming anything needed
-creating**. Findings:
-
-- A fully scaffolded **Next.js 16.3.3** app using the **App Router**.
-- `package-lock.json` present (exact dependency versions locked).
-- Existing API routes under `src/app/api/`:
-  | Route | Purpose |
-  |---|---|
-  | `verify-gonka/` | Gonka connection smoke-test (raw `fetch`) |
-  | `process-news/` | Main 2-model consensus pipeline (`openai` SDK + hedging) |
-  | `parse-news/` | Scrape a URL or accept pasted text |
-  | `receipt/[id]/` | Verification-receipt lookup |
-- Frontend: `src/app/page.tsx`, `layout.tsx`, `globals.css`.
-
-**Conclusion:** nothing to scaffold. The clone was intact.
-
-### 1.2 `npm install`
-
-```
-added 389 packages, and audited 390 packages in 29s
-found 0 vulnerabilities
-```
-
-One harmless warning: `eslint-visitor-keys` wants Node `>=22.13`; installed Node
-is `22.4.0`. Affects `npm run lint` only, not dev or runtime.
-
-### 1.3 `.env.local`
-
-Created with a placeholder:
-
-```
-GONKA_API_KEY=your_gonka_api_key_here
-```
-
-The developer pasted the real key into the file directly (not into chat). The
-existing routes already treat the literal string `your_gonka_api_key_here` as
-"not configured", so the placeholder fails safe.
-
-### 1.4 Test command
-
-```bash
-npm run dev
-curl http://localhost:3000/api/verify-gonka
-```
-
-Success = HTTP 200 `{ "text": "...", "requestId": "..." }`.
-
----
-
-## 2. Second test route: `verify-gonka-kimi` (later deleted)
-
-The developer wanted to confirm a *second* model — `moonshotai/Kimi-K2.6` —
-worked, without touching the existing `verify-gonka` file.
-
-Created `src/app/api/verify-gonka-kimi/route.ts` as a line-for-line copy of
-`verify-gonka`, changing only the `model` field and the prompt wording. In the
-App Router, **the folder name is the URL path**, so the new folder served
-`/api/verify-gonka-kimi` automatically.
-
-This route was deleted in step 7 once Kimi was abandoned.
-
----
-
-## 3. New feature: `analyze-message` route (later deleted)
-
-Built `src/app/api/analyze-message/route.ts` from a detailed spec: accept
-`{ message }`, call two models **in parallel**, parse each model's JSON
-defensively, compute a consensus score, and degrade gracefully on partial
-failure.
-
-### 3.1 Key design decisions
-
-- **`Promise.all` over non-throwing calls.** The spec said "use `Promise.all`",
-  but plain `Promise.all` rejects the moment *one* promise rejects and you lose
-  the other result. Fix: write `callModel()` so it **never throws** — success and
-  failure both resolve as `{ ok, raw, requestId, error }`. `Promise.all` then
-  always returns both outcomes and the handler decides what to do. (This is what
-  `Promise.allSettled` does; the wrapper keeps the spec's wording.)
-
-- **Defensive JSON extraction** (`extractJson`), because LLMs ignore
-  "respond with only JSON":
-  1. strip ```` ```json ```` / ```` ``` ```` fences
-  2. slice from the first `{` to the last `}` (drops prose on either side)
-  3. `JSON.parse`
-  4. on failure: delete trailing commas (`/,\s*([}\]])/g`) and retry once
-  5. still failing → return `null`, let the caller degrade (never throw)
-
-- **Error-handling matrix:**
-  | Situation | Response |
-  |---|---|
-  | one model fails, other succeeds | 200 with the good model's data + a `notes[]` entry; score is single-model, not consensus |
-  | both fail / unparseable | 502 with `details` |
-  | body not JSON / no `message` | 400 |
-  | key missing | 500 |
-  | score gap > 25 | adds `divergenceWarning` |
-
-### 3.2 First test — and the Windows shell fight
-
-Inline JSON in `curl` / PowerShell got mangled by shell quoting (`curl: (6)
-Could not resolve host: Your` etc.). **Fix: put the body in a file** and use
-`curl.exe -d "@file.json"`, or build it in PowerShell with
-`@{ message = "..." } | ConvertTo-Json`.
-
-First real result: route worked. DeepSeek returned a correct `SCAM_PHISHING`
-analysis; **Kimi hit a Cloudflare `524` timeout**. The route degraded exactly as
-designed — 200 with DeepSeek's result, `model2Score: null`,
-`model2RequestId: "unavailable"`, explanatory `notes`.
-
----
-
-## 4. Performance fix — client-side timeout
-
-**Problem:** `callModel` had no timeout on its `fetch`, so when Kimi hung the
-whole request waited ~126s for Cloudflare to give up.
-
-Router health check (three routes back to back):
-
-| Route | Model | Result | Time |
-|---|---|---|---|
-| `/api/verify-gonka` | DeepSeek-V4-Flash | 200 | **0.4s** |
-| `/api/verify-gonka-kimi` | Kimi-K2.6 | 200 | **85s** (for a 30-token reply!) |
-| `/api/analyze-message` | both | 200 (DeepSeek only) | **126s** — Kimi 524 |
-
-**Fix:** `AbortController` + `setTimeout(() => controller.abort(), 45_000)`,
-`signal` passed to `fetch`, timer cleared in `finally`. Added `condenseError()`
-to reduce HTML error pages (like the 524 blob) to their `<title>`.
-
-Retest: **0.2s** when Kimi was healthy, **45s** hard cap when it stalled.
-
----
-
-## 5. Swapping Model 2 → `MiniMaxAI/MiniMax-M2.7`
-
-Ran repeated testing (16+ calls, several fresh inputs) before committing:
-
-| | Kimi-K2.6 | MiniMax-M2.7 |
-|---|---|---|
-| Valid JSON returned | ~0 / 5 | **19 / 19** |
-| Returned a usable score | rarely | every call |
-| Cloudflare 524s | yes | none |
-| Cold-prompt latency | 85s / timeout | 30–45s |
-
-**Two things the testing surfaced:**
-
-1. **Prompt-level caching in the Gonka stack.** First call for a unique message:
-   30–45s. Every *identical* repeat: ~0.4s (fresh `requestId` each time, so it's
-   an upstream cache, not our code). Real users pasting unique text will mostly
-   hit the ~35s cold path.
-2. One cold run measured **44.7s** — almost cut off by the 45s abort. So the
-   timeout was bumped **45s → 60s**.
-
-Verification of the 60s change: on one fresh input **DeepSeek** (normally
-sub-second) stalled past 60s and was aborted cleanly; MiniMax carried the
-result. **Takeaway: slow cold prompts are a router-wide condition, not specific
-to any one model.** A model swap can't fix latency — only graceful degradation
-and hedging help.
-
----
-
-## 6. "Is `analyze-message` the same as `process-news`?"
-
-Yes in concept, no in implementation — and only `process-news` was wired to
-anything.
-
-- `src/app/page.tsx` calls `/api/parse-news` then **`/api/process-news`**
-  (line ~363). `analyze-message` was called by **nothing**.
-- Both do the same shape of work: Model 1 "Extractor / Context Analyst" +
-  Model 2 "Fact / Credibility Auditor", average the two scores, flag divergence
-  > 25.
-
-| | `process-news` (in repo) | `analyze-message` (this session) |
-|---|---|---|
-| Input | `{ articleText, language }` | `{ message }` |
-| Languages | EN, ZH, MS, TA | EN only |
-| Client | `openai` SDK | raw `fetch` |
-| Reliability | **hedging** (2 duplicate requests/model, take fastest) + fallback models + timeout | one call/model + timeout |
-| Categories | 5 | 4 (incl. `VIRAL_RUMOR`) |
-| Output | nested `summary{}` / `verification{}` + node metadata | flat |
-
-**`process-news` bug found:** both models fell back to `Kimi-K2.6` (broken), and
-its hedge timeout was **20s** — shorter than the 20–85s cold-prompt reality, so
-it was failing over to broken Kimi on nearly every fresh request.
-
-**Decision:** keep `process-news`, fold in the good parts of `analyze-message`,
-delete the duplicates.
-
----
-
-## 7. Consolidation — changes to `process-news/route.ts`
-
-| # | Change | Why |
-|---|---|---|
-| 1 | `HEDGE_TIMEOUT_MS` **20s → 60s** | 20s fired on almost every cold request |
-| 2 | Model 1 fallback `Kimi` → `MiniMax` | Kimi unusable via router |
-| 3 | Model 2 fallback `Kimi` → `DeepSeek` (cross-fallback) | each model backs up the other; both proven good |
-| 4 | Added category **`VIRAL_RUMOR`** | the one better idea from `analyze-message`; matters for a misinformation checker; UI renders it unchanged |
-
-Output shape untouched → frontend keeps working.
-
-### Deleted
-
-- `src/app/api/analyze-message/` — superseded, wired to nothing (was never
-  committed, so it simply vanished from the tree)
-- `src/app/api/verify-gonka-kimi/` — test for an abandoned model (was committed;
-  shows as `D` in `git status`)
-
-### Kept
-
-`verify-gonka` (UI health check), `parse-news`, `receipt/[id]` — all UI-wired.
-
-### Post-change test (8 calls)
-
-| Input | HTTP | Cold time | truth / indep | Category | Fallback |
-|---|---|---|---|---|---|
-| phishing | 200 | 23s | 13 / 15 · HIGH RISK | SCAM_PHISHING | none |
-| central-bank news | 200 | 20s | 89 / 88 · VERIFIED | NEWS_POLICY | none |
-| e-wallet rumor | 200 | 28s | 8 / 5 · HIGH RISK | SCAM_PHISHING | none |
-| health hoax | 200 | 85s | 8 / 5 · HIGH RISK | **VIRAL_RUMOR** | M2 → DeepSeek ✓ |
-
-Happy path **20–28s** (hedging beats the router's tail latency). Worst case
-**~85s** when a model's hedge fully times out and the cross-fallback runs — and
-it now yields a real score instead of Kimi garbage, with
-`model2UsedFallback: true` shown in the UI as a reduced-confidence note.
-
-`tsc --noEmit` clean throughout.
-
----
-
-## 8. Final state
-
-### Routes
-
-```
-src/app/api/
-  process-news/route.ts   ← canonical analysis pipeline (optimized)
-  parse-news/route.ts     ← URL scrape / text intake
-  verify-gonka/route.ts   ← connection health check
-  receipt/[id]/route.ts   ← verification receipt lookup
-```
-
-### Models (both verified working via the router today)
-
-- **Model 1 (Extractor):** `deepseek-ai/DeepSeek-V4-Flash-0731`,
-  fallback `MiniMaxAI/MiniMax-M2.7`
-- **Model 2 (Auditor):** `MiniMaxAI/MiniMax-M2.7`,
-  fallback `deepseek-ai/DeepSeek-V4-Flash-0731`
-- **`moonshotai/Kimi-K2.6`:** rejected — non-JSON output, timeouts, 524s.
-
-### Git
-
-```
- M src/app/api/process-news/route.ts
- D src/app/api/verify-gonka-kimi/route.ts
-```
-
-**Not committed** — review `git diff` and commit when satisfied.
-
----
-
-## 9. Concepts encountered (Python → JS/TS map)
-
-| JS/TS thing | Closest Python analogy | Note |
-|---|---|---|
-| `package.json` / `package-lock.json` / `node_modules/` | `pyproject.toml` / `poetry.lock` / venv `site-packages` | lock file = exact versions; `node_modules` is per-project, not global |
-| `npm install` | `pip install -r requirements.txt` | populates `node_modules/` |
-| `process.env.GONKA_API_KEY` + `.env.local` | `os.environ[...]` + `python-dotenv` | Next.js auto-loads `.env.local`; **only on server start** |
-| App Router: `src/app/api/x/route.ts` | a Flask/FastAPI view for `/api/x` | folder path = URL; export `GET` / `POST` functions |
-| `NextResponse.json({...})` | `return jsonify({...})` | |
-| `async` / `await` | `async` / `await` (asyncio) | JS is single-threaded + event loop |
-| `Promise.all([a, b])` | `asyncio.gather(a, b)` | rejects fast on first failure |
-| `Promise.allSettled` | `asyncio.gather(..., return_exceptions=True)` | never rejects; returns per-item status |
-| `AbortController` + `signal` | `requests(..., timeout=)` but as a cancellation token | one controller can cancel many fetches |
-| `try / catch / finally` | `try / except / finally` | `catch (err: any)` — no typed exceptions by default |
-| `x?.y?.z` | `x.get('y', {}).get('z')`-ish | optional chaining: short-circuits to `undefined` |
-| `a ?? b` | `a if a is not None else b` | nullish coalescing (only `null`/`undefined`, not falsy) |
-| TypeScript `type X = {...}` | a dataclass / `TypedDict` for shape-checking | erased at runtime; `tsc --noEmit` = type check only |
-
-### Patterns worth remembering
-
-- **Non-throwing task wrapper** so `Promise.all` can't be short-circuited by one
-  failure.
-- **Defensive JSON parsing** of LLM output: strip fences → slice braces → parse →
-  fix trailing commas → give up gracefully.
-- **Hedged requests**: fire two identical calls, take whichever returns first, to
-  cut tail latency on a flaky upstream.
-- **Cross-fallback**: model A's backup is model B and vice-versa, so a single
-  model outage still yields two opinions.
-- **Graceful degradation**: a partial result + an honest `notes[]` beats a 500.
-
----
-
-## 10. Reflection
-
-- **Check what already exists before building from a spec.** `analyze-message`
-  was a clean, well-tested reimplementation of a route the frontend was already
-  calling. Ten minutes reading `page.tsx` up front would have reframed the whole
-  task as "optimize `process-news`".
-- **Test reliability with repeated calls, not one.** A single green call hid that
-  Kimi fails ~80% of the time and that the router caches identical prompts.
-- **Separate infra problems from code bugs.** The Cloudflare 524s and 85s
-  latencies were never fixable in our code — the right responses were a timeout,
-  a model swap, and hedging, not more parsing logic.
-- **Keep the output contract stable.** `process-news` could be re-tuned freely
-  because its response shape (which `page.tsx` renders) never changed.
-
----
-
-## 11. Open items / next steps
-
-- [ ] Review `git diff` and commit the `process-news` changes + deletions.
-- [ ] Frontend **loading state** for the 20–85s wait (a progress line like the
-      existing `setLoadingStep(...)` calls, ideally with an approximate ETA).
-- [ ] Decide `VIRAL_RUMOR` styling in `page.tsx` — currently a neutral badge and
-      the truth score is shown (not the scam-risk inversion). Probably correct,
-      but confirm.
-- [ ] Consider a shorter *fallback* timeout so worst case is bounded below ~85s.
-- [ ] Re-check Kimi on the router periodically; if it stabilizes it could return
-      as a third opinion or a fallback.
-- [ ] Reusable test fixtures live in the session scratchpad
-      (`scam-sample.json`, `legit-sample.json`, `pn-*.json`) — copy into a
-      `test/fixtures/` folder if you want them version-controlled.
-- [ ] The `AGENTS.md` note about reading `node_modules/next/dist/docs/` before
-      writing Next.js code still applies to any new route work.
-
----
-
-# Session 2 — 2026-09-02 — Frontend experience pass
-
-Session 1's backend reliability work (process-news fallback swap, 20s→60s hedge
-timeout, `VIRAL_RUMOR` category) was committed and pushed. This session made the
-**frontend** actually surface what the backend already computes — nothing in
-`process-news/route.ts` was touched.
-
-Three commits, all `src/app/page.tsx` unless noted:
-
-| commit | scope |
+| Area | State |
 |---|---|
-| `1ed138d` | Fixes 1–5 (VIRAL_RUMOR, friendly errors, visible receipts, loading timer, delta number) |
-| `6875ea4` | i18n of the new user-facing strings (EN/ZH/MS/TA) |
-| `4801ed7` | tab title → CivicPulse (`src/app/layout.tsx`) |
+| **Backend pipeline** (`src/app/api/process-news/route.ts`) | Working. Two models, hedged requests, cross-fallback. ~20–28s typical, up to ~85s on a cold cache. Committed + pushed. |
+| **Other API routes** | `parse-news` (URL scrape / text intake), `verify-gonka` (connection health check), `receipt/[id]` (Gonka receipt lookup) — all working and wired to the UI. |
+| **Frontend** (`src/app/page.tsx`) | Working. All backend output is now visible: credibility score, red flags, advice, divergence warning, and an auto-expanded "Proof of Execution" panel with both Gonka request IDs. Loading state has an elapsed-time counter. Errors show plain-language messages. Committed + pushed. |
+| **Languages** | UI supports English / 中文 / Bahasa Melayu / Tamil. All user-facing strings are wired into the translation dictionary. **Tamil translations of the newest strings still need a native-speaker check** (see open items). |
+| **Deployment** | Not deployed. Runs locally at `http://localhost:3000` via `npm run dev`. A shareable URL needs a Vercel deploy (not done). |
+| **Models** | Model 1 (Extractor) = `deepseek-ai/DeepSeek-V4-Flash-0731`. Model 2 (Auditor) = `MiniMaxAI/MiniMax-M2.7`. Each falls back to the other. **`moonshotai/Kimi-K2.6` is broken on the router — do not use it.** |
+
+To run it: `npm run dev`, then open `http://localhost:3000`. The Gonka API key
+lives in `.env.local` (not in git); the app reads it as `process.env.GONKA_API_KEY`.
 
 ---
 
-## S2.1 Investigation first (no code changes)
+# 2026-09-01 — Backend recovery and reliability
 
-Read all ~1560 lines of `page.tsx` and cross-checked against a live `process-news`
-response. Eight-point findings:
+### The situation
 
-| # | Area | Verdict |
+The project had to be re-cloned into a fresh folder because the old copy lived
+inside OneDrive and OneDrive's sync kept corrupting it. A clean clone means:
+
+- `node_modules/` is missing (it's never committed — think of it as the project's
+  virtual-env `site-packages`; you rebuild it locally).
+- `.env.local` is missing (it's git-ignored because it holds the API key).
+
+Everything else — the whole Next.js app — was intact in the clone. Nothing needed
+to be rebuilt from scratch.
+
+### What we did
+
+**1. Got the project running again.**
+
+- `npm install` — downloaded 389 packages into a fresh `node_modules/`. (`npm
+  install` ≈ `pip install -r requirements.txt`; `package.json` ≈ `requirements.txt`
+  + `pyproject.toml`; `package-lock.json` pins exact versions like a `poetry.lock`.)
+- Recreated `.env.local` with the `GONKA_API_KEY` line. Next.js loads this file
+  automatically — but **only when the dev server starts**, so any key change needs
+  a server restart.
+- Confirmed the structure: **Next.js 16.3.3, App Router**. In the App Router, a
+  folder under `src/app/` is a URL path, and a file called `route.ts` inside it is
+  that path's request handler (like a Flask/FastAPI view). So
+  `src/app/api/process-news/route.ts` answers `POST /api/process-news`.
+
+**2. Built a new analysis route — then realised it was a duplicate.**
+
+We built `src/app/api/analyze-message/route.ts` from a detailed spec: take a
+message, call two models in parallel, parse each model's JSON defensively,
+average the scores, degrade gracefully if one model fails.
+
+Then, while checking how the frontend calls the backend, we found that
+`src/app/api/process-news/route.ts` **already did the same job** — and it was the
+one the UI actually calls. `analyze-message` was wired to nothing. It was a
+clean, well-tested reimplementation of something that already existed.
+
+**Decision:** keep `process-news`, fold the good ideas from `analyze-message`
+into it, and delete the duplicates (`analyze-message` and a leftover
+`verify-gonka-kimi` test route).
+
+**3. Fixed the real reliability bugs in `process-news`.**
+
+Two things were quietly breaking it:
+
+- **The per-model timeout was 20 seconds.** The Gonka router takes 20–85 seconds
+  to answer a "cold" prompt (one it hasn't seen before). So the 20s timeout was
+  firing on almost every real request and forcing a fallback.
+- **Both models fell back to `Kimi-K2.6`**, which is broken on the router — it
+  returns non-JSON reasoning text, times out, or hits Cloudflare 524 errors. So
+  the fallback was worthless; a slow primary meant a failed request.
+
+Changes made:
+
+| Before | After | Why |
 |---|---|---|
-| 1 | Gonka Request IDs | present but **buried** — collapsed drawer at card bottom, and the only shortcut to it (header pill) was `hidden md:inline-flex` so invisible on phones |
-| 2 | Divergence warning | **works** — but the field is `verification.consensus_note` (there is no `divergenceWarning`); it fires when `discrepancy_delta > 25` **or** a fallback was used |
-| 3 | VIRAL_RUMOR | **broken** — badge ternary checked the dead string `'VIRAL_CLAIM'`, so it fell through to the "News & Public Policy" label; red-flags list was gated behind `isScam` so it never showed for rumors |
-| 4 | Loading state | spinner + skeleton + `loadingStep` message present (not frozen-looking) but **no time cue** for a 20–85s wait |
-| 5 | Errors 400/500 | shown in a red banner (not silent, no crash) but as **raw backend strings** incl. `GONKA_API_KEY is not configured…`; **there is no 502** — a total model failure is a 500 carrying a timeout message |
-| 6 | Other categories | NEWS_POLICY / SCAM_PHISHING / JOB_INVESTMENT render correctly; no regression from the VIRAL_RUMOR backend add |
-| 7 | Mobile | no obvious breakage — `flex-wrap` header, `grid-cols-1 md:grid-cols-*` stacking, `break-all` on long IDs |
-| 8 | parse-news → process-news | **confirmed live** — raw-text paste and a Wikipedia URL both ran end-to-end (URL path: 57k chars scraped → truncated to 10k → 200 in 55s) |
+| Hedge timeout 20s | **60s** | Matches real cold-prompt latency; stops the constant false-timeout |
+| Model 1 fallback → Kimi | **→ MiniMax** | Kimi unusable; MiniMax verified working |
+| Model 2 fallback → Kimi | **→ DeepSeek** | "Cross-fallback": each model backs up the other, so one model outage still yields two opinions |
+| 5 content categories | **+ `VIRAL_RUMOR`** | Needed for the misinformation half of the product |
 
-Decisions taken from the findings: VIRAL_RUMOR = **hybrid** (keep Truth Score
-scale, but apply scam-style alarm chrome + red flags when the label is HIGH RISK
-/ SUSPICIOUS); Request IDs = **auto-expand the drawer + un-hide the pill on
-mobile**.
+The response shape (what the frontend reads) was left **exactly** the same, so
+none of this touched the UI.
 
----
+### What we learned
 
-## S2.2 Fix 1 — VIRAL_RUMOR rendering + hybrid scoring  (`1ed138d`)
+- **Check what already exists before building from a spec.** Ten minutes reading
+  `page.tsx` up front would have reframed the whole task from "build a new route"
+  to "tune the existing one."
+- **Test reliability with repeated calls, not one.** A single successful call hid
+  that Kimi fails most of the time, and that the router caches identical prompts
+  (a repeated prompt returns in ~0.4s, which can make a broken model look fast).
+- **Separate infrastructure problems from code bugs.** The 524s and 85-second
+  waits were never fixable in our code. The right responses were a longer
+  timeout, a model swap, and *hedging* — not more parsing logic.
+- **Hedging** = fire two identical requests at once, use whichever answers first,
+  cancel the other. It cuts the "tail latency" of a flaky service. `process-news`
+  does this, which is why its happy path is ~20–28s even though a single call can
+  take 60s+.
+- **Keep the output contract stable.** Because `process-news`'s JSON response
+  shape never changed, we could re-tune its internals freely without breaking the
+  frontend.
 
-In the results-card IIFE:
+### Gonka router facts worth remembering (whole team)
 
-- Added derived flags: `isRumor`, `scoreLabel`, `isHighRiskRumor` (label is
-  `HIGH RISK` or `SUSPICIOUS`), `alarmMode = isScam || isHighRiskRumor`.
-- Kept `isScam` for the **score math** — a rumor stays on the Truth Score scale
-  (not the inverted Scam-Risk scale) and keeps the "Citizen Impact" heading.
-- Switched ~14 **chrome** conditionals from `isScam` to `alarmMode` (card
-  bg/border, category badge colour, summary-point cards, impact box, advice box,
-  audit divider).
-- **Bug fixes:** badge now checks `isRumor` (was `'VIRAL_CLAIM'`, a string the
-  backend never emits); red-flags guard `isScam` → `(isScam || isRumor)`.
-
-Net effect: a HIGH RISK rumor gets the full rose alarm treatment with a visible
-red-flags list; a mild rumor stays calm/informational.
-
----
-
-## S2.3 Fix 2 — plain-language errors  (`1ed138d`)
-
-- New module-level `friendlyPipelineError(status, raw)` — pattern-matches the raw
-  text / HTTP status to a short message. `GONKA_API_KEY` / "not configured" →
-  a generic "not set up correctly right now" (nothing internal on screen).
-- `handleProcessArticle`: `processRes.json()` is now `.catch(() => null)`-guarded
-  (a non-JSON error page can't throw an ugly `SyntaxError`); backend failures go
-  through the mapper; a `TypeError` in the catch (the fetch itself failed) maps
-  to the offline message; our own client-side guards pass through unchanged.
-- parse-news failure → fixed friendly line: *"We could not read that link. Try
-  pasting the article text directly instead."*
-- `handleVerifyGonka` (the dev connection-test panel) got the same treatment so
-  it can't print `GONKA_API_KEY…` either.
-- Reminder captured: **no 502 exists** here — "both models failed" is a 500 with
-  a timeout string, which maps to *"Our verification models are taking longer
-  than expected — please try again."*
+- Cold prompts take **20–85 seconds** for *any* model we've tried.
+- **Identical** prompts are cached upstream and return in ~0.4s.
+- Cloudflare kills requests at **~100 seconds** with a 524 error.
+- `deepseek-ai/DeepSeek-V4-Flash-0731` and `MiniMaxAI/MiniMax-M2.7` both work.
+- `moonshotai/Kimi-K2.6` does **not** work reliably via the router — avoid it.
+- If you ever add or swap a model, test it with several *fresh* prompts first and
+  check both latency and whether it returns valid JSON.
 
 ---
 
-## S2.4 Fix 3 — make the Gonka receipts visible  (`1ed138d`)
+# 2026-09-02 — Frontend experience pass
 
-- The audit drawer (`showAudit`) now **auto-opens on the first result** —
-  `setShowAudit(true)` right after `setResult(processData)`.
-- Header "Gonka Network: Active" pill: `hidden md:inline-flex` →
-  `inline-flex order-last md:order-none`. Now visible on mobile and drops to its
-  own row on narrow screens instead of crowding the language pills.
+### The situation
 
----
+The backend now computed good data, but a lot of it never reached the screen, and
+some of what did reach the screen looked broken. Goal for the day: make every
+useful thing the backend produces **visible, understandable, and calm-looking**
+for a real user or a judge. No backend changes.
 
-## S2.5 Fix 4 — elapsed-time counter in the loading state  (`1ed138d`)
+### Step 1 — Investigate before touching anything
 
-- New `elapsedSec` state + a `useEffect` that starts a 1-second `setInterval`
-  while `loading` is true and clears it (and resets to 0) when loading ends.
-- Loading card now shows `M:SS elapsed` plus the line *"This can take up to a
-  minute for new content."* so a 50–85s wait doesn't read as a freeze.
+Read the whole frontend (`src/app/page.tsx`, ~1560 lines) and compared it against
+a live backend response. Findings:
 
----
+| Area | Verdict |
+|---|---|
+| Gonka request IDs | Present, but hidden in a collapsed panel at the bottom of the results — and the only shortcut to it was hidden on mobile. |
+| "Scores disagree" warning | **Works.** It's just stored under the field name `consensus_note`, not `divergenceWarning` as assumed. Fires when the two scores differ by >25, or when a fallback model was used. |
+| `VIRAL_RUMOR` category | **Broken.** The code checked for a category string (`'VIRAL_CLAIM'`) that the backend never sends, so rumors were mislabelled "News & Public Policy", and their red-flags list was hidden. |
+| Loading state | A spinner and skeleton exist (it doesn't look frozen), but there was no time indication for a 20–85s wait. |
+| Error messages | Shown, not silent — but they were the **raw backend text**, including one that literally printed `GONKA_API_KEY is not configured…` on screen. |
+| Other categories (news / scam / job) | Render correctly. No regression. |
+| Mobile layout | No obvious breakage. |
+| URL → parse → analyse flow | Confirmed working end-to-end (pasted text *and* a pasted news URL). |
 
-## S2.6 Fix 5 — show the score gap in the divergence banner  (`1ed138d`)
+This turned a vague "make it not look broken" into a ranked list of five specific,
+independent fixes.
 
-- Banner restructured to a flex column. When
-  `discrepancy_delta` is a number `> 25`, a sub-line is appended:
-  *"The two model scores differed by N points."*
+### Step 2 — The five fixes (commit `1ed138d`)
 
----
+**Fix 1 — `VIRAL_RUMOR` rendering.**
+Fixed the dead category-string check. Then added a "hybrid" behaviour: a rumor
+still uses the normal *Truth Score* scale (not the inverted scam-risk scale), but
+when the auditor rates it **HIGH RISK** or **SUSPICIOUS**, the card switches to
+the same red "alarm" styling that scam cards use, and its red-flags list becomes
+visible. A mild rumor stays calm and informational. Mechanically: a new
+`alarmMode` value drives the *colours*, while the existing `isScam` still drives
+the *score maths* and headings.
 
-## S2.7 Four-category end-to-end re-test
+**Fix 2 — plain-language errors.**
+New helper `friendlyPipelineError()` maps any raw error text or HTTP status to
+one of a few short, non-technical messages. Anything mentioning the API key or
+internal config now becomes a generic "the service isn't set up correctly right
+now." Also made the JSON parsing of error responses crash-proof, and gave the
+URL-scraping step its own friendly message ("We could not read that link — try
+pasting the article text instead"). Note for the team: **the backend never
+returns a 502**; a total model failure comes back as a 500 with a timeout
+message, which now maps to "our verification models are taking longer than
+expected — please try again."
 
-| Input | Category | Label | truth / indep | Cold time |
-|---|---|---|---|---|
-| Central-bank rate hold | `NEWS_POLICY` | VERIFIED | 86 / 82 | 19s |
-| CIMB phishing SMS | `SCAM_PHISHING` | HIGH RISK | 5 / 5 · 4 flags | 19s |
-| Fake WFH job + deposit | `SCAM_PHISHING`* | HIGH RISK | 8 / 5 · 6 flags | 34s |
-| EPF-raid viral hoax | `VIRAL_RUMOR` | HIGH RISK | 8 / 5 · **7 flags** | 16s |
+**Fix 3 — make the Gonka receipts visible.**
+The "Proof of Execution" panel now **auto-expands on the first result** instead of
+staying collapsed, and the green "Gonka Network: Active" header button (the
+shortcut to it) is now **visible on mobile** too.
 
-\* the model picked phishing over `JOB_INVESTMENT`; both use the identical
-`isScam` render path, so JOB_INVESTMENT is covered. None of these split the two
-models by > 25, so the Fix 5 sub-line was verified separately (a delta-30 run
-during S2.1).
+**Fix 4 — loading timer.**
+Added a 1-second elapsed-time counter to the loading card, plus the line "This can
+take up to a minute for new content." A 60-second wait no longer reads as a
+freeze.
 
----
+**Fix 5 — show the score gap.**
+When the two models disagree by more than 25 points, the amber warning banner now
+also says exactly how far apart they were ("The two model scores differed by N
+points.").
 
-## S2.8 i18n follow-up  (`6875ea4`)
+After the fixes, we re-ran one input per category through the whole pipeline:
 
-The 5 `friendlyPipelineError` messages, the loading hint, and the divergence
-sub-line were English-only. Wired into the existing `uiTranslations` dictionary:
+| Input | Category | Verdict | Time |
+|---|---|---|---|
+| Central-bank rate announcement | `NEWS_POLICY` | VERIFIED (86/100) | 19s |
+| CIMB phishing SMS | `SCAM_PHISHING` | HIGH RISK (5/100), 4 red flags | 19s |
+| Fake work-from-home job | `SCAM_PHISHING` | HIGH RISK (8/100), 6 red flags | 34s |
+| "EPF will be raided" hoax | `VIRAL_RUMOR` | HIGH RISK (8/100), 7 red flags | 16s |
 
-- `friendlyPipelineError()` now returns a **translation key**
-  (`errNotConfigured`, `errModelsSlow`, `errBadInput`, `errNoConnection`,
-  `errGeneric`) instead of an English sentence; the 3 call sites wrap it in
-  `t()`. (The function is module-level and can't see `t()` / `language`, so
-  returning a key and resolving in the component is the clean split.)
-- 7 keys added to all four language blocks (EN / ZH / MS / TA).
-  `scoresDifferedBy` carries a `{n}` placeholder that the banner substitutes with
-  `.replace('{n}', …)` — `t()` has no interpolation.
-- Loading card and divergence banner call `t()` instead of literal text.
+All rendered correctly, including the new rumor alarm styling.
 
-**Translation confidence (flagged for the team):**
-- English — authoritative.
-- Chinese, Malay — machine-generated, medium-high confidence; light native review
+### Step 3 — Translate the new strings (commit `6875ea4`)
+
+The five friendly error messages, the loading hint, and the "differed by N
+points" line were English-only. The rest of the UI uses a translation dictionary
+(`uiTranslations`) plus a lookup function `t('someKey')`. We wired the new
+strings into that same system:
+
+- `friendlyPipelineError()` now returns a **key** (like `errModelsSlow`) instead
+  of an English sentence; the component turns the key into text with `t()`. (The
+  helper lives outside the React component and can't see the current language, so
+  returning a key and letting the component translate is the clean split.)
+- Seven new keys were added to **all four** language blocks.
+
+**Translation confidence — please review before the pitch:**
+- English: authoritative.
+- Chinese, Malay: machine-written, medium-high confidence — a quick native read is
   advised.
-- **Tamil — needs a native-speaker check before the pitch.** Most likely to need
-  rephrasing: `scoresDifferedBy` (`{n} புள்ளிகளால் வேறுபட்டன`) and
-  `errNotConfigured`. Meanings are faithful; the risk is fluency/register.
+- **Tamil: needs a native-speaker check.** The meanings are faithful but the
+  phrasing may be stiff. Most suspect: the "differed by N points" string and the
+  "service not configured" string.
+
+### Step 4 — Tab title (commit `4801ed7`)
+
+`src/app/layout.tsx` still had the scaffold defaults, so the browser tab said
+"Create Next App". Changed the `metadata` export's `title` to **"CivicPulse"** and
+replaced the placeholder description. (In the App Router you set the tab title
+through this `metadata` object — there's no `<title>` tag to edit by hand.)
+
+**On renaming the URL:** `localhost:3000` can't be renamed — it's just your own
+machine plus a port. A real shareable address (e.g. `civicpulse.vercel.app`) only
+exists once the app is *deployed*, and the name is chosen in the host's
+dashboard, not in the code. Deploying to Vercel (it connects straight to the
+GitHub repo) is the way to get one; we haven't done it yet.
+
+### What we learned
+
+- **Investigate before editing.** Reading the frontend end-to-end first is what
+  produced a clean five-item list — and it corrected a wrong assumption (the
+  "missing" divergence warning was there all along under another name).
+- **Keep translation (and other cross-cutting concerns) out of pure functions.**
+  `friendlyPipelineError` stayed simple and testable by returning a key; the
+  component owns the language lookup. Same principle as keeping the backend's
+  response shape stable on Day 1.
+- **Ship honestly.** The Tamil strings are in, but they're explicitly flagged for
+  review rather than presented as finished. A multilingual claim is only as
+  strong as its weakest language.
+- **A background-task "failed (exit code 1)" notice is not always a failure.**
+  The dev server showed clean compiles and 200 responses right up to the last log
+  line; the non-zero exit was the process being *terminated* by tooling cleanup,
+  not crashing.
 
 ---
 
-## S2.9 Tab title  (`4801ed7`)
+## New-knowledge cheat-sheet (JavaScript / TypeScript / Next.js for a Python person)
 
-- `src/app/layout.tsx` — the `metadata` export still had the scaffold defaults.
-  `title` `"Create Next App"` → `"CivicPulse"`; description replaced with a real
-  one. (App Router sets the browser-tab title from this `metadata` object; there
-  is no `<title>` tag to edit.)
-- **URL / domain not changed.** `localhost:3000` can't be renamed; a shareable
-  URL needs a deploy (Vercel discussed — connects to the `PinkKaito/CivicPulse`
-  repo, gives a `*.vercel.app` name you can set — not done this session).
+### Language and runtime
 
----
-
-## S2.10 Notes / gotchas
-
-- A background-task notification reported the dev server "failed (exit code 1)"
-  mid-session. **False alarm** — the log showed clean Turbopack compiles and
-  `200`s right up to the last line; the `[?25h` + non-zero exit is the signature
-  of the process being *signalled/terminated* (harness cleanup of a long-running
-  background shell), not crashing. Restarted it; no issue.
-- Every fix was type-checked: `npx tsc --noEmit` → exit 0 after each step.
-- Nothing in `src/app/api/` changed this session.
-
----
-
-## S2.11 Concepts met this session (Python → JS/TS)
-
-| JS/TS thing | Closest Python analogy | Note |
+| JS / TS | Closest Python idea | Notes |
 |---|---|---|
-| `metadata` export in `layout.tsx` | — | App Router's way to set `<title>` / `<meta>`; you never touch a raw `<head>` |
-| `useEffect(fn, [dep])` | a callback that re-runs when `dep` changes | `return () => {...}` is the cleanup, like a context manager's `__exit__` — here it's `clearInterval` |
-| `setInterval` / `clearInterval` | a `threading.Timer` loop | leaks if you don't clear it; cleared in the effect's return |
-| a value computed in `return (...)` | a `@property` | `alarmMode` is **not** state — it's recomputed every render from `type` + `scoreLabel` |
-| `uiTranslations` + `t(key)` | `gettext`, or a `dict.get` chain | `t()` resolves `lang[key] ?? English[key] ?? key` |
-| `str.replace('{n}', x)` for one placeholder | `"...{n}...".format(n=x)` / f-string | JS `String.replace` with a string arg replaces only the **first** match — fine here, one placeholder per template |
+| `async` / `await` | `async` / `await` (asyncio) | JS is single-threaded with an event loop. |
+| `Promise.all([a, b])` | `asyncio.gather(a, b)` | **Rejects immediately if any one fails**, and you lose the other results. |
+| `Promise.allSettled([a, b])` | `asyncio.gather(..., return_exceptions=True)` | Never rejects; you get a status object per item. |
+| non-throwing wrapper trick | — | Wrap each task so it *always* resolves to `{ ok, value, error }`. Then `Promise.all` can't be short-circuited by one failure. Used on Day 1. |
+| `x?.y?.z` | `x.get('y', {}).get('z')` | "Optional chaining" — stops at `undefined` instead of raising. |
+| `a ?? b` | `a if a is not None else b` | "Nullish coalescing" — only `null`/`undefined` trigger the fallback, not `0` or `""`. |
+| `str.replace('{n}', x)` | `"...".format()` / f-string | Plain-string `replace` swaps only the **first** match. Fine for one placeholder. |
+| TypeScript `type X = { ... }` | a `dataclass` / `TypedDict` | Compile-time only; erased at runtime. `npx tsc --noEmit` = "type-check, don't build." |
+| `AbortController` + `signal` | `requests(..., timeout=)` but as a cancel token | One controller can cancel one or many `fetch` calls. This is how you time out a `fetch`. |
+
+### Project and framework
+
+| Thing | Python analogy | Notes |
+|---|---|---|
+| `package.json` / `package-lock.json` / `node_modules/` | `requirements.txt` / `poetry.lock` / venv `site-packages` | `node_modules` is per-project, rebuilt locally with `npm install`, never committed. |
+| `process.env.GONKA_API_KEY` + `.env.local` | `os.environ` + `python-dotenv` | Next.js auto-loads `.env.local` **at server start only** — restart after editing. Git-ignored. |
+| `src/app/api/x/route.ts` | a Flask/FastAPI view for `/api/x` | Folder path = URL. Export `GET` / `POST` functions. |
+| `metadata` export in `layout.tsx` | — | Sets the browser-tab `<title>` and `<meta>` tags. No raw HTML `<head>` editing. |
+| `'use client'` at the top of `page.tsx` | — | Marks a component that runs in the browser (needs state, effects, event handlers). |
+| `useState` | an instance attribute that triggers a re-render when set | `const [x, setX] = useState(0)`. |
+| `useEffect(fn, [dep])` | a callback that re-runs when `dep` changes | `return () => {...}` inside is the cleanup, like a context manager's `__exit__`. We used it to run `clearInterval` when the loading state ends. |
+| `setInterval` / `clearInterval` | a `threading.Timer` loop | Leaks if you don't clear it. |
+| a value computed inside `return ( ... )` | a `@property` | e.g. `alarmMode` is **not** state — it's recomputed every render from other values. |
+| `uiTranslations` + `t('key')` | `gettext`, or a `dict.get` chain | `t()` here resolves `currentLang[key]` → `English[key]` → the key itself. |
+
+### Patterns we're now using on purpose
+
+- **Hedged requests** — fire two identical calls, take the fastest, cancel the
+  rest. Beats tail latency on a flaky upstream.
+- **Cross-fallback** — model A's backup is model B and vice-versa, so one model
+  being down still gives two independent opinions.
+- **Graceful degradation** — a partial result plus an honest note beats a 500
+  error page.
+- **Defensive JSON parsing of LLM output** — models ignore "return only JSON."
+  Strip code fences → take everything between the first `{` and last `}` → parse →
+  on failure, remove trailing commas and retry → on failure, give up cleanly
+  (don't throw).
+- **Error mapping** — never show raw backend text to a user. Map it to a short,
+  safe message. Never reveal config/secret names.
+
+### Gotcha: Windows shell quoting
+
+Pasting JSON straight into `curl` on Windows gets mangled by the shell (`curl: (6)
+Could not resolve host: Your` and similar). Fixes:
+- Put the JSON in a file and use `curl.exe -d "@body.json"`.
+- Or in PowerShell build it with `@{ message = "..." } | ConvertTo-Json`.
+- Use `curl.exe` explicitly — plain `curl` in PowerShell is an alias for a
+  different command.
 
 ---
 
-## S2.12 Reflection
+## Open items
 
-- **Investigate before touching.** Reading `page.tsx` end-to-end first turned a
-  vague "make the frontend not look broken" into a ranked list of five concrete,
-  independent fixes — and revealed that the "missing" divergence warning was
-  actually present under a different field name.
-- **Keep i18n out of pure functions.** `friendlyPipelineError` stayed testable by
-  returning a key; the component owns the language lookup. Same shape as keeping
-  `process-news`'s response contract stable in Session 1.
-- **Name the honesty gaps.** The Tamil strings are shipped but explicitly flagged
-  for native review rather than presented as done — a judge-facing multilingual
-  claim is only as good as its worst language.
+**Needs a person, not code:**
+- [ ] Native-speaker review of the **Tamil** UI strings added on 09-02 (and a
+      lighter pass on Chinese / Malay).
+- [ ] Decide whether to deploy to **Vercel** for a shareable pitch URL.
 
----
+**Deferred on purpose (pre-existing, low priority with limited time):**
+- [ ] `PUBLIC_HEALTH` and `COMMUNITY_DEVELOPMENT` categories fall through to the
+      "News & Public Policy" badge label.
+- [ ] A few client-side guard messages ("Please enter a valid News URL", "Content
+      is too short to analyze", "We could not read that link") are still
+      English-only — outside the 09-02 translation scope.
 
-## S2.13 Open items
+**Backend polish (from Day 1, still open):**
+- [ ] Consider a shorter *fallback* timeout so the absolute worst case is under
+      ~85s.
+- [ ] Re-check `Kimi-K2.6` on the router periodically; if it stabilises it could
+      come back as a third opinion.
+- [ ] Move the throwaway test-input JSON files into a `test/fixtures/` folder if
+      we want them in version control.
 
-- [ ] Native **Tamil** review of the 7 new i18n strings; lighter Chinese / Malay
-      review.
-- [ ] `PUBLIC_HEALTH` / `COMMUNITY_DEVELOPMENT` still fall through to the
-      "News & Public Policy" badge — **deferred** (pre-existing, low priority).
-- [ ] Client-thrown guard strings ("Please enter a valid News URL.", "Content is
-      too short to analyze…", "We could not read that link…") are still
-      English-only — out of scope for the i18n commit; fold in if wanted.
-- [ ] Deploy to Vercel if a shareable pitch URL is needed.
-- [ ] Still open from Session 1: shorter *fallback* timeout to bound worst-case
-      latency; periodically re-check Kimi on the router; version-control the test
-      fixtures.
+**Process reminder:**
+- [ ] `AGENTS.md` says to read the bundled Next.js docs
+      (`node_modules/next/dist/docs/`) before writing new route code — this
+      version of Next.js has non-standard behaviour.
