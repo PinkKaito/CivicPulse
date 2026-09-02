@@ -282,6 +282,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     footerText: '© 2026 CivicPulse Explainer. Powering citizens with media transparency via Gonka Network.',
     accessibilityMenu: 'Accessibility Settings',
     fontSizeLabel: 'Font Size',
+    themeModeLabel: 'Theme Mode',
+    charCount: 'Character Count',
+    maxLimit: 'max limit',
   },
   'Bahasa Melayu': {
     tagline: 'Pengawal Pengesahan Fakta & Anti-Penipuan AI Dwi',
@@ -343,6 +346,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     footerText: '© 2026 CivicPulse Explainer. Memperkasakan rakyat dengan ketelusan media melalui Rangkaian Gonka.',
     accessibilityMenu: 'Tetapan Kebolehaksesan',
     fontSizeLabel: 'Saiz Font',
+    themeModeLabel: 'Mod Tema',
+    charCount: 'Jumlah Aksara',
+    maxLimit: 'had maksimum',
   },
   Chinese: {
     tagline: '双重 AI 公共事实核查与反诈骗防护',
@@ -404,6 +410,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     footerText: '© 2026 CivicPulse 说明器。通过 Gonka 网络为公民提供媒体透明度。',
     accessibilityMenu: '无障碍辅助设置',
     fontSizeLabel: '字体大小',
+    themeModeLabel: '主题模式',
+    charCount: '字数统计',
+    maxLimit: '最大限制',
   },
   Tamil: {
     tagline: 'இரட்டை AI பொது உண்மை சரிபார்ப்பு & ஏமாற்று பாதுகாப்பு',
@@ -465,6 +474,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     footerText: '© 2026 CivicPulse Explainer. Gonka நெட்வொர்க் வழியாக குடிமக்களுக்கு ஊடக வெளிப்படைத்தன்மையை வழங்குகிறது.',
     accessibilityMenu: 'அணுகல்தன்மை அமைப்புகள்',
     fontSizeLabel: 'எழுத்துரு அளவு',
+    themeModeLabel: 'தீம் முறை',
+    charCount: 'எழுத்துக்களின் எண்ணிக்கை',
+    maxLimit: 'அதிகபட்ச வரம்பு',
   }
 };
 
@@ -890,7 +902,7 @@ export default function Home() {
 
                   {/* Theme Selectors */}
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Theme Mode</span>
+                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">{t('themeModeLabel')}</span>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
@@ -967,9 +979,9 @@ export default function Home() {
                     }`}
                 />
                 <div className="flex justify-between items-center text-[10px] font-bold mt-1 px-1">
-                  <span className={textLabelColor}>Character Count</span>
+                  <span className={textLabelColor}>{t('charCount')}</span>
                   <span className={articleText.length > 10000 ? "text-rose-500 font-extrabold animate-pulse" : textLabelColor}>
-                    {articleText.length.toLocaleString()} / 10,000 max limit
+                    {articleText.length.toLocaleString()} / 10,000 {t('maxLimit')}
                   </span>
                 </div>
               </div>
