@@ -1,12 +1,17 @@
-# CivicPulse — Session Log, 2026-09-01
+# CivicPulse — Session Log
 
-A start-to-finish record of one working session: recovering the project after a
-re-clone, wiring up Gonka, building an analysis endpoint, and then consolidating
-it into the pipeline that already existed. Written for reflection, revision, and
-as a learning reference (the developer is coming from Python/ML with no prior
-JS/TS/Next.js).
+Running record of working sessions, for reflection, revision, and as a learning
+reference (the developer comes from Python/ML with no prior JS/TS/Next.js).
+
+- **Session 1 — 2026-09-01:** recover the project after a re-clone, wire up Gonka,
+  build an analysis endpoint, then consolidate it into the pipeline that already
+  existed.
+- **Session 2 — 2026-09-02:** frontend experience pass — make everything the
+  backend computes visible, usable, and non-broken for a real user or judge.
 
 ---
+
+# Session 1 — 2026-09-01
 
 ## 0. Starting point
 
@@ -346,4 +351,217 @@ src/app/api/
       `test/fixtures/` folder if you want them version-controlled.
 - [ ] The `AGENTS.md` note about reading `node_modules/next/dist/docs/` before
       writing Next.js code still applies to any new route work.
-```
+
+---
+
+# Session 2 — 2026-09-02 — Frontend experience pass
+
+Session 1's backend reliability work (process-news fallback swap, 20s→60s hedge
+timeout, `VIRAL_RUMOR` category) was committed and pushed. This session made the
+**frontend** actually surface what the backend already computes — nothing in
+`process-news/route.ts` was touched.
+
+Three commits, all `src/app/page.tsx` unless noted:
+
+| commit | scope |
+|---|---|
+| `1ed138d` | Fixes 1–5 (VIRAL_RUMOR, friendly errors, visible receipts, loading timer, delta number) |
+| `6875ea4` | i18n of the new user-facing strings (EN/ZH/MS/TA) |
+| `4801ed7` | tab title → CivicPulse (`src/app/layout.tsx`) |
+
+---
+
+## S2.1 Investigation first (no code changes)
+
+Read all ~1560 lines of `page.tsx` and cross-checked against a live `process-news`
+response. Eight-point findings:
+
+| # | Area | Verdict |
+|---|---|---|
+| 1 | Gonka Request IDs | present but **buried** — collapsed drawer at card bottom, and the only shortcut to it (header pill) was `hidden md:inline-flex` so invisible on phones |
+| 2 | Divergence warning | **works** — but the field is `verification.consensus_note` (there is no `divergenceWarning`); it fires when `discrepancy_delta > 25` **or** a fallback was used |
+| 3 | VIRAL_RUMOR | **broken** — badge ternary checked the dead string `'VIRAL_CLAIM'`, so it fell through to the "News & Public Policy" label; red-flags list was gated behind `isScam` so it never showed for rumors |
+| 4 | Loading state | spinner + skeleton + `loadingStep` message present (not frozen-looking) but **no time cue** for a 20–85s wait |
+| 5 | Errors 400/500 | shown in a red banner (not silent, no crash) but as **raw backend strings** incl. `GONKA_API_KEY is not configured…`; **there is no 502** — a total model failure is a 500 carrying a timeout message |
+| 6 | Other categories | NEWS_POLICY / SCAM_PHISHING / JOB_INVESTMENT render correctly; no regression from the VIRAL_RUMOR backend add |
+| 7 | Mobile | no obvious breakage — `flex-wrap` header, `grid-cols-1 md:grid-cols-*` stacking, `break-all` on long IDs |
+| 8 | parse-news → process-news | **confirmed live** — raw-text paste and a Wikipedia URL both ran end-to-end (URL path: 57k chars scraped → truncated to 10k → 200 in 55s) |
+
+Decisions taken from the findings: VIRAL_RUMOR = **hybrid** (keep Truth Score
+scale, but apply scam-style alarm chrome + red flags when the label is HIGH RISK
+/ SUSPICIOUS); Request IDs = **auto-expand the drawer + un-hide the pill on
+mobile**.
+
+---
+
+## S2.2 Fix 1 — VIRAL_RUMOR rendering + hybrid scoring  (`1ed138d`)
+
+In the results-card IIFE:
+
+- Added derived flags: `isRumor`, `scoreLabel`, `isHighRiskRumor` (label is
+  `HIGH RISK` or `SUSPICIOUS`), `alarmMode = isScam || isHighRiskRumor`.
+- Kept `isScam` for the **score math** — a rumor stays on the Truth Score scale
+  (not the inverted Scam-Risk scale) and keeps the "Citizen Impact" heading.
+- Switched ~14 **chrome** conditionals from `isScam` to `alarmMode` (card
+  bg/border, category badge colour, summary-point cards, impact box, advice box,
+  audit divider).
+- **Bug fixes:** badge now checks `isRumor` (was `'VIRAL_CLAIM'`, a string the
+  backend never emits); red-flags guard `isScam` → `(isScam || isRumor)`.
+
+Net effect: a HIGH RISK rumor gets the full rose alarm treatment with a visible
+red-flags list; a mild rumor stays calm/informational.
+
+---
+
+## S2.3 Fix 2 — plain-language errors  (`1ed138d`)
+
+- New module-level `friendlyPipelineError(status, raw)` — pattern-matches the raw
+  text / HTTP status to a short message. `GONKA_API_KEY` / "not configured" →
+  a generic "not set up correctly right now" (nothing internal on screen).
+- `handleProcessArticle`: `processRes.json()` is now `.catch(() => null)`-guarded
+  (a non-JSON error page can't throw an ugly `SyntaxError`); backend failures go
+  through the mapper; a `TypeError` in the catch (the fetch itself failed) maps
+  to the offline message; our own client-side guards pass through unchanged.
+- parse-news failure → fixed friendly line: *"We could not read that link. Try
+  pasting the article text directly instead."*
+- `handleVerifyGonka` (the dev connection-test panel) got the same treatment so
+  it can't print `GONKA_API_KEY…` either.
+- Reminder captured: **no 502 exists** here — "both models failed" is a 500 with
+  a timeout string, which maps to *"Our verification models are taking longer
+  than expected — please try again."*
+
+---
+
+## S2.4 Fix 3 — make the Gonka receipts visible  (`1ed138d`)
+
+- The audit drawer (`showAudit`) now **auto-opens on the first result** —
+  `setShowAudit(true)` right after `setResult(processData)`.
+- Header "Gonka Network: Active" pill: `hidden md:inline-flex` →
+  `inline-flex order-last md:order-none`. Now visible on mobile and drops to its
+  own row on narrow screens instead of crowding the language pills.
+
+---
+
+## S2.5 Fix 4 — elapsed-time counter in the loading state  (`1ed138d`)
+
+- New `elapsedSec` state + a `useEffect` that starts a 1-second `setInterval`
+  while `loading` is true and clears it (and resets to 0) when loading ends.
+- Loading card now shows `M:SS elapsed` plus the line *"This can take up to a
+  minute for new content."* so a 50–85s wait doesn't read as a freeze.
+
+---
+
+## S2.6 Fix 5 — show the score gap in the divergence banner  (`1ed138d`)
+
+- Banner restructured to a flex column. When
+  `discrepancy_delta` is a number `> 25`, a sub-line is appended:
+  *"The two model scores differed by N points."*
+
+---
+
+## S2.7 Four-category end-to-end re-test
+
+| Input | Category | Label | truth / indep | Cold time |
+|---|---|---|---|---|
+| Central-bank rate hold | `NEWS_POLICY` | VERIFIED | 86 / 82 | 19s |
+| CIMB phishing SMS | `SCAM_PHISHING` | HIGH RISK | 5 / 5 · 4 flags | 19s |
+| Fake WFH job + deposit | `SCAM_PHISHING`* | HIGH RISK | 8 / 5 · 6 flags | 34s |
+| EPF-raid viral hoax | `VIRAL_RUMOR` | HIGH RISK | 8 / 5 · **7 flags** | 16s |
+
+\* the model picked phishing over `JOB_INVESTMENT`; both use the identical
+`isScam` render path, so JOB_INVESTMENT is covered. None of these split the two
+models by > 25, so the Fix 5 sub-line was verified separately (a delta-30 run
+during S2.1).
+
+---
+
+## S2.8 i18n follow-up  (`6875ea4`)
+
+The 5 `friendlyPipelineError` messages, the loading hint, and the divergence
+sub-line were English-only. Wired into the existing `uiTranslations` dictionary:
+
+- `friendlyPipelineError()` now returns a **translation key**
+  (`errNotConfigured`, `errModelsSlow`, `errBadInput`, `errNoConnection`,
+  `errGeneric`) instead of an English sentence; the 3 call sites wrap it in
+  `t()`. (The function is module-level and can't see `t()` / `language`, so
+  returning a key and resolving in the component is the clean split.)
+- 7 keys added to all four language blocks (EN / ZH / MS / TA).
+  `scoresDifferedBy` carries a `{n}` placeholder that the banner substitutes with
+  `.replace('{n}', …)` — `t()` has no interpolation.
+- Loading card and divergence banner call `t()` instead of literal text.
+
+**Translation confidence (flagged for the team):**
+- English — authoritative.
+- Chinese, Malay — machine-generated, medium-high confidence; light native review
+  advised.
+- **Tamil — needs a native-speaker check before the pitch.** Most likely to need
+  rephrasing: `scoresDifferedBy` (`{n} புள்ளிகளால் வேறுபட்டன`) and
+  `errNotConfigured`. Meanings are faithful; the risk is fluency/register.
+
+---
+
+## S2.9 Tab title  (`4801ed7`)
+
+- `src/app/layout.tsx` — the `metadata` export still had the scaffold defaults.
+  `title` `"Create Next App"` → `"CivicPulse"`; description replaced with a real
+  one. (App Router sets the browser-tab title from this `metadata` object; there
+  is no `<title>` tag to edit.)
+- **URL / domain not changed.** `localhost:3000` can't be renamed; a shareable
+  URL needs a deploy (Vercel discussed — connects to the `PinkKaito/CivicPulse`
+  repo, gives a `*.vercel.app` name you can set — not done this session).
+
+---
+
+## S2.10 Notes / gotchas
+
+- A background-task notification reported the dev server "failed (exit code 1)"
+  mid-session. **False alarm** — the log showed clean Turbopack compiles and
+  `200`s right up to the last line; the `[?25h` + non-zero exit is the signature
+  of the process being *signalled/terminated* (harness cleanup of a long-running
+  background shell), not crashing. Restarted it; no issue.
+- Every fix was type-checked: `npx tsc --noEmit` → exit 0 after each step.
+- Nothing in `src/app/api/` changed this session.
+
+---
+
+## S2.11 Concepts met this session (Python → JS/TS)
+
+| JS/TS thing | Closest Python analogy | Note |
+|---|---|---|
+| `metadata` export in `layout.tsx` | — | App Router's way to set `<title>` / `<meta>`; you never touch a raw `<head>` |
+| `useEffect(fn, [dep])` | a callback that re-runs when `dep` changes | `return () => {...}` is the cleanup, like a context manager's `__exit__` — here it's `clearInterval` |
+| `setInterval` / `clearInterval` | a `threading.Timer` loop | leaks if you don't clear it; cleared in the effect's return |
+| a value computed in `return (...)` | a `@property` | `alarmMode` is **not** state — it's recomputed every render from `type` + `scoreLabel` |
+| `uiTranslations` + `t(key)` | `gettext`, or a `dict.get` chain | `t()` resolves `lang[key] ?? English[key] ?? key` |
+| `str.replace('{n}', x)` for one placeholder | `"...{n}...".format(n=x)` / f-string | JS `String.replace` with a string arg replaces only the **first** match — fine here, one placeholder per template |
+
+---
+
+## S2.12 Reflection
+
+- **Investigate before touching.** Reading `page.tsx` end-to-end first turned a
+  vague "make the frontend not look broken" into a ranked list of five concrete,
+  independent fixes — and revealed that the "missing" divergence warning was
+  actually present under a different field name.
+- **Keep i18n out of pure functions.** `friendlyPipelineError` stayed testable by
+  returning a key; the component owns the language lookup. Same shape as keeping
+  `process-news`'s response contract stable in Session 1.
+- **Name the honesty gaps.** The Tamil strings are shipped but explicitly flagged
+  for native review rather than presented as done — a judge-facing multilingual
+  claim is only as good as its worst language.
+
+---
+
+## S2.13 Open items
+
+- [ ] Native **Tamil** review of the 7 new i18n strings; lighter Chinese / Malay
+      review.
+- [ ] `PUBLIC_HEALTH` / `COMMUNITY_DEVELOPMENT` still fall through to the
+      "News & Public Policy" badge — **deferred** (pre-existing, low priority).
+- [ ] Client-thrown guard strings ("Please enter a valid News URL.", "Content is
+      too short to analyze…", "We could not read that link…") are still
+      English-only — out of scope for the i18n commit; fold in if wanted.
+- [ ] Deploy to Vercel if a shareable pitch URL is needed.
+- [ ] Still open from Session 1: shorter *fallback* timeout to bound worst-case
+      latency; periodically re-check Kimi on the router; version-control the test
+      fixtures.
