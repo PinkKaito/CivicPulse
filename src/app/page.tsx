@@ -21,7 +21,12 @@ import {
   Server,
   FileSearch,
   Settings,
-  Activity
+  Activity,
+  Share2,
+  Download,
+  X,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -285,6 +290,24 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'Theme Mode',
     charCount: 'Character Count',
     maxLimit: 'max limit',
+    shareCard: 'Share Card',
+    copied: 'Copied!',
+    shareModalTitle: 'Share Fact-Check Report',
+    shareModalDesc: 'Spread truth and warn citizens with 1-click social sharing.',
+    copyTextSummary: 'Copy Text Card',
+    copyReportLink: 'Copy Link',
+    shareHeader: 'CivicPulse AI Fact-Check Report',
+    shareTitleLabel: 'Title',
+    shareReasoningLabel: 'Reasoning & Credibility Analysis',
+    shareVerifiedVia: 'Verified via Gonka Dual-AI Hedged Network',
+    shareVerifyOn: 'Verify on CivicPulse',
+    shareScamWarning: '⚠️ DO NOT CLICK ANY LINKS OR SHARE YOUR BANK DETAILS!',
+    shareSafeNotice: '✅ VERIFIED OFFICIAL ANNOUNCEMENT - SAFE TO READ',
+    downloadImageCard: 'Download Image Card 🖼️',
+    posterChecklistHeader: 'QUICK PROTECTION CHECKLIST:',
+    posterBullet1: '• 🚫 Never share OTP/TAC or banking passwords',
+    posterBullet2: '• 🔍 Verify claims only via official .gov.my channels',
+    posterBullet3: '• 📢 Report suspicious SMS/calls to NSRC Hotline 997',
   },
   'Bahasa Melayu': {
     tagline: 'Pengawal Pengesahan Fakta & Anti-Penipuan AI Dwi',
@@ -349,6 +372,24 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'Mod Tema',
     charCount: 'Jumlah Aksara',
     maxLimit: 'had maksimum',
+    shareCard: 'Kongsi Kad',
+    copied: 'Disalin!',
+    shareModalTitle: 'Kongsi Laporan Pengesahan Fakta',
+    shareModalDesc: 'Sebarkan kebenaran dan lindungi orang ramai dengan 1-klik perkongsian.',
+    copyTextSummary: 'Salin Ringkasan Teks',
+    copyReportLink: 'Salin Pautan',
+    shareHeader: 'Laporan Pengesahan Fakta AI CivicPulse',
+    shareTitleLabel: 'Tajuk',
+    shareReasoningLabel: 'Ulasan Kredibiliti & Analisis',
+    shareVerifiedVia: 'Disahkan melalui Rangkaian Pengawal Dwi-AI Gonka',
+    shareVerifyOn: 'Sahkan di CivicPulse',
+    shareScamWarning: '⚠️ JANGAN TEKAN PAUTAN ATAU KONGSI MAKLUMAT BANK ANDA!',
+    shareSafeNotice: '✅ MAKLUMAN RASMI DISAHKAN - SELAMAT UNTUK DIBACA',
+    downloadImageCard: 'Muat Turun Kad Gambar 🖼️',
+    posterChecklistHeader: 'SENARAI SEMAK PERLINDUNGAN:',
+    posterBullet1: '• 🚫 Jangan berkongsi OTP/TAC atau kata laluan bank',
+    posterBullet2: '• 🔍 Semak maklumat hanya di portal rasmi .gov.my',
+    posterBullet3: '• 📢 Laporkan penipuan ke talian NSRC 997',
   },
   Chinese: {
     tagline: '双重 AI 公共事实核查与反诈骗防护',
@@ -413,6 +454,24 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: '主题模式',
     charCount: '字数统计',
     maxLimit: '最大限制',
+    shareCard: '分享卡片',
+    copied: '已复制！',
+    shareModalTitle: '分享事实核查报告',
+    shareModalDesc: '一键分享防诈与事实核查报告，共建媒体透明度。',
+    copyTextSummary: '复制文本卡片',
+    copyReportLink: '复制链接',
+    shareHeader: 'CivicPulse AI 事实核查与防诈报告',
+    shareTitleLabel: '标题',
+    shareReasoningLabel: '研判分析与可信度核查',
+    shareVerifiedVia: '通过 Gonka 双 AI 对冲网络完成验证',
+    shareVerifyOn: '在 CivicPulse 查看完整报告',
+    shareScamWarning: '⚠️ 切勿点击任何链接或提供银行/个人信息！',
+    shareSafeNotice: '✅ 官方通告已核实 - 可放心阅读',
+    downloadImageCard: '下载图片卡片 🖼️',
+    posterChecklistHeader: '快速防诈指南：',
+    posterBullet1: '• 🚫 切勿提供 OTP/TAC 动态码或银行密码',
+    posterBullet2: '• 🔍 仅通过官方 .gov.my 渠道核对信息',
+    posterBullet3: '• 📢 发现诈骗请拨打 997 国家反诈专线 (NSRC)',
   },
   Tamil: {
     tagline: 'இரட்டை AI பொது உண்மை சரிபார்ப்பு & ஏமாற்று பாதுகாப்பு',
@@ -477,6 +536,24 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'தீம் முறை',
     charCount: 'எழுத்துக்களின் எண்ணிக்கை',
     maxLimit: 'அதிகபட்ச வரம்பு',
+    shareCard: 'பகிர்க',
+    copied: 'நகலெடுக்கப்பட்டது!',
+    shareModalTitle: 'உண்மை அறிக்கையைப் பகிரவும்',
+    shareModalDesc: 'சமூக வலைத்தளங்களில் ஒரே கிளிக்கில் அறிக்கை பகிருங்கள்.',
+    copyTextSummary: 'உரையை நகலெடு',
+    copyReportLink: 'இணைப்பை நகலெடு',
+    shareHeader: 'CivicPulse AI உண்மை சரிபார்ப்பு அறிக்கை',
+    shareTitleLabel: 'தலைப்பு',
+    shareReasoningLabel: 'பகுப்பாய்வு மற்றும் நம்பகத்தன்மை',
+    shareVerifiedVia: 'Gonka இரட்டை AI நெட்வொர்க் மூலம் சரிபார்க்கப்பட்டது',
+    shareVerifyOn: 'CivicPulse இல் சரிபார்க்கவும்',
+    shareScamWarning: '⚠️ எவ்வித இணைப்பையும் கிளிக் செய்ய வேண்டாம்! வங்கி விவரங்களைப் பகிர வேண்டாம்!',
+    shareSafeNotice: '✅ அதிகாரப்பூர்வ அறிவிப்பு சரிபார்க்கப்பட்டது',
+    downloadImageCard: 'பட கார்டைப் பதிவிறக்கவும் 🖼️',
+    posterChecklistHeader: 'பாதுகாப்பு சரிபார்ப்புப் பட்டியல்:',
+    posterBullet1: '• 🚫 OTP/TAC அல்லது வங்கி கடவுச்சொல்லை பகிர வேண்டாம்',
+    posterBullet2: '• 🔍 அதிகாரப்பூர்வ .gov.my தளம் மூலம் மட்டுமே சரிபார்க்கவும்',
+    posterBullet3: '• 📢 NSRC 997 மூலம் புகார் செய்யவும்',
   }
 };
 
@@ -503,7 +580,24 @@ export default function Home() {
   // UI Translation Helper
   const t = (key: string): string => {
     const langDict = uiTranslations[language] || uiTranslations.English;
-    return langDict[key] || uiTranslations.English[key] || key;
+    const val = langDict?.[key] || uiTranslations.English?.[key];
+    if (val) return val;
+
+    const fallbackShareKeys: Record<string, string> = {
+      shareHeader: '🚨 CivicPulse AI Fact-Check Report 🚨',
+      shareTitleLabel: '📌 Title',
+      shareReasoningLabel: '💡 Reasoning & Credibility Analysis',
+      shareVerifiedVia: '🛡️ Verified via Gonka Dual-AI Hedged Network',
+      shareVerifyOn: 'Verify on CivicPulse',
+      shareScamWarning: '⚠️ DO NOT CLICK ANY LINKS OR SHARE YOUR BANK DETAILS!',
+      shareSafeNotice: '✅ VERIFIED OFFICIAL ANNOUNCEMENT - SAFE TO READ',
+      downloadImageCard: 'Download Image Card 🖼️',
+      posterChecklistHeader: 'QUICK PROTECTION CHECKLIST:',
+      posterBullet1: '• 🚫 Never share OTP/TAC or banking passwords',
+      posterBullet2: '• 🔍 Verify claims only via official .gov.my channels',
+      posterBullet3: '• 📢 Report suspicious SMS/calls to NSRC Hotline 997',
+    };
+    return fallbackShareKeys[key] || key;
   };
 
   // Accessibility States
@@ -547,6 +641,270 @@ export default function Home() {
   const [loadingM1Receipt, setLoadingM1Receipt] = useState<boolean>(false);
   const [loadingM2Receipt, setLoadingM2Receipt] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string>('');
+  const [copiedShare, setCopiedShare] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [shareImageDataUrl, setShareImageDataUrl] = useState<string | null>(null);
+
+  const defangUrl = (str: string): string => {
+    if (!str) return '';
+    return str
+      .replace(/https?:\/\//gi, 'hxxps://')
+      .replace(/([a-zA-Z0-9-]{2,})\.(com|org|net|xyz|cc|info|top|online|site|app|gov|my|co|biz|icu|vip|work|cn|me)\b/gi, '$1[.]$2');
+  };
+
+  const generateShareCardImage = async (result: AnalysisResult): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    const type = result.summary.contentType || 'NEWS_POLICY';
+    const isScam = type === 'SCAM_PHISHING' || type === 'JOB_INVESTMENT';
+    const scamRiskScore = Math.max(0, Math.min(100, 100 - result.verification.truth_score));
+    const scoreDisplay = isScam ? scamRiskScore : result.verification.truth_score;
+    const scoreTitle = isScam ? t('scamRiskScore') : t('truthScore');
+    const scoreBadgeLabel = isScam
+      ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
+      : (result.verification.score_label || 'MIXED');
+
+    const isHighRisk = isScam && scamRiskScore >= 40;
+
+    // Background Gradient: Warm Sepia / Cream Theme
+    const bgGrad = ctx.createLinearGradient(0, 0, 1200, 630);
+    if (isHighRisk) {
+      bgGrad.addColorStop(0, '#fff5f5');
+      bgGrad.addColorStop(0.5, '#fbf8f3');
+      bgGrad.addColorStop(1, '#fee2e2');
+    } else {
+      bgGrad.addColorStop(0, '#fbf8f3');
+      bgGrad.addColorStop(0.5, '#faf6ee');
+      bgGrad.addColorStop(1, '#f7f1e5');
+    }
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1200, 630);
+
+    // Card Outer Border: Darker High-Contrast Crimson / Amber Accent
+    ctx.strokeStyle = isHighRisk ? '#f43f5e' : '#d97706';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(18, 18, 1164, 594);
+
+    // Top Header Pill: CivicPulse Logo + Gonka Network Verified
+    ctx.fillStyle = isHighRisk ? '#ffe4e6' : '#faf6ee';
+    ctx.beginPath();
+    ctx.roundRect(50, 45, 450, 42, 21);
+    ctx.fill();
+    ctx.strokeStyle = isHighRisk ? '#e11d48' : '#d97706';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Live Dot
+    ctx.fillStyle = isHighRisk ? '#e11d48' : '#10b981';
+    ctx.beginPath();
+    ctx.arc(74, 66, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Header Text: Razor Sharp Dark Brown #1c1917
+    ctx.fillStyle = '#1c1917';
+    ctx.font = 'bold 18px system-ui, sans-serif';
+    ctx.fillText('CivicPulse  •  Gonka Network Verified', 94, 72);
+
+    // Score Badge Pill (Top Right)
+    ctx.fillStyle = isHighRisk ? '#dc2626' : '#059669';
+    ctx.beginPath();
+    ctx.roundRect(830, 45, 320, 66, 14);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px system-ui, sans-serif';
+    ctx.fillText(scoreTitle.toUpperCase(), 850, 68);
+    ctx.font = 'bold 28px system-ui, sans-serif';
+    ctx.fillText(`${scoreDisplay}% (${scoreBadgeLabel})`, 850, 98);
+
+    // Action Directive Banner
+    const actionDirective = isHighRisk ? t('shareScamWarning') : t('shareSafeNotice');
+    ctx.fillStyle = isHighRisk ? '#ffe4e6' : '#d1fae5';
+    ctx.beginPath();
+    ctx.roundRect(50, 120, 1100, 44, 10);
+    ctx.fill();
+    ctx.strokeStyle = isHighRisk ? '#e11d48' : '#10b981';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = isHighRisk ? '#9f1239' : '#065f46';
+    ctx.font = 'bold 17px system-ui, sans-serif';
+    ctx.fillText(actionDirective, 70, 148);
+
+    // Article Title: Dark Sharp Stone #1c1917
+    ctx.fillStyle = '#1c1917';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    const titleText = result.summary.title.length > 55 ? result.summary.title.slice(0, 52) + '...' : result.summary.title;
+    ctx.fillText(titleText, 50, 200);
+
+    // Reasoning Box (Height 175)
+    ctx.fillStyle = isHighRisk ? '#fff5f5' : '#faf6ee';
+    ctx.beginPath();
+    ctx.roundRect(50, 222, 1100, 175, 14);
+    ctx.fill();
+    ctx.strokeStyle = isHighRisk ? '#fecdd3' : '#ebdcb8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = isHighRisk ? '#9f1239' : '#b45309';
+    ctx.font = 'bold 15px system-ui, sans-serif';
+    ctx.fillText(t('shareReasoningLabel'), 75, 248);
+
+    // Wrapped Reasoning Lines: Dark High-Contrast #292524
+    ctx.fillStyle = '#292524';
+    ctx.font = '15px system-ui, sans-serif';
+    const safeReasoning = defangUrl(result.verification.reasoning_trace);
+    
+    const words = safeReasoning.split(' ');
+    let line = '';
+    let y = 276;
+    const maxWidth = 1040;
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line ? `${line} ${words[n]}` : words[n];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        ctx.fillText(line, 75, y);
+        line = words[n];
+        y += 24;
+        if (y > 375) {
+          ctx.fillText(line + '...', 75, y);
+          break;
+        }
+      } else {
+        line = testLine;
+      }
+    }
+    if (y <= 375 && line) {
+      ctx.fillText(line, 75, y);
+    }
+
+    // Poster-Style Quick Protection Checklist Box (Fills empty space)
+    ctx.fillStyle = isHighRisk ? '#fff1f2' : '#ecfdf5';
+    ctx.beginPath();
+    ctx.roundRect(50, 412, 1100, 118, 14);
+    ctx.fill();
+    ctx.strokeStyle = isHighRisk ? '#fda4af' : '#a7f3d0';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = isHighRisk ? '#881337' : '#064e3b';
+    ctx.font = 'bold 13px system-ui, sans-serif';
+    ctx.fillText(t('posterChecklistHeader'), 75, 436);
+
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 14px system-ui, sans-serif';
+    ctx.fillText(t('posterBullet1'), 75, 460);
+    ctx.fillText(t('posterBullet2'), 75, 484);
+    ctx.fillText(t('posterBullet3'), 75, 508);
+
+    // Footer: Sharp Sepia Monospace #57534e
+    const verificationUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/verify/${result.model1RequestId}`
+      : `https://civicpulse.org/verify/${result.model1RequestId}`;
+    const displayUrl = verificationUrl.replace(/^https?:\/\//, '');
+
+    ctx.fillStyle = '#57534e';
+    ctx.font = '13px monospace';
+    ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
+    ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
+
+    // Generate & Draw Scannable QR Code on Bottom-Right
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`;
+
+    await new Promise<void>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        ctx.drawImage(img, 1070, 508, 68, 68);
+        resolve();
+      };
+      img.onerror = () => {
+        // Fallback vector QR placeholder if offline
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(1070, 508, 68, 68);
+        ctx.strokeStyle = '#1c1917';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(1070, 508, 68, 68);
+        ctx.fillStyle = '#1c1917';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('SCAN QR', 1078, 545);
+        resolve();
+      };
+      img.src = qrApiUrl;
+    });
+
+    return canvas.toDataURL('image/png');
+  };
+
+  const handleOpenShareModal = async () => {
+    if (!result) return;
+    setShowShareModal(true);
+    setShareImageDataUrl(null);
+    const imgData = await generateShareCardImage(result);
+    setShareImageDataUrl(imgData);
+  };
+
+  const handleDownloadImage = () => {
+    if (!shareImageDataUrl) return;
+    const link = document.createElement('a');
+    link.download = `CivicPulse_FactCheck_Report_${Date.now()}.png`;
+    link.href = shareImageDataUrl;
+    link.click();
+  };
+
+  const extractSuspectUrl = (text: string): string => {
+    if (!text) return 'N/A';
+    const match = text.match(/(https?:\/\/[^\s]+|([a-zA-Z0-9-]+\.)+(com|org|net|xyz|cc|info|top|online|site|app|gov|my|co|biz)\b[^\s]*)/i);
+    if (match && match[0]) {
+      return defangUrl(match[0]);
+    }
+    return 'N/A';
+  };
+
+  const getShareTextString = (): string => {
+    if (!result) return '';
+    const type = result.summary.contentType || 'NEWS_POLICY';
+    const isScam = type === 'SCAM_PHISHING' || type === 'JOB_INVESTMENT';
+    const scamRiskScore = Math.max(0, Math.min(100, 100 - result.verification.truth_score));
+    const scoreDisplay = isScam ? scamRiskScore : result.verification.truth_score;
+    const scoreTitle = isScam ? t('scamRiskScore') : t('truthScore');
+    const scoreBadgeLabel = isScam
+      ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
+      : (result.verification.score_label || 'MIXED');
+
+    const isHighRisk = isScam || scamRiskScore >= 40;
+    const actionDirective = isHighRisk ? 'JANGAN TEKAN LINK / DO NOT CLICK ANY LINKS' : 'MAKLUMAN RASMI DISAHKAN / OFFICIAL ANNOUNCEMENT';
+    const safeReasoning = defangUrl(result.verification.reasoning_trace);
+    const suspectUrl = extractSuspectUrl(articleText || newsUrl || result.verification.reasoning_trace);
+    const verificationUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/verify/${result.model1RequestId}`
+      : `https://civicpulse.org/verify/${result.model1RequestId}`;
+
+    return `🚨 CivicPulse AI Fact-Check Report 🚨\n\n⚠️ ACTION: ${actionDirective}\n\n📌 Claim / Source: ${result.summary.title}\n🛑 Suspect Link (Defanged): ${suspectUrl}\n📊 ${scoreTitle}: ${scoreDisplay}% (${scoreBadgeLabel})\n\n💡 Reasoning: ${safeReasoning}\n\n🛡️ Consensus Run ID: ${result.model1RequestId}\nVerified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)\n\nVerify full dual-model audit receipt:\n${verificationUrl}`;
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = getShareTextString();
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleShareTwitter = () => {
+    const text = getShareTextString();
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyShareText = async () => {
+    const shareText = getShareTextString();
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(shareText);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2500);
+    }
+  };
 
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -1134,7 +1492,7 @@ export default function Home() {
                   }`}>
                   {result.summary.title}
                 </h2>
-                <div>
+                <div className="flex items-center gap-2">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${highContrast
                     ? 'bg-black text-white border-white'
                     : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
@@ -1142,6 +1500,21 @@ export default function Home() {
                     <TrendingUp className="h-3 w-3" />
                     {categoryBadgeText}
                   </span>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenShareModal}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer shadow-xs ${highContrast
+                      ? 'bg-black text-white border-white hover:bg-stone-900'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                        : 'bg-[#faf6ee] text-amber-900 border-[#ebdcb8] hover:bg-[#f6efe2]'
+                      }`}
+                    title="Share Fact-Check Report Card"
+                  >
+                    <Share2 className="h-3 w-3 text-amber-700" />
+                    <span>{t('shareCard')}</span>
+                  </button>
                 </div>
               </div>
 
@@ -1211,8 +1584,8 @@ export default function Home() {
                       {t('consensusAudit')}
                     </span>
                   </div>
-                  <p className="text-sm font-medium leading-relaxed">
-                    {result.verification.reasoning_trace}
+                  <p className="text-sm font-medium leading-relaxed break-words [overflow-wrap:break-word]">
+                    {defangUrl(result.verification.reasoning_trace)}
                   </p>
                 </div>
               </div>
@@ -1554,6 +1927,73 @@ export default function Home() {
         }`}>
         <p>{t('footerText')}</p>
       </footer>
+
+      {/* Share Modal Popover with Canvas PNG Preview */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`max-w-xl w-full rounded-2xl border p-6 space-y-5 shadow-2xl ${highContrast
+            ? 'bg-black border-white text-white'
+            : sepiaMode
+              ? 'bg-[#fdfbf7] border-[#ebdcb8] text-[#2c2214]'
+              : 'bg-white border-[#ebdcb8] text-[#2c2214]'
+            }`}>
+            <div className="flex items-center justify-between border-b pb-3 border-stone-200/50">
+              <div>
+                <h3 className="font-bold text-base flex items-center gap-2">
+                  <Share2 className="h-5 w-5 text-amber-700" />
+                  {t('shareModalTitle')}
+                </h3>
+                <p className="text-xs text-stone-500 mt-0.5">{t('shareModalDesc')}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowShareModal(false)}
+                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Generated PNG Image Preview */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Visual Social Media Card (PNG)</span>
+              {shareImageDataUrl ? (
+                <img
+                  src={shareImageDataUrl}
+                  alt="CivicPulse Share Card"
+                  className="w-full rounded-xl border border-stone-300 shadow-md object-cover"
+                />
+              ) : (
+                <div className="h-48 w-full rounded-xl bg-stone-100 flex items-center justify-center animate-pulse">
+                  <span className="text-xs font-bold text-stone-400">Generating Card Image...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons: Only Download Image Card & Copy Text Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleDownloadImage}
+                disabled={!shareImageDataUrl}
+                className="py-3 px-4 rounded-xl font-bold text-xs bg-[#433422] text-[#f4ecd8] hover:bg-[#342718] transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm"
+              >
+                <Download className="h-4 w-4" />
+                {t('downloadImageCard')}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCopyShareText}
+                className="py-3 px-4 rounded-xl font-bold text-xs border border-stone-300 bg-stone-100 text-stone-800 hover:bg-stone-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                {copiedShare ? <Check className="h-4 w-4 text-emerald-600 font-extrabold" /> : <Copy className="h-4 w-4" />}
+                {copiedShare ? t('copied') : t('copyTextSummary')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
