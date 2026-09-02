@@ -480,6 +480,38 @@ const uiTranslations: Record<string, Record<string, string>> = {
   }
 };
 
+/**
+ * Turns a raw backend / network error string into a short, plain-language
+ * message safe to show a user or a judge. Never leaks internal details
+ * (API key names, model ids, stack traces, timeout internals).
+ */
+function friendlyPipelineError(status: number | null, raw?: string): string {
+  const msg = (raw || '').toLowerCase();
+
+  // Server misconfiguration — never show the key name on screen.
+  if (msg.includes('gonka_api_key') || msg.includes('not configured') || msg.includes('api key')) {
+    return 'The verification service is not set up correctly right now. Please try again later.';
+  }
+  // Both models timed out, or an upstream gateway gave up.
+  if (
+    msg.includes('timeout') ||
+    msg.includes('failed to respond') ||
+    msg.includes('took longer') ||
+    status === 502 || status === 503 || status === 504
+  ) {
+    return 'Our verification models are taking longer than expected — please try again.';
+  }
+  // Empty or malformed input reached the server.
+  if (status === 400 || msg.includes('required') || msg.includes('too short')) {
+    return 'That input could not be analyzed. Please paste the full article text or a valid news link.';
+  }
+  // The fetch itself failed (offline, DNS, server down).
+  if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
+    return 'Could not reach the verification service. Check your connection and try again.';
+  }
+  return 'Something went wrong during verification. Please try again.';
+}
+
 export default function Home() {
   // Navigation / Tabs
   const [activeTab, setActiveTab] = useState<'text' | 'url'>('text');
@@ -530,8 +562,21 @@ export default function Home() {
   // States
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
+  const [elapsedSec, setElapsedSec] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+
+  // Tick a 1-second counter while a verification is running, so a 20-85s
+  // cold-model wait shows visible progress instead of looking frozen.
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSec(0);
+      return;
+    }
+    setElapsedSec(0);
+    const id = setInterval(() => setElapsedSec((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   // Dev Gonka Test Section Collapse
   const [showDevTest, setShowDevTest] = useState<boolean>(false);
@@ -642,10 +687,15 @@ export default function Home() {
     setDevResult(null);
     try {
       const res = await fetch(`/api/verify-gonka?language=${encodeURIComponent(language)}`);
-      const data = await res.json();
-      setDevResult(data);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || data.error) {
+        if (data?.error) console.warn('verify-gonka error:', data.error);
+        setDevResult({ error: friendlyPipelineError(res.status, data?.error) });
+      } else {
+        setDevResult(data);
+      }
     } catch (err: any) {
-      setDevResult({ error: err.message || 'Failed to trigger verification' });
+      setDevResult({ error: friendlyPipelineError(null, err?.message) });
     } finally {
       setDevLoading(false);
     }
@@ -676,9 +726,9 @@ export default function Home() {
           body: JSON.stringify({ url: newsUrl }),
         });
 
-        const parseData = await parseRes.json();
-        if (!parseRes.ok || parseData.error) {
-          throw new Error(parseData.error || 'Failed to parse news webpage.');
+        const parseData = await parseRes.json().catch(() => null);
+        if (!parseRes.ok || !parseData || parseData.error) {
+          throw new Error('We could not read that link. Try pasting the article text directly instead.');
         }
         textToProcess = parseData.bodyText;
       }
@@ -701,14 +751,22 @@ export default function Home() {
         body: JSON.stringify({ articleText: textToProcess, language: targetLanguage }),
       });
 
-      const processData = await processRes.json();
-      if (!processRes.ok || processData.error) {
-        throw new Error(processData.error || 'Error processing consensus pipeline.');
+      const processData = await processRes.json().catch(() => null);
+      if (!processRes.ok || !processData || processData.error) {
+        throw new Error(friendlyPipelineError(processRes.status, processData?.error));
       }
 
       setResult(processData);
+      // Surface the Gonka execution receipts by default — they are the core
+      // "proof of execution" for judging, so don't make people hunt for them.
+      setShowAudit(true);
     } catch (err: any) {
-      setError(err.message || 'An error occurred during verification pipeline processing.');
+      // A raw TypeError here = the fetch itself failed (offline / server down).
+      // Our own guards above already throw plain-language messages, so pass those through.
+      const friendly = err instanceof TypeError
+        ? friendlyPipelineError(null, err.message)
+        : (err?.message || 'Something went wrong during verification. Please try again.');
+      setError(friendly);
     } finally {
       setLoading(false);
       setLoadingStep('');
@@ -789,7 +847,7 @@ export default function Home() {
                 }
               }
             }}
-            className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-xs ${highContrast
+            className={`inline-flex order-last md:order-none items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-xs ${highContrast
               ? 'bg-black text-emerald-400 border-white hover:bg-stone-900'
               : sepiaMode
                 ? 'bg-[#fcf8ef] text-emerald-800 border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1079,7 +1137,12 @@ export default function Home() {
                   <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0" />
                   <div className="space-y-1">
                     <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{loadingStep || 'Executing Tied-Parallel Dual AI Verification...'}</p>
-                    <p className="text-[10px] text-stone-400 font-mono">Gonka Router Hedged Pipeline (Primary + Duplicate Immediate)</p>
+                    <p className="text-[10px] text-stone-400 font-mono">
+                      Gonka Router Hedged Pipeline · {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} elapsed
+                    </p>
+                    <p className={`text-[10px] ${highContrast ? 'text-white' : 'text-stone-400'}`}>
+                      This can take up to a minute for new content.
+                    </p>
                   </div>
                 </div>
                 <div className="h-3.5 bg-stone-300/40 rounded w-3/4 animate-pulse" />
@@ -1107,12 +1170,20 @@ export default function Home() {
         {result && (() => {
           const type = result.summary.contentType || 'NEWS_POLICY';
           const isScam = type === 'SCAM_PHISHING' || type === 'JOB_INVESTMENT';
+          const isRumor = type === 'VIRAL_RUMOR';
+
+          // A viral rumor stays on the Truth Score scale (isScam drives the score
+          // math), but when the auditor flags it HIGH RISK / SUSPICIOUS we give the
+          // card the same alarm chrome + visible red flags that scam cards get.
+          const scoreLabel = result.verification.score_label || 'MIXED';
+          const isHighRiskRumor = isRumor && (scoreLabel === 'HIGH RISK' || scoreLabel === 'SUSPICIOUS');
+          const alarmMode = isScam || isHighRiskRumor;
 
           // Helper for localized category badge
-          const categoryBadgeText = 
+          const categoryBadgeText =
             type === 'SCAM_PHISHING' ? t('catScamPhishing') :
             type === 'JOB_INVESTMENT' ? t('catJobInvestment') :
-            type === 'VIRAL_CLAIM' ? t('catViralClaim') :
+            isRumor ? t('catViralClaim') :
             t('catNewsPolicy');
 
           // Calculate Scam Risk Score: 100 - truth_score
@@ -1124,20 +1195,20 @@ export default function Home() {
           return (
             <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 ${highContrast
               ? 'bg-black border-white'
-              : (isScam ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
+              : (alarmMode ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
               }`}>
 
               {/* Header / Category Badge */}
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${highContrast ? 'border-white' : (alarmMode ? 'border-rose-100' : 'border-[#f6efe2]')
                 }`}>
-                <h2 className={`text-lg font-bold tracking-tight leading-snug ${highContrast ? 'text-white' : (isScam ? 'text-rose-950' : 'text-[#2c2214]')
+                <h2 className={`text-lg font-bold tracking-tight leading-snug ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-950' : 'text-[#2c2214]')
                   }`}>
                   {result.summary.title}
                 </h2>
                 <div>
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${highContrast
                     ? 'bg-black text-white border-white'
-                    : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
+                    : (alarmMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
                     }`}>
                     <TrendingUp className="h-3 w-3" />
                     {categoryBadgeText}
@@ -1147,23 +1218,30 @@ export default function Home() {
 
               {/* Consensus Divergence Warnings Banner */}
               {result.verification.consensus_note && (
-                <div className={`p-4 border rounded-xl text-xs flex items-center gap-2.5 ${highContrast ? 'bg-black border-white text-white animate-pulse' : 'bg-amber-50 border-amber-200 text-amber-800'
+                <div className={`p-4 border rounded-xl text-xs flex items-start gap-2.5 ${highContrast ? 'bg-black border-white text-white animate-pulse' : 'bg-amber-50 border-amber-200 text-amber-800'
                   }`}>
-                  <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
-                  <span className="font-bold">{result.verification.consensus_note}</span>
+                  <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold block">{result.verification.consensus_note}</span>
+                    {typeof result.verification.discrepancy_delta === 'number' && result.verification.discrepancy_delta > 25 && (
+                      <span className="block text-[11px] font-semibold opacity-80">
+                        The two model scores differed by {result.verification.discrepancy_delta} points.
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Truth/Scam Score Gauge & Credibility Analysis */}
               <div className={`p-5 rounded-xl border ${highContrast
                 ? 'border-2 border-white bg-black'
-                : (isScam ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
+                : (alarmMode ? 'border-rose-200 bg-rose-50/10' : 'border-[#e9e2d3] bg-[#faf6ee]/50')
                 } grid grid-cols-1 md:grid-cols-4 gap-5 items-center`}>
 
                 {/* Score Column */}
                 <div className={`flex flex-col items-center justify-center text-center space-y-1.5 md:pr-4 py-2 ${highContrast
                   ? 'md:border-r-2 md:border-white'
-                  : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
+                  : (alarmMode ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
                   }`}>
                   <span className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
                     }`}>
@@ -1225,9 +1303,9 @@ export default function Home() {
                   {result.summary.summary_points.map((point, idx) => (
                     <div key={idx} className={`flex items-start gap-3 p-4 border rounded-xl ${highContrast
                       ? 'bg-black border-white'
-                      : (isScam ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
+                      : (alarmMode ? 'bg-rose-50/20 border-rose-100/50 text-rose-950' : 'bg-[#faf6ee]/60 border-[#e9e2d3] text-[#3c3020]')
                       }`}>
-                      <span className={`text-sm font-semibold pt-0.5 shrink-0 ${highContrast ? 'text-white' : (isScam ? 'text-rose-600' : 'text-amber-800')
+                      <span className={`text-sm font-semibold pt-0.5 shrink-0 ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-600' : 'text-amber-800')
                         }`}>
                         0{idx + 1}.
                       </span>
@@ -1237,8 +1315,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Scam Red Flags Detected list */}
-              {isScam && result.verification.red_flags && result.verification.red_flags.length > 0 && (
+              {/* Red Flags list — scams always, plus viral rumors */}
+              {(isScam || isRumor) && result.verification.red_flags && result.verification.red_flags.length > 0 && (
                 <div className="space-y-2.5">
                   <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-rose-700'
                     }`}>{t('redFlags')}</h4>
@@ -1258,12 +1336,12 @@ export default function Home() {
               {/* Citizen Impact / Financial Risk Box */}
               <div className={`border rounded-xl p-5 ${highContrast
                 ? 'bg-black border-2 border-white'
-                : (isScam ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
+                : (alarmMode ? 'border-rose-250 bg-rose-50/30' : 'border-[#e6decb] bg-[#fbf8f3]')
                 }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
+                  <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (alarmMode ? 'bg-rose-500' : 'bg-amber-600')
                     }`} />
-                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-rose-700' : 'text-amber-800')
+                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-700' : 'text-amber-800')
                     }`}>
                     {isScam ? t('financialRisk') : t('citizenImpact')}
                   </h4>
@@ -1277,12 +1355,12 @@ export default function Home() {
               {result.summary.actionable_advice && (
                 <div className={`border rounded-xl p-5 ${highContrast
                   ? 'bg-black border-2 border-white'
-                  : (isScam ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
+                  : (alarmMode ? 'border-amber-300 bg-amber-50/20' : 'border-stone-200 bg-stone-50/50')
                   }`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
+                    <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (alarmMode ? 'bg-amber-500' : 'bg-stone-500')
                       }`} />
-                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-amber-700' : 'text-stone-600')
+                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (alarmMode ? 'text-amber-700' : 'text-stone-600')
                       }`}>
                       {t('actionAdvice')}
                     </h4>
@@ -1294,7 +1372,7 @@ export default function Home() {
               )}
 
               {/* Audit / Gonka Proof Footer */}
-              <div id="audit-drawer" className={`border-t pt-4 ${highContrast ? 'border-white' : (isScam ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
+              <div id="audit-drawer" className={`border-t pt-4 ${highContrast ? 'border-white' : (alarmMode ? 'border-rose-100' : 'border-[#f6efe2]')}`}>
                 <button
                   type="button"
                   onClick={() => setShowAudit(!showAudit)}
