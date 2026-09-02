@@ -136,11 +136,11 @@ export function ReceiptBadge({
             ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#b33e2b]'
             : 'bg-rose-50 border-rose-200 text-rose-800'
       }`}>
-        <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+        <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[0.625rem]">
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>{labels.ledgerError}</span>
         </div>
-        <p className="text-[10px] leading-relaxed font-semibold">{receipt.error}</p>
+        <p className="text-[0.625rem] leading-relaxed font-semibold">{receipt.error}</p>
       </div>
     );
   }
@@ -161,11 +161,11 @@ export function ReceiptBadge({
       }`}>
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className={`font-bold tracking-wider text-[10px] ${
+          <span className={`font-bold tracking-wider text-[0.625rem] ${
             highContrast ? 'text-white' : sepiaMode ? 'text-[#5c4a36]' : 'text-stone-800'
           }`}>{labels.title}</span>
         </div>
-        <span className={`rounded px-2 py-0.5 text-[9px] font-extrabold uppercase border ${
+        <span className={`rounded px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase border ${
           receipt.outcome === 'success' 
             ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
             : 'bg-rose-50 text-rose-800 border-rose-200'
@@ -175,9 +175,9 @@ export function ReceiptBadge({
       </div>
 
       {/* Grid Key-Values */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[0.6875rem]">
         <div className="col-span-2 sm:col-span-1">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-stone-400">{labels.requestId}</p>
+          <p className="text-[0.5625rem] font-bold uppercase tracking-wider text-stone-400">{labels.requestId}</p>
           <div 
             className={`font-mono text-xs font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-850'}`}
             title={receipt.x_request_id}
@@ -186,20 +186,20 @@ export function ReceiptBadge({
           </div>
         </div>
         <div>
-          <p className="text-[9px] font-bold uppercase text-stone-400">{labels.servingNode}</p>
+          <p className="text-[0.5625rem] font-bold uppercase text-stone-400">{labels.servingNode}</p>
           <p className={`font-bold flex items-center gap-1 ${highContrast ? 'text-white' : 'text-stone-850'}`}>
             <Server className="h-3 w-3 text-stone-400" />
             Devshard #{receipt.x_devshard_id}
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-bold uppercase text-stone-400">{labels.pinnedModel}</p>
+          <p className="text-[0.5625rem] font-bold uppercase text-stone-400">{labels.pinnedModel}</p>
           <p className={`font-bold truncate ${highContrast ? 'text-white' : 'text-stone-850'}`}>
             {modelName}
           </p>
         </div>
         <div>
-          <p className="text-[9px] font-bold uppercase text-stone-400">{labels.performance}</p>
+          <p className="text-[0.5625rem] font-bold uppercase text-stone-400">{labels.performance}</p>
           <p className={`font-bold ${highContrast ? 'text-white' : 'text-stone-850'}`}>
             {receipt.total_tokens || 1104} tokens / {receipt.duration_ms || 4} ms
           </p>
@@ -207,7 +207,7 @@ export function ReceiptBadge({
       </div>
 
       {/* Raw Link Footer */}
-      <div className={`pt-2.5 border-t flex justify-between items-center text-[9px] font-bold text-stone-400 ${
+      <div className={`pt-2.5 border-t flex justify-between items-center text-[0.5625rem] font-bold text-stone-400 ${
         highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-200'
       }`}>
         <span>{labels.gatewayProof}</span>
@@ -1123,7 +1123,7 @@ export default function Home() {
               <span className={`font-bold text-base sm:text-lg tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
                 CivicPulse
               </span>
-              <span className={`text-[9px] block font-semibold tracking-wider uppercase ml-0.5 ${highContrast ? 'text-white' : 'text-amber-700'}`}>
+              <span className={`text-[0.5625rem] block font-semibold tracking-wider uppercase ml-0.5 ${highContrast ? 'text-white' : 'text-amber-700'}`}>
                 {t('tagline')}
               </span>
             </div>
@@ -1236,7 +1236,7 @@ export default function Home() {
 
                   {/* Font Scaling Row */}
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">{t('fontSizeLabel')}</span>
+                    <span className="text-[0.625rem] font-bold text-stone-400 uppercase tracking-wider block">{t('fontSizeLabel')}</span>
                     <div className="flex items-center justify-between gap-1 border p-1 rounded-lg">
                       <button
                         type="button"
@@ -1260,21 +1260,21 @@ export default function Home() {
 
                   {/* Theme Selectors */}
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">{t('themeModeLabel')}</span>
+                    <span className="text-[0.625rem] font-bold text-stone-400 uppercase tracking-wider block">{t('themeModeLabel')}</span>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
                         onClick={() => { setSepiaMode(true); setHighContrast(false); }}
                         className={`text-xs font-bold py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${sepiaMode && !highContrast ? 'bg-[#433422] text-[#f4ecd8] border-[#433422]' : 'border-stone-200'}`}
                       >
-                        Sepia
+                        {t('sepiaTheme')}
                       </button>
                       <button
                         type="button"
                         onClick={() => { setHighContrast(!highContrast); setSepiaMode(false); }}
                         className={`text-xs font-bold py-1.5 px-2 rounded-lg border transition-all cursor-pointer ${highContrast ? 'bg-white text-black border-white' : 'border-stone-200'}`}
                       >
-                        Contrast
+                        {t('contrastMode')}
                       </button>
                     </div>
                   </div>
@@ -1322,7 +1322,7 @@ export default function Home() {
 
             {activeTab === 'text' ? (
               <div className="space-y-1.5">
-                <label htmlFor="article-text-area" className={`text-[10px] font-bold uppercase tracking-wider ${textLabelColor}`}>{t('claimTextareaLabel')}</label>
+                <label htmlFor="article-text-area" className={`text-[0.625rem] font-bold uppercase tracking-wider ${textLabelColor}`}>{t('claimTextareaLabel')}</label>
                 <textarea
                   id="article-text-area"
                   rows={6}
@@ -1336,7 +1336,7 @@ export default function Home() {
                       : 'bg-[#faf6ee] border-[#ebdcb8] text-[#3c3020] focus:border-amber-700'
                     }`}
                 />
-                <div className="flex justify-between items-center text-[10px] font-bold mt-1 px-1">
+                <div className="flex justify-between items-center text-[0.625rem] font-bold mt-1 px-1">
                   <span className={textLabelColor}>{t('charCount')}</span>
                   <span className={articleText.length > 10000 ? "text-rose-500 font-extrabold animate-pulse" : textLabelColor}>
                     {articleText.length.toLocaleString()} / 10,000 {t('maxLimit')}
@@ -1345,7 +1345,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-1.5">
-                <label htmlFor="article-url-input" className={`text-[10px] font-bold uppercase tracking-wider ${textLabelColor}`}>{t('newsUrlLabel')}</label>
+                <label htmlFor="article-url-input" className={`text-[0.625rem] font-bold uppercase tracking-wider ${textLabelColor}`}>{t('newsUrlLabel')}</label>
                 <div className="relative">
                   <input
                     id="article-url-input"
@@ -1369,12 +1369,12 @@ export default function Home() {
 
             {/* Presets Row */}
             <div className="space-y-1.5">
-              <span className={`text-[9px] font-bold uppercase tracking-wider block ${textLabelColor}`}>{t('sampleScamsLabel')}</span>
+              <span className={`text-[0.5625rem] font-bold uppercase tracking-wider block ${textLabelColor}`}>{t('sampleScamsLabel')}</span>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('cimb')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
                       ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1386,7 +1386,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('strAid')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
                       ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1398,7 +1398,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => handleApplyPreset('lhdnTax')}
-                  className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
                     ? 'bg-black text-white border-white hover:bg-[#222]'
                     : sepiaMode
                       ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1437,7 +1437,7 @@ export default function Home() {
                   <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0" />
                   <div className="space-y-1">
                     <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{loadingStep || 'Executing Tied-Parallel Dual AI Verification...'}</p>
-                    <p className="text-[10px] text-stone-400 font-mono">Gonka Router Hedged Pipeline (Primary + Duplicate Immediate)</p>
+                    <p className="text-[0.625rem] text-stone-400 font-mono">Gonka Router Hedged Pipeline (Primary + Duplicate Immediate)</p>
                   </div>
                 </div>
                 <div className="h-3.5 bg-stone-300/40 rounded w-3/4 animate-pulse" />
@@ -1451,7 +1451,7 @@ export default function Home() {
           </form>
 
           {error && (
-            <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
+            <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fff4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
               }`}>
               <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
               <div>
@@ -1493,7 +1493,7 @@ export default function Home() {
                   {result.summary.title}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase border ${highContrast
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.625rem] font-semibold uppercase border ${highContrast
                     ? 'bg-black text-white border-white'
                     : (isScam ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
                     }`}>
@@ -1504,7 +1504,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={handleOpenShareModal}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer shadow-xs ${highContrast
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.625rem] font-bold border transition-all cursor-pointer shadow-xs ${highContrast
                       ? 'bg-black text-white border-white hover:bg-stone-900'
                       : sepiaMode
                         ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1522,7 +1522,7 @@ export default function Home() {
               {result.verification.consensus_note && (
                 <div className={`p-4 border rounded-xl text-xs flex items-center gap-2.5 ${highContrast ? 'bg-black border-white text-white animate-pulse' : 'bg-amber-50 border-amber-200 text-amber-800'
                   }`}>
-                  <AlertTriangle className="h-4.5 w-4.5 shrink-0" />
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
                   <span className="font-bold">{result.verification.consensus_note}</span>
                 </div>
               )}
@@ -1538,14 +1538,14 @@ export default function Home() {
                   ? 'md:border-r-2 md:border-white'
                   : (isScam ? 'md:border-r border-rose-100' : 'md:border-r border-[#e9e2d3]')
                   }`}>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
+                  <span className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
                     }`}>
                     {isScam ? t('scamRiskScore') : t('truthScore')}
                   </span>
                   <span className={`text-4xl font-black ${styles.text}`}>
                     {scoreDisplay}%
                   </span>
-                  <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
+                  <span className={`text-[0.5625rem] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
                     {isScam
                       ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
                       : (result.verification.score_label || 'MIXED')}
@@ -1566,7 +1566,7 @@ export default function Home() {
                         style={{ width: `${scoreDisplay}%` }}
                       />
                     </div>
-                    <div className={`flex justify-between text-[8px] font-extrabold tracking-wider px-0.5 uppercase ${highContrast ? 'text-white' : 'text-[#8c7960]'
+                    <div className={`flex justify-between text-[0.5rem] font-extrabold tracking-wider px-0.5 uppercase ${highContrast ? 'text-white' : 'text-[#8c7960]'
                       }`}>
                       <span>{isScam ? t('safe') : t('risk')}</span>
                       <span>50%</span>
@@ -1579,7 +1579,7 @@ export default function Home() {
                 <div className="md:col-span-3 space-y-1.5">
                   <div className="flex items-center gap-1.5">
                     <ShieldAlert className={`h-4 w-4 ${styles.text}`} />
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
+                    <span className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-stone-500'
                       }`}>
                       {t('consensusAudit')}
                     </span>
@@ -1592,7 +1592,7 @@ export default function Home() {
 
               {/* Key Summary points */}
               <div className="space-y-3.5">
-                <h3 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-[#7c6950]'
+                <h3 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-[#7c6950]'
                   }`}>{t('summaryPoints')}</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {result.summary.summary_points.map((point, idx) => (
@@ -1613,7 +1613,7 @@ export default function Home() {
               {/* Scam Red Flags Detected list */}
               {isScam && result.verification.red_flags && result.verification.red_flags.length > 0 && (
                 <div className="space-y-2.5">
-                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-rose-700'
+                  <h4 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : 'text-rose-700'
                     }`}>{t('redFlags')}</h4>
                   <div className="flex flex-wrap gap-2">
                     {result.verification.red_flags.map((flag, idx) => (
@@ -1636,7 +1636,7 @@ export default function Home() {
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-rose-500' : 'bg-amber-600')
                     }`} />
-                  <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-rose-700' : 'text-amber-800')
+                  <h4 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-rose-700' : 'text-amber-800')
                     }`}>
                     {isScam ? t('financialRisk') : t('citizenImpact')}
                   </h4>
@@ -1655,7 +1655,7 @@ export default function Home() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (isScam ? 'bg-amber-500' : 'bg-stone-500')
                       }`} />
-                    <h4 className={`text-[10px] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-amber-700' : 'text-stone-600')
+                    <h4 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (isScam ? 'text-amber-700' : 'text-stone-600')
                       }`}>
                       {t('actionAdvice')}
                     </h4>
@@ -1671,7 +1671,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setShowAudit(!showAudit)}
-                  className="w-full flex items-center justify-between text-[11px] font-semibold text-[#7c6950] hover:text-[#3c3020] transition-colors py-2 cursor-pointer"
+                  className="w-full flex items-center justify-between text-[0.6875rem] font-semibold text-[#7c6950] hover:text-[#3c3020] transition-colors py-2 cursor-pointer"
                 >
                   <span className="flex items-center gap-1.5">
                     <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
@@ -1681,13 +1681,13 @@ export default function Home() {
                 </button>
 
                 {showAudit && (
-                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[10px] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'}`}>
+                  <div className={`mt-3 p-4 rounded-lg border font-mono text-[0.625rem] space-y-3.5 animate-in slide-in-from-top-2 duration-200 ${highContrast ? 'bg-black border-white text-white' : 'bg-[#faf6ee] border-[#ebdcb8] text-[#7c6950]'}`}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Model 1 Column */}
                       <div className="space-y-3.5">
                         <div className="flex items-center justify-between gap-2 border-b pb-2 border-stone-200/40">
                           <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>{t('model1Header')}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model1UsedFallback
+                          <span className={`px-1.5 py-0.5 rounded text-[0.5rem] font-bold shrink-0 ${result.model1UsedFallback
                             ? 'bg-orange-100 text-orange-850 border border-orange-350'
                             : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
                             }`}>
@@ -1698,7 +1698,7 @@ export default function Home() {
                         <div className="space-y-2">
                           <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">{t('requestReference')}</span>
+                              <span className="text-[0.5625rem] font-bold text-stone-400 uppercase tracking-wider">{t('requestReference')}</span>
                               {result.model1RequestId !== 'unavailable' && (
                                 <button
                                   type="button"
@@ -1727,7 +1727,7 @@ export default function Home() {
                                   <button
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
-                                    className={`text-[9px] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
+                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
                                       model1Receipt
                                         ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
                                         : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
@@ -1743,12 +1743,25 @@ export default function Home() {
 
                           {model1Receipt && (
                             <div className="space-y-2 animate-in slide-in-from-top-1">
-                              <ReceiptBadge receipt={model1Receipt} highContrast={highContrast} sepiaMode={sepiaMode} language={language} />
+                              <GonkaReceiptBadge
+                                receipt={model1Receipt}
+                                labels={{
+                                  title: `${t('model1Header')} ${result.model1Name}`,
+                                  requestId: t('requestIdLabel'),
+                                  servingNode: 'SERVING NODE',
+                                  pinnedModel: 'PINNED MODEL',
+                                  performance: 'PERFORMANCE',
+                                  gatewayProof: 'Public Gateway Proof',
+                                  ledgerError: 'Gonka Ledger Query Result'
+                                }}
+                                highContrast={highContrast}
+                                sepiaMode={sepiaMode}
+                              />
                               {model1Receipt.error && (
                                 <button
                                   type="button"
                                   onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
-                                  className="text-[9px] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
+                                  className="text-[0.5625rem] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
                                 >
                                   <RefreshCw className={`h-2.5 w-2.5 ${loadingM1Receipt ? 'animate-spin' : ''}`} />
                                   {loadingM1Receipt ? t('retrying') : t('retryVerification')}
@@ -1763,7 +1776,7 @@ export default function Home() {
                       <div className="space-y-3.5">
                         <div className="flex items-center justify-between gap-2 border-b pb-2 border-stone-200/40">
                           <span className={`font-bold block ${highContrast ? 'text-white' : 'text-[#5c4a36]'}`}>{t('model2Header')}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold shrink-0 ${result.model2UsedFallback
+                          <span className={`px-1.5 py-0.5 rounded text-[0.5rem] font-bold shrink-0 ${result.model2UsedFallback
                             ? 'bg-orange-100 text-orange-850 border border-orange-350'
                             : 'bg-emerald-100 text-emerald-850 border border-emerald-350'
                             }`}>
@@ -1774,7 +1787,7 @@ export default function Home() {
                         <div className="space-y-2">
                           <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">{t('requestReference')}</span>
+                              <span className="text-[0.5625rem] font-bold text-stone-400 uppercase tracking-wider">{t('requestReference')}</span>
                               {result.model2RequestId !== 'unavailable' && (
                                 <button
                                   type="button"
@@ -1803,7 +1816,7 @@ export default function Home() {
                                   <button
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
-                                    className={`text-[9px] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
+                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
                                       model2Receipt
                                         ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
                                         : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
@@ -1819,12 +1832,25 @@ export default function Home() {
 
                           {model2Receipt && (
                             <div className="space-y-2 animate-in slide-in-from-top-1">
-                              <ReceiptBadge receipt={model2Receipt} highContrast={highContrast} sepiaMode={sepiaMode} language={language} />
+                              <GonkaReceiptBadge
+                                receipt={model2Receipt}
+                                labels={{
+                                  title: `${t('model2Header')} ${result.model2Name}`,
+                                  requestId: t('requestIdLabel'),
+                                  servingNode: 'SERVING NODE',
+                                  pinnedModel: 'PINNED MODEL',
+                                  performance: 'PERFORMANCE',
+                                  gatewayProof: 'Public Gateway Proof',
+                                  ledgerError: 'Gonka Ledger Query Result'
+                                }}
+                                highContrast={highContrast}
+                                sepiaMode={sepiaMode}
+                              />
                               {model2Receipt.error && (
                                 <button
                                   type="button"
                                   onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
-                                  className="text-[9px] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
+                                  className="text-[0.5625rem] font-bold text-stone-500 hover:text-stone-700 underline cursor-pointer px-1 flex items-center gap-1"
                                 >
                                   <RefreshCw className={`h-2.5 w-2.5 ${loadingM2Receipt ? 'animate-spin' : ''}`} />
                                   {loadingM2Receipt ? t('retrying') : t('retryVerification')}
@@ -1836,7 +1862,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className={`pt-2 border-t text-[9px] flex items-center justify-between ${highContrast ? 'border-white text-white' : 'border-[#ebdcb8] text-[#8c7960]'
+                    <div className={`pt-2 border-t text-[0.5625rem] flex items-center justify-between ${highContrast ? 'border-white text-white' : 'border-[#ebdcb8] text-[#8c7960]'
                       }`}>
                       <span>Base API: https://api.gonkarouter.io/v1</span>
                       <a
@@ -1862,7 +1888,7 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setShowDevTest(!showDevTest)}
-            className={`flex items-center gap-1.5 text-[10px] font-bold transition-colors cursor-pointer ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#2c2214]'
+            className={`flex items-center gap-1.5 text-[0.625rem] font-bold transition-colors cursor-pointer ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] hover:text-[#433422]' : 'text-[#7c6950] hover:text-[#2c2214]'
               }`}
           >
             <Info className="h-3 w-3" />
@@ -1879,7 +1905,7 @@ export default function Home() {
                     <CheckCircle className={`h-4 w-4 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
                     {t('connTestTitle')}
                   </h3>
-                  <p className={`text-[11px] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('connTestDesc')}</p>
+                  <p className={`text-[0.6875rem] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('connTestDesc')}</p>
                 </div>
                 <button
                   type="button"
@@ -1906,11 +1932,11 @@ export default function Home() {
                   ) : (
                     <>
                       <div className={`p-3 rounded-lg border ${highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#faf6ee]/70 border-[#e4d4b5]' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
-                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('responseLabel')}</span>
+                        <span className={`block mb-1 uppercase font-bold text-[0.5625rem] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('responseLabel')}</span>
                         <p className={highContrast ? 'text-white' : 'text-[#3c3020]'}>{devResult.text}</p>
                       </div>
                       <div className={`p-2.5 rounded-lg border ${highContrast ? 'bg-black border-white' : sepiaMode ? 'bg-[#faf6ee]/70 border-[#e4d4b5]' : 'bg-[#faf6ee] border-[#e9e2d3]'}`}>
-                        <span className={`block mb-1 uppercase font-bold text-[9px] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('requestIdLabel')}</span>
+                        <span className={`block mb-1 uppercase font-bold text-[0.5625rem] tracking-wider ${highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a]' : 'text-[#7c6950]'}`}>{t('requestIdLabel')}</span>
                         <p className={highContrast ? 'text-white' : sepiaMode ? 'text-[#8c745a] font-bold break-all select-all' : 'text-amber-850 font-bold break-all select-all'}>{devResult.requestId}</p>
                       </div>
                     </>
@@ -1956,7 +1982,7 @@ export default function Home() {
 
             {/* Generated PNG Image Preview */}
             <div className="space-y-2">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Visual Social Media Card (PNG)</span>
+              <span className="text-[0.625rem] font-bold text-stone-400 uppercase tracking-wider block">Visual Social Media Card (PNG)</span>
               {shareImageDataUrl ? (
                 <img
                   src={shareImageDataUrl}

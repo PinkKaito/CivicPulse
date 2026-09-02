@@ -77,7 +77,7 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div className="space-y-2">
-                <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Raw Execution Proof JSON</span>
+                <span className="text-[0.6875rem] font-bold text-stone-400 uppercase tracking-wider">Raw Execution Proof JSON</span>
                 <pre className="p-4 rounded-xl bg-stone-900 text-emerald-400 text-xs font-mono overflow-x-auto max-h-96 border border-stone-800">
                   {JSON.stringify(receipt, null, 2)}
                 </pre>
