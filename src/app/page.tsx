@@ -1746,7 +1746,6 @@ export default function Home() {
                   <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (alarmMode ? 'bg-rose-500' : 'bg-amber-600')
                     }`} />
                   <h4 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-700' : 'text-amber-800')}`}>
-                    }`}>
                     {isScam ? t('financialRisk') : t('citizenImpact')}
                   </h4>
                 </div>
@@ -1765,7 +1764,6 @@ export default function Home() {
                     <span className={`h-1.5 w-1.5 rounded-full ${highContrast ? 'bg-white' : (alarmMode ? 'bg-amber-500' : 'bg-stone-500')
                       }`} />
                     <h4 className={`text-[0.625rem] font-bold uppercase tracking-wider ${highContrast ? 'text-white' : (alarmMode ? 'text-amber-700' : 'text-stone-600')}`}>
-                      }`}>
                       {t('actionAdvice')}
                     </h4>
                   </div>
@@ -1852,20 +1850,7 @@ export default function Home() {
 
                           {model1Receipt && (
                             <div className="space-y-2 animate-in slide-in-from-top-1">
-                              <GonkaReceiptBadge
-                                receipt={model1Receipt}
-                                labels={{
-                                  title: `${t('model1Header')} ${result.model1Name}`,
-                                  requestId: t('requestIdLabel'),
-                                  servingNode: 'SERVING NODE',
-                                  pinnedModel: 'PINNED MODEL',
-                                  performance: 'PERFORMANCE',
-                                  gatewayProof: 'Public Gateway Proof',
-                                  ledgerError: 'Gonka Ledger Query Result'
-                                }}
-                                highContrast={highContrast}
-                                sepiaMode={sepiaMode}
-                              />
+                              <ReceiptBadge receipt={model1Receipt} highContrast={highContrast} sepiaMode={sepiaMode} language={language} />
                               {model1Receipt.error && (
                                 <button
                                   type="button"
@@ -1941,20 +1926,7 @@ export default function Home() {
 
                           {model2Receipt && (
                             <div className="space-y-2 animate-in slide-in-from-top-1">
-                              <GonkaReceiptBadge
-                                receipt={model2Receipt}
-                                labels={{
-                                  title: `${t('model2Header')} ${result.model2Name}`,
-                                  requestId: t('requestIdLabel'),
-                                  servingNode: 'SERVING NODE',
-                                  pinnedModel: 'PINNED MODEL',
-                                  performance: 'PERFORMANCE',
-                                  gatewayProof: 'Public Gateway Proof',
-                                  ledgerError: 'Gonka Ledger Query Result'
-                                }}
-                                highContrast={highContrast}
-                                sepiaMode={sepiaMode}
-                              />
+                              <ReceiptBadge receipt={model2Receipt} highContrast={highContrast} sepiaMode={sepiaMode} language={language} />
                               {model2Receipt.error && (
                                 <button
                                   type="button"
