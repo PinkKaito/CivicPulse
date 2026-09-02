@@ -120,6 +120,9 @@ async function callWithHedge(
 function cleanAndParseJSON(text: string) {
   let cleaned = text.trim();
   
+  // 0. Strip <think>...</think> reasoning blocks
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  
   // 1. Strip markdown code blocks
   cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
   

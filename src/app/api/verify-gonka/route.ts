@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   const apiKey = process.env.GONKA_API_KEY;
 
   if (!apiKey || apiKey === 'your_gonka_api_key_here') {
@@ -9,6 +9,9 @@ export async function GET() {
       { status: 500 }
     );
   }
+
+  const { searchParams } = new URL(request.url);
+  const targetLanguage = searchParams.get('language') || 'English';
 
   try {
     const res = await fetch('https://api.gonkarouter.io/v1/chat/completions', {
@@ -20,11 +23,11 @@ export async function GET() {
       body: JSON.stringify({
         model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
         messages: [
-          { role: 'system', content: 'You are Gonka. Respond in exactly one short sentence confirming your identity.' },
-          { role: 'user', content: 'Say hello and confirm you are Gonka' }
+          { role: 'system', content: `You are Gonka. Respond in exactly one short sentence confirming your identity in ${targetLanguage}.` },
+          { role: 'user', content: `Say hello and confirm you are Gonka in ${targetLanguage}` }
         ],
         temperature: 0.7,
-        max_tokens: 30,
+        max_tokens: 60,
         frequency_penalty: 1.5
       }),
     });
@@ -37,8 +40,10 @@ export async function GET() {
     const data = await res.json();
     let text = data.choices[0]?.message?.content || '';
     
+    // Strip <think>...</think> reasoning blocks
+    text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    
     // Programmatic deduplication of repeated sentences
-    text = text.trim();
     if (text) {
       const sentences = text.split(/(?<=\.|\?|\!)\s*/);
       const uniqueSentences = Array.from(new Set(sentences));
