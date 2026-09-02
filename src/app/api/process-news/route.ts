@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
+// Per-model hedge deadline. Gonka Router cold-prompt latency was measured at
+// 30-60s for every model tried (DeepSeek, MiniMax, Kimi), so the old 20s cap
+// fired on nearly every fresh request and forced a fallback. 60s lets a cold
+// call finish; a genuinely stuck model still aborts well before Cloudflare's
+// ~100s 524.
+const HEDGE_TIMEOUT_MS = 60000;
+
 async function callWithHedge(
   openai: OpenAI,
   model: string,
@@ -44,12 +51,12 @@ async function callWithHedge(
       let primaryError: any = null;
       let duplicateError: any = null;
 
-      // Global 20s timeout limit
+      // Global hedge timeout
       globalTimeoutId = setTimeout(() => {
         primaryController.abort();
         duplicateController.abort();
-        reject(new Error(`Timeout: both requests for ${targetModel} failed to respond within 20s.`));
-      }, 20000);
+        reject(new Error(`Timeout: both requests for ${targetModel} failed to respond within ${HEDGE_TIMEOUT_MS / 1000}s.`));
+      }, HEDGE_TIMEOUT_MS);
 
       // Function to trigger the duplicate tied request
       const startDuplicate = () => {
@@ -247,7 +254,9 @@ export async function POST(request: Request) {
 
     // Model 1 (Extractor & Context Analyst)
     // Primary: deepseek-ai/DeepSeek-V4-Flash-0731
-    // Fallback: moonshotai/Kimi-K2.6
+    // Fallback: MiniMaxAI/MiniMax-M2.7 — cross-fallback to Model 2's primary.
+    //   Kimi-K2.6 was the old fallback but returns non-JSON / times out via the
+    //   router (verified 2026-09-01), so it was never a usable safety net.
     const model1Promise = callWithHedge(
       openai,
       'deepseek-ai/DeepSeek-V4-Flash-0731',
@@ -268,7 +277,7 @@ STRICT FACTUAL & SAFETY GUIDELINES:
 Respond ONLY with a valid JSON object matching this schema:
 {
   "title": "A concise headline in ${targetLanguage}",
-  "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT",
+  "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT" | "VIRAL_RUMOR", // VIRAL_RUMOR = unverified socially-spread claims, hoaxes, chain messages with no named official source
   "preliminaryScore": 50, // Number 0-100
   "scoreLabel": "VERIFIED" | "SAFE" | "MIXED" | "SUSPICIOUS" | "HIGH RISK",
   "keyPoints": [
@@ -286,12 +295,13 @@ Respond ONLY with a valid JSON object matching this schema:
         }
       ],
       0.3,
-      'moonshotai/Kimi-K2.6'
+      'MiniMaxAI/MiniMax-M2.7'
     );
 
     // Model 2 (Fact & Credibility Auditor)
-    // Primary: MiniMaxAI/MiniMax-M2.7 (Distinct primary from Model 1)
-    // Fallback: moonshotai/Kimi-K2.6 (Shared fallback to prevent collision)
+    // Primary: MiniMaxAI/MiniMax-M2.7 (distinct primary from Model 1)
+    // Fallback: deepseek-ai/DeepSeek-V4-Flash-0731 — cross-fallback to Model 1's
+    //   primary, replacing the broken Kimi-K2.6 fallback.
     const model2Promise = callWithHedge(
       openai,
       'MiniMaxAI/MiniMax-M2.7',
@@ -340,7 +350,7 @@ Content to analyze:\n\n${finalContentPayload}`
         }
       ],
       0.2,
-      'moonshotai/Kimi-K2.6'
+      'deepseek-ai/DeepSeek-V4-Flash-0731'
     );
 
     // Await parallel promises
