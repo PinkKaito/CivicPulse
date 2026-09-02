@@ -285,6 +285,14 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'Theme Mode',
     charCount: 'Character Count',
     maxLimit: 'max limit',
+    // Pipeline error / status messages ({n} is substituted at render time)
+    errNotConfigured: 'The verification service is not set up correctly right now. Please try again later.',
+    errModelsSlow: 'Our verification models are taking longer than expected — please try again.',
+    errBadInput: 'That input could not be analyzed. Please paste the full article text or a valid news link.',
+    errNoConnection: 'Could not reach the verification service. Check your connection and try again.',
+    errGeneric: 'Something went wrong during verification. Please try again.',
+    loadingLongContentHint: 'This can take up to a minute for new content.',
+    scoresDifferedBy: 'The two model scores differed by {n} points.',
   },
   'Bahasa Melayu': {
     tagline: 'Pengawal Pengesahan Fakta & Anti-Penipuan AI Dwi',
@@ -349,6 +357,13 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'Mod Tema',
     charCount: 'Jumlah Aksara',
     maxLimit: 'had maksimum',
+    errNotConfigured: 'Perkhidmatan pengesahan tidak disediakan dengan betul buat masa ini. Sila cuba sebentar lagi.',
+    errModelsSlow: 'Model pengesahan kami mengambil masa lebih lama daripada jangkaan — sila cuba lagi.',
+    errBadInput: 'Input itu tidak dapat dianalisis. Sila tampal teks penuh artikel atau pautan berita yang sah.',
+    errNoConnection: 'Tidak dapat menghubungi perkhidmatan pengesahan. Sila semak sambungan anda dan cuba lagi.',
+    errGeneric: 'Sesuatu telah berlaku semasa pengesahan. Sila cuba lagi.',
+    loadingLongContentHint: 'Ini mungkin mengambil masa sehingga satu minit untuk kandungan baharu.',
+    scoresDifferedBy: 'Skor dua model berbeza sebanyak {n} mata.',
   },
   Chinese: {
     tagline: '双重 AI 公共事实核查与反诈骗防护',
@@ -413,6 +428,13 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: '主题模式',
     charCount: '字数统计',
     maxLimit: '最大限制',
+    errNotConfigured: '验证服务目前配置不正确，请稍后再试。',
+    errModelsSlow: '我们的验证模型响应时间比预期长，请重试。',
+    errBadInput: '无法分析该输入。请粘贴完整的文章内容或有效的新闻链接。',
+    errNoConnection: '无法连接到验证服务。请检查您的网络连接后重试。',
+    errGeneric: '验证过程中出现问题，请重试。',
+    loadingLongContentHint: '分析新内容最多可能需要一分钟。',
+    scoresDifferedBy: '两个模型的评分相差 {n} 分。',
   },
   Tamil: {
     tagline: 'இரட்டை AI பொது உண்மை சரிபார்ப்பு & ஏமாற்று பாதுகாப்பு',
@@ -477,20 +499,28 @@ const uiTranslations: Record<string, Record<string, string>> = {
     themeModeLabel: 'தீம் முறை',
     charCount: 'எழுத்துக்களின் எண்ணிக்கை',
     maxLimit: 'அதிகபட்ச வரம்பு',
+    errNotConfigured: 'சரிபார்ப்புச் சேவை தற்போது சரியாக அமைக்கப்படவில்லை. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
+    errModelsSlow: 'எங்கள் சரிபார்ப்பு மாதிரிகள் எதிர்பார்த்ததை விட அதிக நேரம் எடுக்கின்றன — மீண்டும் முயற்சிக்கவும்.',
+    errBadInput: 'அந்த உள்ளீட்டைப் பகுப்பாய்வு செய்ய முடியவில்லை. முழு கட்டுரை உரையையோ சரியான செய்தி இணைப்பையோ ஒட்டவும்.',
+    errNoConnection: 'சரிபார்ப்புச் சேவையை அணுக முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
+    errGeneric: 'சரிபார்ப்பின் போது ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.',
+    loadingLongContentHint: 'புதிய உள்ளடக்கத்திற்கு இதற்கு ஒரு நிமிடம் வரை ஆகலாம்.',
+    scoresDifferedBy: 'இரு மாதிரிகளின் மதிப்பெண்கள் {n} புள்ளிகளால் வேறுபட்டன.',
   }
 };
 
 /**
- * Turns a raw backend / network error string into a short, plain-language
- * message safe to show a user or a judge. Never leaks internal details
- * (API key names, model ids, stack traces, timeout internals).
+ * Maps a raw backend / network error string to a translation KEY (resolved by
+ * the component's t() helper, so the message follows the language toggle).
+ * Keeps internal details — API key names, model ids, stack traces, timeout
+ * internals — off the screen.
  */
 function friendlyPipelineError(status: number | null, raw?: string): string {
   const msg = (raw || '').toLowerCase();
 
   // Server misconfiguration — never show the key name on screen.
   if (msg.includes('gonka_api_key') || msg.includes('not configured') || msg.includes('api key')) {
-    return 'The verification service is not set up correctly right now. Please try again later.';
+    return 'errNotConfigured';
   }
   // Both models timed out, or an upstream gateway gave up.
   if (
@@ -499,17 +529,17 @@ function friendlyPipelineError(status: number | null, raw?: string): string {
     msg.includes('took longer') ||
     status === 502 || status === 503 || status === 504
   ) {
-    return 'Our verification models are taking longer than expected — please try again.';
+    return 'errModelsSlow';
   }
   // Empty or malformed input reached the server.
   if (status === 400 || msg.includes('required') || msg.includes('too short')) {
-    return 'That input could not be analyzed. Please paste the full article text or a valid news link.';
+    return 'errBadInput';
   }
   // The fetch itself failed (offline, DNS, server down).
   if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
-    return 'Could not reach the verification service. Check your connection and try again.';
+    return 'errNoConnection';
   }
-  return 'Something went wrong during verification. Please try again.';
+  return 'errGeneric';
 }
 
 export default function Home() {
@@ -690,12 +720,12 @@ export default function Home() {
       const data = await res.json().catch(() => null);
       if (!res.ok || !data || data.error) {
         if (data?.error) console.warn('verify-gonka error:', data.error);
-        setDevResult({ error: friendlyPipelineError(res.status, data?.error) });
+        setDevResult({ error: t(friendlyPipelineError(res.status, data?.error)) });
       } else {
         setDevResult(data);
       }
     } catch (err: any) {
-      setDevResult({ error: friendlyPipelineError(null, err?.message) });
+      setDevResult({ error: t(friendlyPipelineError(null, err?.message)) });
     } finally {
       setDevLoading(false);
     }
@@ -762,11 +792,12 @@ export default function Home() {
       setShowAudit(true);
     } catch (err: any) {
       // A raw TypeError here = the fetch itself failed (offline / server down).
-      // Our own guards above already throw plain-language messages, so pass those through.
-      const friendly = err instanceof TypeError
+      // friendlyPipelineError() returns a translation key; our own client-side
+      // guards throw a plain string, which t() passes through unchanged.
+      const key = err instanceof TypeError
         ? friendlyPipelineError(null, err.message)
-        : (err?.message || 'Something went wrong during verification. Please try again.');
-      setError(friendly);
+        : (err?.message || 'errGeneric');
+      setError(t(key));
     } finally {
       setLoading(false);
       setLoadingStep('');
@@ -1141,7 +1172,7 @@ export default function Home() {
                       Gonka Router Hedged Pipeline · {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} elapsed
                     </p>
                     <p className={`text-[10px] ${highContrast ? 'text-white' : 'text-stone-400'}`}>
-                      This can take up to a minute for new content.
+                      {t('loadingLongContentHint')}
                     </p>
                   </div>
                 </div>
@@ -1225,7 +1256,7 @@ export default function Home() {
                     <span className="font-bold block">{result.verification.consensus_note}</span>
                     {typeof result.verification.discrepancy_delta === 'number' && result.verification.discrepancy_delta > 25 && (
                       <span className="block text-[11px] font-semibold opacity-80">
-                        The two model scores differed by {result.verification.discrepancy_delta} points.
+                        {t('scoresDifferedBy').replace('{n}', String(result.verification.discrepancy_delta))}
                       </span>
                     )}
                   </div>
