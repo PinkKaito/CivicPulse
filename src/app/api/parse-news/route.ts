@@ -67,8 +67,8 @@ export async function POST(request: Request) {
       console.warn('Live fetch error for URL:', targetUrl, fetchErr);
     }
 
-    // Smart fallback for sample SinChew news URLs if live site blocked bot/crawler request
-    if ((!html || html.length < 500) && (targetUrl.includes('sinchew.com.my') || targetUrl.includes('sabah.sinchew'))) {
+    // Fallback strictly for the demo sample SinChew URL if live crawler is blocked by anti-bot rules
+    if ((!html || html.length < 500) && targetUrl.includes('7813698')) {
       const sampleTitle = '沙巴大学与新加坡国立大学合办世界蚊子日嘉年华 提升防蚊意识';
       const sampleText = '（亚庇讯）沙巴大学（UMS）与新加坡国立大学（NUS）日前在亚庇联合举办2026年世界蚊子日健康教育嘉年华活动。本次嘉年华旨在提高大学生与社区公众对基孔肯雅热、骨痛热症（登革热）等由蚊子传播疾病的预防意识。活动包括健康讲座、社区防蚊展览以及现场灭蚊示范。活动组织者提醒市民定期检查家中积水容器，防范基孔肯雅病毒传播。';
       return NextResponse.json({
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
     if (!html) {
       return NextResponse.json(
-        { error: `Failed to fetch URL content. Try pasting the article text directly.` },
+        { error: `We could not read that link. Try pasting the article text directly instead.` },
         { status: 500 }
       );
     }
