@@ -35,8 +35,8 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
     <div className="min-h-screen bg-[#fbf8f3] text-[#2c2214] flex flex-col font-sans">
       <header className="border-b border-[#ebdcb8] bg-[#faf6ee] px-6 py-4 flex items-center justify-between shadow-xs">
         <Link href="/" className="inline-flex items-center gap-2 font-bold text-sm text-stone-700 hover:text-stone-900 transition-colors">
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back to CivicPulse</span>
+          <ArrowLeft className="h-4 w-4 pointer-events-none" />
+          <span className="pointer-events-none">Back to CivicPulse</span>
         </Link>
         <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-bold">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />

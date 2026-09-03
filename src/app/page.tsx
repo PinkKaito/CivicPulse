@@ -212,7 +212,7 @@ export function ReceiptBadge({
           className={`underline flex items-center gap-0.5 ${highContrast ? 'text-white hover:text-stone-200' : 'text-stone-700 hover:text-amber-800'
             }`}
         >
-          {labels.viewRawJson} <ExternalLink className="h-2 w-2" />
+          {labels.viewRawJson} <ExternalLink className="h-2 w-2 pointer-events-none" />
         </a>
       </div>
     </div>
@@ -1432,7 +1432,7 @@ export default function Home() {
                 title="Accessibility & Theme Controls"
                 aria-label="Toggle Accessibility Menu"
               >
-                <Settings className="h-4.5 w-4.5" />
+                <Settings className="h-4.5 w-4.5 pointer-events-none" />
               </button>
 
               {/* Popover Dropdown Menu */}
@@ -1445,7 +1445,7 @@ export default function Home() {
                   }`}>
                   <div className="flex items-center justify-between border-b pb-2 border-stone-200/50">
                     <span className="text-xs font-bold uppercase tracking-wider">{t('accessibilityMenu')}</span>
-                    <Eye className="h-3.5 w-3.5 text-stone-400" />
+                    <Eye className="h-3.5 w-3.5 text-stone-400 pointer-events-none" />
                   </div>
 
                   {/* Font Scaling Row */}
@@ -1501,10 +1501,10 @@ export default function Home() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 space-y-8 relative z-10">
 
         {/* Search & Paste Inputs */}
-        <section className={`border rounded-xl p-6 space-y-6 shadow-sm ${cardBgColor} ${borderColor}`}>
+        <section className={`border rounded-xl p-6 space-y-6 shadow-sm relative z-10 ${cardBgColor} ${borderColor}`}>
 
           {/* Header tabs */}
           <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-4 ${borderLightColor}`}>
@@ -1517,8 +1517,8 @@ export default function Home() {
                 className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${activeTab === 'text' ? tabButtonActiveColor : tabButtonInactiveColor
                   }`}
               >
-                <FileText className="h-3.5 w-3.5" />
-                {t('pasteClaimTab')}
+                <FileText className="h-3.5 w-3.5 pointer-events-none" />
+                <span className="pointer-events-none">{t('pasteClaimTab')}</span>
               </button>
               <button
                 type="button"
@@ -1526,8 +1526,8 @@ export default function Home() {
                 className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${activeTab === 'url' ? tabButtonActiveColor : tabButtonInactiveColor
                   }`}
               >
-                <LinkIcon className="h-3.5 w-3.5" />
-                {t('newsLinkTab')}
+                <LinkIcon className="h-3.5 w-3.5 pointer-events-none" />
+                <span className="pointer-events-none">{t('newsLinkTab')}</span>
               </button>
             </div>
           </div>
@@ -1652,13 +1652,13 @@ export default function Home() {
             >
               {loading ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>{t('analyzingBtn')}</span>
+                  <RefreshCw className="h-4 w-4 animate-spin pointer-events-none" />
+                  <span className="pointer-events-none">{t('analyzingBtn')}</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>{t('submitBtn')}</span>
+                  <Sparkles className="h-4 w-4 pointer-events-none" />
+                  <span className="pointer-events-none">{t('submitBtn')}</span>
                 </>
               )}
             </button>
@@ -1666,7 +1666,7 @@ export default function Home() {
             {loading && (
               <div className={`p-6 border rounded-xl space-y-4 animate-pulse mt-4 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fcf8ef] border-[#e4d4b5]' : 'bg-white border-[#ebdcb8]'}`}>
                 <div className="flex items-center gap-3">
-                  <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0" />
+                  <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0 pointer-events-none" />
                   <div className="space-y-1">
                     <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{t(loadingStep || 'loadingAnalyzing')}</p>
                     <p className="text-[0.625rem] text-stone-400 font-mono">
@@ -1690,7 +1690,7 @@ export default function Home() {
           {error && (
             <div className={`p-4 border rounded-xl text-xs flex items-start gap-3 ${highContrast ? 'bg-black border-white text-white' : sepiaMode ? 'bg-[#fff4e8] border-[#e4d4b5] text-[#b33e2b]' : 'bg-[#fff5f5] border-rose-200 text-rose-700'
               }`}>
-              <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5" />
+              <AlertTriangle className="h-4.5 w-4.5 shrink-0 mt-0.5 pointer-events-none" />
               <div>
                 <span className="font-bold">{t('errorPrefix')}</span> {error}
               </div>
@@ -1725,7 +1725,7 @@ export default function Home() {
           const styles = getTruthScoreStyles(scoreDisplay, isScam);
 
           return (
-            <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 ${highContrast
+            <section className={`border rounded-xl p-6 space-y-6 shadow-sm animate-in slide-in-from-bottom-4 duration-400 relative z-10 ${highContrast
               ? 'bg-black border-white'
               : (alarmMode ? 'bg-[#fffdfd] border-rose-200' : 'bg-white border-[#e9e2d3]')
               }`}>
@@ -1742,8 +1742,8 @@ export default function Home() {
                     ? 'bg-black text-white border-white'
                     : (alarmMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-900 border-[#ebdcb8]')
                     }`}>
-                    <TrendingUp className="h-3.5 w-3.5 shrink-0" />
-                    <span className="whitespace-nowrap">{categoryBadgeText}</span>
+                    <TrendingUp className="h-3.5 w-3.5 shrink-0 pointer-events-none" />
+                    <span className="whitespace-nowrap pointer-events-none">{categoryBadgeText}</span>
                   </span>
 
                   <button
@@ -1757,8 +1757,8 @@ export default function Home() {
                       }`}
                     title="Share Fact-Check Report Card"
                   >
-                    <Share2 className="h-3.5 w-3.5 text-amber-700 shrink-0" />
-                    <span className="whitespace-nowrap">{t('shareCard')}</span>
+                    <Share2 className="h-3.5 w-3.5 text-amber-700 shrink-0 pointer-events-none" />
+                    <span className="whitespace-nowrap pointer-events-none">{t('shareCard')}</span>
                   </button>
                 </div>
               </div>
