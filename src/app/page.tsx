@@ -1047,12 +1047,15 @@ export default function Home() {
 
   // Preset Trigger
   const handleApplyPreset = (key: 'cimb' | 'strAid' | 'lhdnTax') => {
+    const selectedText = presets[key].text;
     setActiveTab('text');
-    setArticleText(presets[key].text);
+    setArticleText(selectedText);
     setError(null);
     setResult(null);
     setModel1Receipt(null);
     setModel2Receipt(null);
+    // Automatically trigger analysis on preset selection
+    handleProcessArticle(undefined, selectedText);
   };
 
   // Accessibility Font Adjusters
@@ -1090,8 +1093,8 @@ export default function Home() {
   };
 
   // Main Pipeline processing
-  const handleProcessArticle = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleProcessArticle = async (e?: React.FormEvent, overrideText?: string) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
     setResult(null);
@@ -1099,10 +1102,10 @@ export default function Home() {
     setModel2Receipt(null);
 
     try {
-      let textToProcess = articleText;
+      let textToProcess = overrideText !== undefined ? overrideText : articleText;
 
-      // Step 2: URL parsing if URL tab is active
-      if (activeTab === 'url') {
+      // Step 2: URL parsing if URL tab is active and no override text is provided
+      if (activeTab === 'url' && overrideText === undefined) {
         if (!newsUrl.trim()) {
           throw new Error('Please enter a valid News URL.');
         }
