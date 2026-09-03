@@ -1,10 +1,11 @@
-const CACHE_NAME = 'civicpulse-pwa-v1';
+const CACHE_NAME = 'civicpulse-cache-v2';
 const PRECACHE_ASSETS = [
   '/',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon.svg'
 ];
 
-// Service Worker Installation
+// 1. Service Worker Installation
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -14,7 +15,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Service Worker Activation & Cache Cleanup
+// 2. Service Worker Activation & Cache Cleanup
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -28,32 +29,52 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Stale-While-Revalidate Fetch Strategy for Offline Resilience
+// 3. Fetch Event Handler with Smart Routing
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
-  
-  // Skip API routes from caching to ensure fresh verification results
-  const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/api/')) return;
+  const request = event.request;
+  const url = new URL(request.url);
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request)
+  // Only handle HTTP/HTTPS GET requests
+  if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Never cache API routes or Next.js internal HMR / dev assets
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/_next/')) {
+    return;
+  }
+
+  // Strategy A: Network-First for HTML page navigations (ensures fresh UI online, fallback offline)
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(request)
         .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
           }
           return networkResponse;
         })
         .catch(() => {
-          // If offline and request is an HTML page navigation, return cached home page
-          if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/');
+          return caches.match(request).then((cached) => cached || caches.match('/'));
+        })
+    );
+    return;
+  }
+
+  // Strategy B: Stale-While-Revalidate for static assets (images, icons, manifest, fonts)
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      const fetchPromise = fetch(request)
+        .then((networkResponse) => {
+          if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
           }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Ignore network fetch errors for static assets if cached version exists
         });
 
       return cachedResponse || fetchPromise;

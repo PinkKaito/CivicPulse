@@ -55,14 +55,21 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(
-                    function(registration) {
-                      console.log('CivicPulse ServiceWorker registered with scope: ', registration.scope);
-                    },
-                    function(err) {
-                      console.log('CivicPulse ServiceWorker registration failed: ', err);
+                  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                      for (var reg of registrations) { reg.unregister(); }
+                    });
+                    if ('caches' in window) {
+                      caches.keys().then(function(names) {
+                        for (var name of names) { caches.delete(name); }
+                      });
                     }
-                  );
+                  } else {
+                    navigator.serviceWorker.register('/sw.js').then(
+                      function(reg) { console.log('CivicPulse SW registered:', reg.scope); },
+                      function(err) { console.log('CivicPulse SW registration failed:', err); }
+                    );
+                  }
                 });
               }
             `,
