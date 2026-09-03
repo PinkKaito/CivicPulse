@@ -841,26 +841,38 @@ export default function Home() {
     ctx.font = 'bold 17px system-ui, sans-serif';
     ctx.fillText(actionDirective, 70, 148);
 
-    // Article Title: Dark Sharp Stone #1c1917 (Multi-line full title rendering)
+    // Helper: Word-aware and CJK-aware canvas text wrapping
+    const wrapCanvasTextWords = (text: string, maxWidth: number): string[] => {
+      if (!text) return [];
+      const tokens = text.match(/[\u4e00-\u9fff\u3400-\u4dbf]|[^\s\u4e00-\u9fff\u3400-\u4dbf]+|\s+/g) || [text];
+      const lines: string[] = [];
+      let currentLine = '';
+
+      for (const token of tokens) {
+        const testLine = currentLine + token;
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && currentLine.trim() !== '') {
+          lines.push(currentLine.trimEnd());
+          currentLine = token.trimStart();
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine.trim()) {
+        lines.push(currentLine.trimEnd());
+      }
+      return lines;
+    };
+
+    // Article Title: Dark Sharp Stone #1c1917 (Word-Aware Multi-Line Rendering)
     ctx.fillStyle = '#1c1917';
     ctx.font = 'bold 22px system-ui, sans-serif';
-    const titleChars = Array.from(result.summary.title || '');
-    let titleLine = '';
+    const titleLines = wrapCanvasTextWords(result.summary.title || '', 1100);
     let titleY = 192;
-    const maxTitleWidth = 1100;
-    for (let n = 0; n < titleChars.length; n++) {
-      const testLine = titleLine + titleChars[n];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxTitleWidth && titleLine !== '') {
-        ctx.fillText(titleLine, 50, titleY);
-        titleLine = titleChars[n];
-        titleY += 26;
-      } else {
-        titleLine = testLine;
-      }
-    }
-    if (titleLine) {
-      ctx.fillText(titleLine, 50, titleY);
+    for (let i = 0; i < titleLines.length; i++) {
+      ctx.fillText(titleLines[i], 50, titleY);
+      titleY += 26;
+      if (i >= 1) break;
     }
 
     // Reasoning Box (Height 175)
@@ -876,33 +888,20 @@ export default function Home() {
     ctx.font = 'bold 15px system-ui, sans-serif';
     ctx.fillText(t('shareReasoningLabel'), 75, 248);
 
-    // Wrapped Reasoning Lines: Character-Aware Multi-Language Wrapping
+    // Wrapped Reasoning Lines: Word-Aware & CJK-Aware Multi-Language Wrapping
     ctx.fillStyle = '#292524';
     ctx.font = '15px system-ui, sans-serif';
     const safeReasoning = defangUrl(result.verification.reasoning_trace);
-
-    const chars = Array.from(safeReasoning);
-    let line = '';
+    const reasoningLines = wrapCanvasTextWords(safeReasoning, 1040);
     let y = 276;
-    const maxWidth = 1040;
-    for (let n = 0; n < chars.length; n++) {
-      const testLine = line + chars[n];
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && line !== '') {
-        ctx.fillText(line, 75, y);
-        line = chars[n];
-        y += 24;
-        if (y > 375) {
-          ctx.fillText(line + '...', 75, y);
-          line = '';
-          break;
-        }
-      } else {
-        line = testLine;
+    for (let i = 0; i < reasoningLines.length; i++) {
+      if (y > 375) break;
+      let lineText = reasoningLines[i];
+      if (y + 24 > 375 && i < reasoningLines.length - 1) {
+        lineText += '...';
       }
-    }
-    if (y <= 375 && line) {
-      ctx.fillText(line, 75, y);
+      ctx.fillText(lineText, 75, y);
+      y += 24;
     }
 
     // Poster-Style Checklist / Media Literacy Box (Fills empty space)
@@ -1705,7 +1704,7 @@ export default function Home() {
               {/* Header / Category Badge */}
               <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${highContrast ? 'border-white' : (alarmMode ? 'border-rose-100' : 'border-[#f6efe2]')
                 }`}>
-                <h2 className={`text-lg font-bold tracking-tight leading-snug ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-950' : 'text-[#2c2214]')
+                <h2 className={`text-lg font-bold tracking-tight leading-snug [word-break:normal] [overflow-wrap:normal] break-words ${highContrast ? 'text-white' : (alarmMode ? 'text-rose-950' : 'text-[#2c2214]')
                   }`}>
                   {result.summary.title}
                 </h2>
@@ -1808,7 +1807,7 @@ export default function Home() {
                       {t('consensusAudit')}
                     </span>
                   </div>
-                  <p className="text-sm font-medium leading-relaxed break-words [overflow-wrap:break-word]">
+                  <p className="text-sm font-medium leading-relaxed [word-break:normal] [overflow-wrap:normal] break-words">
                     {defangUrl(result.verification.reasoning_trace)}
                   </p>
                 </div>
@@ -1828,7 +1827,7 @@ export default function Home() {
                         }`}>
                         0{idx + 1}.
                       </span>
-                      <p className="text-sm leading-relaxed font-medium">{point}</p>
+                      <p className="text-sm leading-relaxed font-medium [word-break:normal] [overflow-wrap:normal] break-words">{point}</p>
                     </div>
                   ))}
                 </div>
@@ -1841,7 +1840,7 @@ export default function Home() {
                     }`}>{t('redFlags')}</h4>
                   <div className="flex flex-wrap gap-2">
                     {result.verification.red_flags.map((flag, idx) => (
-                      <span key={idx} className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${highContrast
+                      <span key={idx} className={`px-2.5 py-1 rounded-lg text-xs font-bold border [word-break:normal] [overflow-wrap:normal] ${highContrast
                         ? 'bg-black text-white border-white'
                         : 'bg-rose-50 border-rose-200 text-rose-800'
                         }`}>
@@ -1864,7 +1863,7 @@ export default function Home() {
                     {isScam ? t('financialRisk') : t('citizenImpact')}
                   </h4>
                 </div>
-                <p className="text-sm leading-relaxed font-medium">
+                <p className="text-sm leading-relaxed font-medium [word-break:normal] [overflow-wrap:normal] break-words">
                   {result.summary.citizen_impact}
                 </p>
               </div>
@@ -1882,7 +1881,7 @@ export default function Home() {
                       {t('actionAdvice')}
                     </h4>
                   </div>
-                  <p className="text-sm leading-relaxed font-medium">
+                  <p className="text-sm leading-relaxed font-medium [word-break:normal] [overflow-wrap:normal] break-words">
                     {result.summary.actionable_advice}
                   </p>
                 </div>
