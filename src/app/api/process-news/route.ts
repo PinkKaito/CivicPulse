@@ -216,6 +216,44 @@ function cleanAndParseJSON(text: string) {
   }
 }
 
+async function translateJSONToTargetLanguage(
+  openai: OpenAI,
+  dataObj: any,
+  targetLang: string
+): Promise<any> {
+  if (!dataObj || targetLang === 'Chinese') return dataObj;
+  const jsonStr = JSON.stringify(dataObj);
+  // Check if string contains CJK ideographs (\u4e00-\u9fff\u3400-\u4dbf)
+  if (!/[\u4e00-\u9fff\u3400-\u4dbf]/.test(jsonStr)) {
+    return dataObj;
+  }
+
+  console.log(`CJK detected in non-Chinese output. Running fast translation pass into ${targetLang}...`);
+  try {
+    const res = await openai.chat.completions.create({
+      model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert civic translator. Translate ALL string values in the provided JSON object strictly and entirely into ${targetLang}. Preserve the exact JSON keys and structure. Do not leave any Chinese or foreign characters untranslated.`
+        },
+        {
+          role: 'user',
+          content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 1500,
+    });
+    const text = res.choices[0]?.message?.content || '';
+    const parsed = cleanAndParseJSON(text);
+    return parsed || dataObj;
+  } catch (e) {
+    console.warn('Translation fallback pass error:', e);
+    return dataObj;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
@@ -252,11 +290,15 @@ export async function POST(request: Request) {
 
     const finalContentPayload = processedArticleText + truncationNotice;
 
+    const languageInstruction = `
+CRITICAL MANDATORY LANGUAGE RULE:
+TARGET OUTPUT LANGUAGE: ${targetLanguage.toUpperCase()} (${targetLanguage})
+1. You MUST translate ALL analysis, sentences, entity names, summaries, red flags, and explanations 100% strictly into ${targetLanguage}.
+2. REGARDLESS of the language of the input content (even if the input is in Chinese, Tamil, Malay, or English), EVERY SINGLE STRING FIELD IN THE JSON MUST BE WRITTEN IN ${targetLanguage}.
+3. DO NOT leave any foreign words, Chinese characters (e.g. "通知", "自己操作", "政府财政部"), or untranslated terms in the output. Translate every single phrase into ${targetLanguage}.
+`;
+
     // Model 1 (Extractor & Context Analyst)
-    // Primary: deepseek-ai/DeepSeek-V4-Flash-0731
-    // Fallback: MiniMaxAI/MiniMax-M2.7 — cross-fallback to Model 2's primary.
-    //   Kimi-K2.6 was the old fallback but returns non-JSON / times out via the
-    //   router (verified 2026-09-01), so it was never a usable safety net.
     const model1Promise = callWithHedge(
       openai,
       'deepseek-ai/DeepSeek-V4-Flash-0731',
@@ -264,7 +306,9 @@ export async function POST(request: Request) {
         {
           role: 'system',
           content: `You are an expert news analyst, civic fact-checker, and media literacy specialist.
-Your task is to analyze the provided text and output a structured JSON response in ${targetLanguage}.
+Your task is to analyze the provided text and output a structured JSON response ENTIRELY in ${targetLanguage}.
+
+${languageInstruction}
 
 STRICT FACTUAL & SAFETY GUIDELINES:
 1. CITATION & PROVENANCE PENALTY: If the text describes specific government policies, cash handouts, deadlines, or mandatory registration but lacks verifiable links/sources/named officials, assign a preliminaryScore <= 45.
@@ -276,22 +320,22 @@ STRICT FACTUAL & SAFETY GUIDELINES:
 
 Respond ONLY with a valid JSON object matching this schema:
 {
-  "title": "A concise headline in ${targetLanguage}",
-  "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT" | "VIRAL_RUMOR", // VIRAL_RUMOR = unverified socially-spread claims, hoaxes, chain messages with no named official source
+  "title": "A concise headline translated into ${targetLanguage}",
+  "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT" | "VIRAL_RUMOR",
   "preliminaryScore": 50, // Number 0-100
   "scoreLabel": "VERIFIED" | "SAFE" | "MIXED" | "SUSPICIOUS" | "HIGH RISK",
   "keyPoints": [
-    "Key summary point 1 in ${targetLanguage}",
-    "Key summary point 2 in ${targetLanguage}",
-    "Key summary point 3 in ${targetLanguage}"
+    "Key summary point 1 translated into ${targetLanguage}",
+    "Key summary point 2 translated into ${targetLanguage}",
+    "Key summary point 3 translated into ${targetLanguage}"
   ],
-  "citizenImpact": "Explanation of citizen impact or potential scam/misinformation risk in ${targetLanguage}.",
-  "actionableGuidance": "Safety warning or official verification steps in ${targetLanguage}."
+  "citizenImpact": "Explanation of citizen impact or potential scam/misinformation risk translated into ${targetLanguage}.",
+  "actionableGuidance": "Safety warning or official verification steps translated into ${targetLanguage}."
 }`
         },
         {
           role: 'user',
-          content: `Analyze this content and output the JSON entirely in ${targetLanguage}:\n\n${finalContentPayload}`
+          content: `Analyze this content and output the JSON ENTIRELY in ${targetLanguage}. Translate ALL text, names, and quotes into ${targetLanguage} without leaving any untranslated words or foreign characters:\n\n${finalContentPayload}`
         }
       ],
       0.3,
@@ -299,9 +343,6 @@ Respond ONLY with a valid JSON object matching this schema:
     );
 
     // Model 2 (Fact & Credibility Auditor)
-    // Primary: MiniMaxAI/MiniMax-M2.7 (distinct primary from Model 1)
-    // Fallback: deepseek-ai/DeepSeek-V4-Flash-0731 — cross-fallback to Model 1's
-    //   primary, replacing the broken Kimi-K2.6 fallback.
     const model2Promise = callWithHedge(
       openai,
       'MiniMaxAI/MiniMax-M2.7',
@@ -309,6 +350,8 @@ Respond ONLY with a valid JSON object matching this schema:
         {
           role: 'system',
           content: `You are an expert fact-checker, media literacy analyst, and cybersecurity/anti-fraud auditor. Your job is to independently audit the text for factual plausibility, missing official citations, manipulative urgency, or financial red flags.
+
+${languageInstruction}
 
 STRICT FACTUAL & SAFETY VERIFICATION RULES:
 1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
@@ -319,34 +362,20 @@ STRICT FACTUAL & SAFETY VERIFICATION RULES:
    - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
    - 0-29%: Blatant scams, phishing, or proven fabrications.
 
-You MUST write the "credibilityAnalysis" value strictly and entirely in the ${targetLanguage} language. Under no circumstance should you use any other language.
 You MUST respond ONLY with a valid JSON object in the following format:
 {
   "independentScore": 80, // A number between 0 and 100 representing the factual consistency and legitimacy. Must strictly follow the scoring scale rules above.
   "scoreLabel": "SAFE", // Must be EXACTLY one of: 'VERIFIED' | 'SAFE' | 'MIXED' | 'SUSPICIOUS' | 'HIGH RISK'
-  "credibilityAnalysis": "A 1-sentence concise explanation of why this score was given, noting sources, potential bias, manipulative urgency, or financial red flags in ${targetLanguage}.",
+  "credibilityAnalysis": "A 1-sentence concise explanation of why this score was given, noting sources, potential bias, manipulative urgency, or financial red flags translated entirely into ${targetLanguage}.",
   "redFlags": [
-    "Red flag detection string 1 (translated, keep short)",
-    "Red flag detection string 2 (translated, keep short)"
+    "Red flag detection string 1 translated into ${targetLanguage}",
+    "Red flag detection string 2 translated into ${targetLanguage}"
   ]
-}
-
-IMPORTANT: Analyze the content, translate and output the credibilityAnalysis strictly in ${targetLanguage}.`
+}`
         },
         {
           role: 'user',
-          content: `Evaluate the factual consistency and source credibility of this article. Output the reasoning trace entirely in ${targetLanguage}.
-
-STRICT FACTUAL VERIFICATION RULES:
-1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
-2. CITATION PENALTY: Only apply this penalty to critical claims (such as new laws, mandatory registration deadlines, cash handouts, or national policy changes). Do NOT penalize general harmless news (like sports reports, entertainment, or cultural articles) for lacking official links or government citations; score general harmless news based on standard consistency and plausibility.
-3. SCORING SCALE:
-   - 80-100%: Independently verifiable facts from recognized, cited primary sources.
-   - 60-79%: Mixed/nuanced news with minor context omissions.
-   - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
-   - 0-29%: Blatant scams, phishing, or proven fabrications.
-
-Content to analyze:\n\n${finalContentPayload}`
+          content: `Evaluate the factual consistency and source credibility of this article. Translate ALL analysis, terms, quotes, and reasoning traces entirely into ${targetLanguage} without leaving any foreign words or non-${targetLanguage} characters.\n\nContent to analyze:\n\n${finalContentPayload}`
         }
       ],
       0.2,
@@ -391,6 +420,16 @@ Content to analyze:\n\n${finalContentPayload}`
         credibilityAnalysis: 'Analysis trace completed, but JSON details could not be parsed.',
         redFlags: ['Parsing error occurred during auditing.'],
       };
+    }
+
+    // Run automatic translation fallback pass if CJK characters are detected in non-Chinese outputs
+    if (targetLanguage !== 'Chinese') {
+      const [translated1, translated2] = await Promise.all([
+        translateJSONToTargetLanguage(openai, model1Data, targetLanguage),
+        translateJSONToTargetLanguage(openai, model2Data, targetLanguage),
+      ]);
+      model1Data = translated1;
+      model2Data = translated2;
     }
 
     // Ensure array structure is preserved
@@ -448,7 +487,7 @@ Content to analyze:\n\n${finalContentPayload}`
       summary: {
         title: model1Data.title || 'Direct Input Analysis',
         contentType: model1Data.category || 'NEWS_POLICY',
-        summary_points: model1Data.keyPoints.slice(0, 3),
+        summary_points: (model1Data.keyPoints || []).slice(0, 3),
         citizen_impact: model1Data.citizenImpact || '',
         actionable_advice: model1Data.actionableGuidance || '',
         category: model1Data.category || 'NEWS_POLICY',
