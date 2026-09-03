@@ -241,9 +241,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: 'Paste any news article URL, suspicious SMS, job/investment pitch, or viral claim...',
     urlPlaceholder: 'https://example.com/news-article...',
     sampleScamsLabel: 'Try Sample Scams:',
-    chipCimb: '🏦 CIMB Frozen Account Alert',
-    chipStr: '💵 STR RM800 Aid Payout',
-    chipLhdn: '📋 LHDN Tax Refund SMS',
+    chipCimb: '🚨 Bank Account Alert (Scam - ENG)',
+    chipStr: '✅ STR Aid Notice (Safe - ENG)',
+    chipLhdn: '✅ Flood Relief Notice (Safe - 中文)',
     submitBtn: 'Simplify & Cross-Verify Claims',
     analyzingBtn: 'Analyzing content...',
     aiReportTitle: 'AI Verified Fact-Check Report',
@@ -334,9 +334,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: 'Tampal mana-mana URL artikel berita, SMS mencurigakan, tawaran kerja/pelaburan...',
     urlPlaceholder: 'https://contoh.com/artikel-berita...',
     sampleScamsLabel: 'Cuba Contoh Penipuan:',
-    chipCimb: '🏦 Amaran Akaun CIMB Dibatukan',
-    chipStr: '💵 Pembayaran Bantuan STR RM800',
-    chipLhdn: '📋 SMS Pemulangan Cukai LHDN',
+    chipCimb: '🚨 Amaran Akaun Bank (Scam - ENG)',
+    chipStr: '✅ Notis Bantuan STR (Selamat - ENG)',
+    chipLhdn: '✅ Notis Bantuan Banjir (Selamat - 中文)',
     submitBtn: 'Permudahkan & Semak Silang Tuntutan',
     analyzingBtn: 'Menganalisis kandungan...',
     aiReportTitle: 'Laporan Pengesahan Fakta AI',
@@ -426,9 +426,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: '粘贴任何新闻文章 URL、可疑短信、招聘/投资推销或网络传言...',
     urlPlaceholder: 'https://example.com/news-article...',
     sampleScamsLabel: '尝试诈骗示例：',
-    chipCimb: '🏦 CIMB 账户冻结预警',
-    chipStr: '💵 STR RM800 援助金发放',
-    chipLhdn: '📋 LHDN 退税短信预警',
+    chipCimb: '🚨 银行账户警报 (诈骗 - 英文)',
+    chipStr: '✅ STR 援助金官方通告 (真实 - 英文)',
+    chipLhdn: '✅ 救灾援助金官方通告 (真实 - 中文)',
     submitBtn: '简化并交叉核实声明',
     analyzingBtn: '正在分析内容...',
     aiReportTitle: 'AI 事实核查与防诈报告',
@@ -518,9 +518,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: 'ஏதேனும் செய்தி கட்டுரை URL, சந்தேகத்திற்கிடமான SMS, வேலை/முதலீட்டு பிட்ச் ஒட்டவும்...',
     urlPlaceholder: 'https://example.com/news-article...',
     sampleScamsLabel: 'மாதிரி மோசடிகளை முயற்சிக்கவும்:',
-    chipCimb: '🏦 CIMB கணக்கு முடக்கம் எச்சரிக்கை',
-    chipStr: '💵 STR RM800 உதவித் தொகை',
-    chipLhdn: '📋 LHDN வரி திரும்பப் பெறல் SMS',
+    chipCimb: '🚨 வங்கி கணக்கு எச்சரிக்கை (மோசடி - ENG)',
+    chipStr: '✅ STR உதவித் தொகை அறிவிப்பு (பாதுகாப்பு - ENG)',
+    chipLhdn: '✅ வெள்ள உதவித் தொகை அறிவிப்பு (பாதுகாப்பு - 中文)',
     submitBtn: 'உரைகளை எளிமையாக்கி சரிபார்க்கவும்',
     analyzingBtn: 'பகுப்பாய்வு செய்யப்படுகிறது...',
     aiReportTitle: 'AI சரிபார்க்கப்பட்ட அறிக்கை',
@@ -1068,19 +1068,19 @@ export default function Home() {
     }
   };
 
-  // Presets Data
+  // Presets Data: 1. Scam (ENG), 2. Safe (ENG), 3. Safe (CHINESE)
   const presets = {
     cimb: {
       text: 'RM0.00: CIMB Alert! Your bank account has been temporarily frozen due to suspicious login attempts. To restore access and verify your identity immediately, click the secure link to update your details: https://cimb-online-security-verify.com/login. Failure to act within 24 hours will result in permanent account suspension.',
       title: 'CIMB Frozen Account Alert'
     },
     strAid: {
-      text: 'RM0.00: KERAJAAN MALAYSIA: Kredit Bantuan Sumbangan Tunai Rahmah (STR) RM800 Fasa 3 telah dikreditkan ke akaun anda. Sila semak kelayakan dan tebus bantuan bayaran secara dalam talian melalui portal rasmi: https://str-bantuan-gov-my.com/tebus',
-      title: 'STR RM800 Aid Payout'
+      text: 'OFFICIAL ANNOUNCEMENT: The Inland Revenue Board of Malaysia (HASiL) wishes to inform all eligible citizens that the Sumbangan Tunai Rahmah (STR) Phase 3 cash assistance will be disbursed directly into registered bank accounts starting next Monday. No third-party links or manual pin numbers are required. Citizens may check their application status exclusively on the official portal at https://bantuantunai.hasil.gov.my.',
+      title: 'STR Cash Aid Announcement'
     },
     lhdnTax: {
-      text: 'RM0.00: LHDN MALAYSIA: Makluman terlebih bayar cukai pendapatan (Tax Refund) sebanyak RM1,450.00 bagi tahun taksiran 2025. Sila sahkan akaun bank anda untuk tuntutan bayaran balik segera di: https://mytax-lhdn-gov.org/refund',
-      title: 'LHDN Tax Refund SMS'
+      text: '官方通告：马来西亚内政部与国家灾难管理机构（NADMA）联合宣布，2026年东北季候风援助金已开始开放申请。所有受影响符合资格的国民可通过官方内政部门户网站 https://www.nadma.gov.my 提交申请。政府切勿通过任何社交媒体私信或第三方向民众索取银行密码与OTP动态验证码。',
+      title: 'NADMA Flood Relief Announcement'
     }
   };
 
