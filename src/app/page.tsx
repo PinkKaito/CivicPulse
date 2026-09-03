@@ -130,10 +130,10 @@ export function ReceiptBadge({
   if (receipt.error) {
     return (
       <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-2 animate-in slide-in-from-top-2 duration-300 ${highContrast
-          ? 'bg-black border-white text-rose-500'
-          : sepiaMode
-            ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#b33e2b]'
-            : 'bg-rose-50 border-rose-200 text-rose-800'
+        ? 'bg-black border-white text-rose-500'
+        : sepiaMode
+          ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#b33e2b]'
+          : 'bg-rose-50 border-rose-200 text-rose-800'
         }`}>
         <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[0.625rem]">
           <AlertTriangle className="h-3.5 w-3.5" />
@@ -148,10 +148,10 @@ export function ReceiptBadge({
 
   return (
     <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-3.5 transition-all animate-in slide-in-from-top-2 duration-300 ${highContrast
-        ? 'bg-black border-white text-white'
-        : sepiaMode
-          ? 'bg-[#faf6ee] border-[#ebdcb8] text-[#433422]'
-          : 'bg-[#fbf9f5] border-stone-200 text-stone-700'
+      ? 'bg-black border-white text-white'
+      : sepiaMode
+        ? 'bg-[#faf6ee] border-[#ebdcb8] text-[#433422]'
+        : 'bg-[#fbf9f5] border-stone-200 text-stone-700'
       }`}>
       {/* Header */}
       <div className={`flex items-center justify-between border-b pb-2.5 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-250'
@@ -162,8 +162,8 @@ export function ReceiptBadge({
             }`}>{labels.title}</span>
         </div>
         <span className={`rounded px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase border ${receipt.outcome === 'success'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : 'bg-rose-50 text-rose-800 border-rose-200'
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+          : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}>
           HTTP {receipt.status_code} {receipt.outcome ? receipt.outcome.toUpperCase() : 'SUCCESS'}
         </span>
@@ -234,9 +234,11 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: 'Paste any news article URL, suspicious SMS, job/investment pitch, or viral claim...',
     urlPlaceholder: 'https://example.com/news-article...',
     sampleScamsLabel: 'Try Sample Scams:',
+    sampleNewsLinkLabel: 'Try Sample News Link:',
     chipCimb: '🚨 Bank Account Alert (Scam - ENG)',
     chipStr: '✅ STR Aid Notice (Safe - ENG)',
     chipLhdn: '✅ Flood Relief Notice (Safe - 中文)',
+    chipSinchew: '📰 SinChew Sabah News Article (Link)',
     submitBtn: 'Simplify & Cross-Verify Claims',
     analyzingBtn: 'Analyzing content...',
     aiReportTitle: 'AI Verified Fact-Check Report',
@@ -328,9 +330,11 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: 'Tampal mana-mana URL artikel berita, SMS mencurigakan, tawaran kerja/pelaburan...',
     urlPlaceholder: 'https://contoh.com/artikel-berita...',
     sampleScamsLabel: 'Cuba Contoh Penipuan:',
+    sampleNewsLinkLabel: 'Cuba Pautan Berita Sampel:',
     chipCimb: '🚨 Amaran Akaun Bank (Scam - ENG)',
     chipStr: '✅ Notis Bantuan STR (Selamat - ENG)',
     chipLhdn: '✅ Notis Bantuan Banjir (Selamat - 中文)',
+    chipSinchew: '📰 Artikel Berita SinChew Sabah (Pautan)',
     submitBtn: 'Permudahkan & Semak Silang Tuntutan',
     analyzingBtn: 'Menganalisis kandungan...',
     aiReportTitle: 'Laporan Pengesahan Fakta AI',
@@ -421,9 +425,11 @@ const uiTranslations: Record<string, Record<string, string>> = {
     textareaPlaceholder: '粘贴任何新闻文章 URL、可疑短信、招聘/投资推销或网络传言...',
     urlPlaceholder: 'https://example.com/news-article...',
     sampleScamsLabel: '尝试诈骗示例：',
+    sampleNewsLinkLabel: '尝试新闻链接示例：',
     chipCimb: '🚨 银行账户警报 (诈骗 - 英文)',
     chipStr: '✅ STR 援助金官方通告 (真实 - 英文)',
     chipLhdn: '✅ 救灾援助金官方通告 (真实 - 中文)',
+    chipSinchew: '📰 星洲日报沙巴新闻文章 (链接)',
     submitBtn: '简化并交叉核实声明',
     analyzingBtn: '正在分析内容...',
     aiReportTitle: 'AI 事实核查与防诈报告',
@@ -959,7 +965,7 @@ export default function Home() {
             }
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     };
 
     // Draw vector base immediately so QR box is never empty or broken
@@ -992,7 +998,7 @@ export default function Home() {
             ctx.lineWidth = 1.5;
             ctx.stroke();
             ctx.drawImage(img, 1004, 444, 140, 140);
-          } catch (e) {}
+          } catch (e) { }
           resolve();
         }
       };
@@ -1161,8 +1167,14 @@ export default function Home() {
     }
   };
 
-  // Preset Trigger: Populates textarea input without auto-running analysis
-  const handleApplyPreset = (key: 'cimb' | 'strAid' | 'lhdnTax') => {
+  // Preset Trigger: Populates textarea or URL input without auto-running analysis
+  const handleApplyPreset = (key: 'cimb' | 'strAid' | 'lhdnTax' | 'sinChewUrl') => {
+    if (key === 'sinChewUrl') {
+      setActiveTab('url');
+      setNewsUrl('https://sabah.sinchew.com.my/news/20260903/sabah/7813698?pk_vid=17db3219683bd4d6178842717647fe6c');
+      setError(null);
+      return;
+    }
     const selectedText = presets[key].text;
     setActiveTab('text');
     setArticleText(selectedText);
@@ -1383,16 +1395,16 @@ export default function Home() {
                   type="button"
                   onClick={() => setLanguage(item.code)}
                   className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${language === item.code
-                      ? highContrast
-                        ? 'bg-white text-black font-extrabold'
-                        : sepiaMode
-                          ? 'bg-[#433422] text-[#f4ecd8] font-black'
-                          : 'bg-[#3c3020] text-[#faf6ee] font-black'
-                      : highContrast
-                        ? 'text-white hover:bg-stone-900'
-                        : sepiaMode
-                          ? 'text-[#7c6244] hover:text-[#433422]'
-                          : 'text-[#5c4a36] hover:text-[#2c2214]'
+                    ? highContrast
+                      ? 'bg-white text-black font-extrabold'
+                      : sepiaMode
+                        ? 'bg-[#433422] text-[#f4ecd8] font-black'
+                        : 'bg-[#3c3020] text-[#faf6ee] font-black'
+                    : highContrast
+                      ? 'text-white hover:bg-stone-900'
+                      : sepiaMode
+                        ? 'text-[#7c6244] hover:text-[#433422]'
+                        : 'text-[#5c4a36] hover:text-[#2c2214]'
                     }`}
                 >
                   {item.label}
@@ -1570,44 +1582,63 @@ export default function Home() {
 
             {/* Presets Row */}
             <div className="space-y-1.5">
-              <span className={`text-[0.5625rem] font-bold uppercase tracking-wider block ${textLabelColor}`}>{t('sampleScamsLabel')}</span>
+              <span className={`text-[0.5625rem] font-bold uppercase tracking-wider block ${textLabelColor}`}>
+                {activeTab === 'text' ? t('sampleScamsLabel') : t('sampleNewsLinkLabel')}
+              </span>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleApplyPreset('cimb')}
-                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
-                    ? 'bg-black text-white border-white hover:bg-[#222]'
-                    : sepiaMode
-                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                    }`}
-                >
-                  {t('chipCimb')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleApplyPreset('strAid')}
-                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
-                    ? 'bg-black text-white border-white hover:bg-[#222]'
-                    : sepiaMode
-                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                    }`}
-                >
-                  {t('chipStr')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleApplyPreset('lhdnTax')}
-                  className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
-                    ? 'bg-black text-white border-white hover:bg-[#222]'
-                    : sepiaMode
-                      ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                      : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
-                    }`}
-                >
-                  {t('chipLhdn')}
-                </button>
+                {activeTab === 'text' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyPreset('cimb')}
+                      className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                        ? 'bg-black text-white border-white hover:bg-[#222]'
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                          : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                        }`}
+                    >
+                      {t('chipCimb')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyPreset('strAid')}
+                      className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                        ? 'bg-black text-white border-white hover:bg-[#222]'
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                          : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                        }`}
+                    >
+                      {t('chipStr')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyPreset('lhdnTax')}
+                      className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                        ? 'bg-black text-white border-white hover:bg-[#222]'
+                        : sepiaMode
+                          ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                          : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                        }`}
+                    >
+                      {t('chipLhdn')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleApplyPreset('sinChewUrl')}
+                    className={`text-[0.625rem] font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${highContrast
+                      ? 'bg-black text-white border-white hover:bg-[#222]'
+                      : sepiaMode
+                        ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                        : 'bg-[#faf6ee] text-amber-800 border-[#e6decb] hover:bg-[#f6efe2]'
+                      }`}
+                  >
+                    {t('chipSinchew')}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1947,8 +1978,8 @@ export default function Home() {
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
                                     className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${model1Receipt
-                                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
-                                        : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
+                                      ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                                      : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
                                       }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
@@ -2022,8 +2053,8 @@ export default function Home() {
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
                                     className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${model2Receipt
-                                        ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
-                                        : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
+                                      ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
+                                      : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
                                       }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
