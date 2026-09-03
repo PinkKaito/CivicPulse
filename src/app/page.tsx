@@ -304,6 +304,10 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterBullet1: '• 🚫 Never share OTP/TAC or banking passwords',
     posterBullet2: '• 🔍 Verify claims only via official .gov.my channels',
     posterBullet3: '• 📢 Report suspicious SMS/calls to NSRC Hotline 997',
+    posterNewsHeader: 'MEDIA LITERACY & READING TIPS:',
+    posterNewsBullet1: '• 📰 Check primary sources before resharing on social media',
+    posterNewsBullet2: '• 🔍 Distinguish official facts from editorial opinion or spin',
+    posterNewsBullet3: '• 📢 Cross-verify viral headlines with verified news outlets',
     // Pipeline error / status messages ({n} is substituted at render time)
     errNotConfigured: 'The verification service is not set up correctly right now. Please try again later.',
     errModelsSlow: 'Our verification models are taking longer than expected — please try again.',
@@ -400,6 +404,10 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterBullet1: '• 🚫 Jangan berkongsi OTP/TAC atau kata laluan bank',
     posterBullet2: '• 🔍 Semak maklumat hanya di portal rasmi .gov.my',
     posterBullet3: '• 📢 Laporkan penipuan ke talian NSRC 997',
+    posterNewsHeader: 'PANDUAN LITERASI MEDIA & BACAAN:',
+    posterNewsBullet1: '• 📰 Semak sumber utama sebelum berkongsi di media sosial',
+    posterNewsBullet2: '• 🔍 Bezakan fakta rasmi daripada pandangan editorial atau olahan',
+    posterNewsBullet3: '• 📢 Semak silang tajuk berita tular dengan agensi berita rasmi',
     errNotConfigured: 'Perkhidmatan pengesahan tidak disediakan dengan betul buat masa ini. Sila cuba sebentar lagi.',
     errModelsSlow: 'Model pengesahan kami mengambil masa lebih lama daripada jangkaan — sila cuba lagi.',
     errBadInput: 'Input itu tidak dapat dianalisis. Sila tampal teks penuh artikel atau pautan berita yang sah.',
@@ -495,6 +503,10 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterBullet1: '• 🚫 切勿提供 OTP/TAC 动态码或银行密码',
     posterBullet2: '• 🔍 仅通过官方 .gov.my 渠道核对信息',
     posterBullet3: '• 📢 发现诈骗请拨打 997 国家反诈专线 (NSRC)',
+    posterNewsHeader: '媒体素养与阅读指南：',
+    posterNewsBullet1: '• 📰 在社交媒体转发前，请务必核实原始官方来源',
+    posterNewsBullet2: '• 🔍 注意区分官方事实与主观评论或舆论引导',
+    posterNewsBullet3: '• 📢 将热搜标题与权威新闻机构的报道进行交叉对比',
     errNotConfigured: '验证服务目前配置不正确，请稍后再试。',
     errModelsSlow: '我们的验证模型响应时间比预期长，请重试。',
     errBadInput: '无法分析该输入。请粘贴完整的文章内容或有效的新闻链接。',
@@ -588,6 +600,10 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterBullet1: '• 🚫 OTP/TAC அல்லது வங்கி கடவுச்சொல்லை பகிர வேண்டாம்',
     posterBullet2: '• 🔍 அதிகாரப்பூர்வ .gov.my தளம் மூலம் மட்டுமே சரிபார்க்கவும்',
     posterBullet3: '• 📢 NSRC 997 மூலம் புகார் செய்யவும்',
+    posterNewsHeader: 'ஊடக விழிப்புணர்வு & வாசிப்பு குறிப்புகள்:',
+    posterNewsBullet1: '• 📰 சமூக ஊடகங்களில் பகிர்வதற்கு முன் முதன்மை ஆதாரங்களைச் சரிபார்க்கவும்',
+    posterNewsBullet2: '• 🔍 அதிகாரப்பூர்வ உண்மைகளை கருத்துகளிலிருந்து வேறுபடுத்திப் பார்க்கவும்',
+    posterNewsBullet3: '• 📢 பரவலான செய்திகளை சரிபார்க்கப்பட்ட செய்தி நிறுவனங்களுடன் சரிபார்க்கவும்',
     errNotConfigured: 'சரிபார்ப்புச் சேவை தற்போது சரியாக அமைக்கப்படவில்லை. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
     errModelsSlow: 'எங்கள் சரிபார்ப்பு மாதிரிகள் எதிர்பார்த்ததை விட அதிக நேரம் எடுக்கின்றன — மீண்டும் முயற்சிக்கவும்.',
     errBadInput: 'அந்த உள்ளீட்டைப் பகுப்பாய்வு செய்ய முடியவில்லை. முழு கட்டுரை உரையையோ சரியான செய்தி இணைப்பையோ ஒட்டவும்.',
@@ -889,7 +905,13 @@ export default function Home() {
       ctx.fillText(line, 75, y);
     }
 
-    // Poster-Style Quick Protection Checklist Box (Fills empty space)
+    // Poster-Style Checklist / Media Literacy Box (Fills empty space)
+    const isScamOrHighRisk = isScam || isHighRisk;
+    const checklistHeader = isScamOrHighRisk ? t('posterChecklistHeader') : t('posterNewsHeader');
+    const bullet1 = isScamOrHighRisk ? t('posterBullet1') : t('posterNewsBullet1');
+    const bullet2 = isScamOrHighRisk ? t('posterBullet2') : t('posterNewsBullet2');
+    const bullet3 = isScamOrHighRisk ? t('posterBullet3') : t('posterNewsBullet3');
+
     ctx.fillStyle = isHighRisk ? '#fff1f2' : '#ecfdf5';
     ctx.beginPath();
     ctx.roundRect(50, 412, 1100, 118, 14);
@@ -900,13 +922,13 @@ export default function Home() {
 
     ctx.fillStyle = isHighRisk ? '#881337' : '#064e3b';
     ctx.font = 'bold 13px system-ui, sans-serif';
-    ctx.fillText(t('posterChecklistHeader'), 75, 436);
+    ctx.fillText(checklistHeader, 75, 436);
 
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 14px system-ui, sans-serif';
-    ctx.fillText(t('posterBullet1'), 75, 460);
-    ctx.fillText(t('posterBullet2'), 75, 484);
-    ctx.fillText(t('posterBullet3'), 75, 508);
+    ctx.fillText(bullet1, 75, 460);
+    ctx.fillText(bullet2, 75, 484);
+    ctx.fillText(bullet3, 75, 508);
 
     // Footer: Sharp Sepia Monospace #57534e
     const m1Id = result?.model1RequestId || 'unavailable';
