@@ -821,16 +821,16 @@ export default function Home() {
     // Article Title: Dark Sharp Stone #1c1917 (Multi-line full title rendering)
     ctx.fillStyle = '#1c1917';
     ctx.font = 'bold 22px system-ui, sans-serif';
-    const titleWords = (result.summary.title || '').split(' ');
+    const titleChars = Array.from(result.summary.title || '');
     let titleLine = '';
     let titleY = 192;
     const maxTitleWidth = 1100;
-    for (let n = 0; n < titleWords.length; n++) {
-      const testLine = titleLine ? `${titleLine} ${titleWords[n]}` : titleWords[n];
+    for (let n = 0; n < titleChars.length; n++) {
+      const testLine = titleLine + titleChars[n];
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxTitleWidth && n > 0) {
+      if (metrics.width > maxTitleWidth && titleLine !== '') {
         ctx.fillText(titleLine, 50, titleY);
-        titleLine = titleWords[n];
+        titleLine = titleChars[n];
         titleY += 26;
       } else {
         titleLine = testLine;
@@ -853,24 +853,25 @@ export default function Home() {
     ctx.font = 'bold 15px system-ui, sans-serif';
     ctx.fillText(t('shareReasoningLabel'), 75, 248);
 
-    // Wrapped Reasoning Lines: Dark High-Contrast #292524
+    // Wrapped Reasoning Lines: Character-Aware Multi-Language Wrapping
     ctx.fillStyle = '#292524';
     ctx.font = '15px system-ui, sans-serif';
     const safeReasoning = defangUrl(result.verification.reasoning_trace);
 
-    const words = safeReasoning.split(' ');
+    const chars = Array.from(safeReasoning);
     let line = '';
     let y = 276;
     const maxWidth = 1040;
-    for (let n = 0; n < words.length; n++) {
-      const testLine = line ? `${line} ${words[n]}` : words[n];
+    for (let n = 0; n < chars.length; n++) {
+      const testLine = line + chars[n];
       const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
+      if (metrics.width > maxWidth && line !== '') {
         ctx.fillText(line, 75, y);
-        line = words[n];
+        line = chars[n];
         y += 24;
         if (y > 375) {
           ctx.fillText(line + '...', 75, y);
+          line = '';
           break;
         }
       } else {

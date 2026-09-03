@@ -255,9 +255,9 @@ async function translateJSONToTargetLanguage(
     return dataObj;
   }
 
-  console.log(`CJK detected in non-Chinese output. Running fast translation pass into ${targetLang}...`);
+  console.log(`CJK detected in non-Chinese output (${targetLang}). Running fast translation pass into ${targetLang}...`);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000); // 8-second hard timeout cap
+  const timer = setTimeout(() => controller.abort(), 12000); // 12-second hard timeout cap
 
   try {
     const res = await openai.chat.completions.create(
@@ -270,10 +270,10 @@ async function translateJSONToTargetLanguage(
           },
           {
             role: 'user',
-            content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}`
+            content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}\n\nCRITICAL: The output MUST contain ZERO Chinese characters. Translate every single Chinese phrase into ${targetLang}.`
           }
         ],
-        temperature: 0.1,
+        temperature: 0.0,
         max_tokens: 1500,
       },
       { signal: controller.signal }
@@ -378,7 +378,7 @@ Respond ONLY with a valid JSON object matching this schema:
         },
         {
           role: 'user',
-          content: `Analyze this content and output the JSON ENTIRELY in ${targetLanguage}. Translate ALL text, names, and quotes into ${targetLanguage} without leaving any untranslated words or foreign characters:\n\n${finalContentPayload}`
+          content: `Content to analyze:\n\n${finalContentPayload}\n\nCRITICAL MANDATORY LANGUAGE INSTRUCTION:\nYou MUST write your entire JSON response (including title, summary, keyPoints, citizenImpact, actionableGuidance) 100% strictly in ${targetLanguage.toUpperCase()} (${targetLanguage}).\nTranslate ALL entity names, quotes, terms, and explanations into ${targetLanguage}. ABSOLUTELY ZERO CHINESE CHARACTERS OR UNTRANSLATED FOREIGN WORDS ARE PERMITTED.`
         }
       ],
       0.3,
@@ -420,7 +420,7 @@ You MUST respond ONLY with a valid JSON object in the following format:
         },
         {
           role: 'user',
-          content: `Evaluate the factual consistency and source credibility of this article. Translate ALL analysis, terms, quotes, and reasoning traces entirely into ${targetLanguage} without leaving any foreign words or non-${targetLanguage} characters.\n\nContent to analyze:\n\n${finalContentPayload}`
+          content: `Content to analyze:\n\n${finalContentPayload}\n\nCRITICAL MANDATORY LANGUAGE INSTRUCTION:\nYou MUST write your entire JSON response (including credibilityAnalysis and redFlags) 100% strictly in ${targetLanguage.toUpperCase()} (${targetLanguage}).\nTranslate ALL analysis, terms, quotes, and reasoning traces entirely into ${targetLanguage}. ABSOLUTELY ZERO CHINESE CHARACTERS OR UNTRANSLATED FOREIGN WORDS ARE PERMITTED.`
         }
       ],
       0.2,
