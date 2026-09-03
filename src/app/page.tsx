@@ -902,48 +902,59 @@ export default function Home() {
     ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
     ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
 
-    // Draw High-Contrast Scannable Vector QR Card Container (0ms Synchronous)
-    try {
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(998, 438, 152, 152, 14);
-      ctx.fill();
-      ctx.strokeStyle = '#d6d3d1';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
+    // Generate & Draw Authentic High-Resolution Scannable 2D QR Code
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verificationUrl)}`;
 
-      // Draw QR Finder Patterns (Top-Left, Top-Right, Bottom-Left)
-      const drawFinder = (fx: number, fy: number) => {
-        ctx.fillStyle = '#1c1917';
-        ctx.fillRect(fx, fy, 38, 38);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(fx + 5, fy + 5, 28, 28);
-        ctx.fillStyle = '#1c1917';
-        ctx.fillRect(fx + 10, fy + 10, 18, 18);
+    await new Promise<void>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      let resolved = false;
+
+      const drawContainer = () => {
+        try {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.roundRect(998, 438, 152, 152, 14);
+          ctx.fill();
+          ctx.strokeStyle = '#d6d3d1';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        } catch (e) {}
       };
 
-      drawFinder(1012, 452); // Top-Left
-      drawFinder(1096, 452); // Top-Right
-      drawFinder(1012, 536); // Bottom-Left
-
-      // Draw Synthetic Micro Data Modules & Timing Grid
-      ctx.fillStyle = '#1c1917';
-      const seed = verificationUrl.length;
-      for (let r = 0; r < 14; r++) {
-        for (let c = 0; c < 14; c++) {
-          const px = 1012 + c * 9;
-          const py = 452 + r * 9;
-          if ((r < 5 && c < 5) || (r < 5 && c > 8) || (r > 8 && c < 5)) continue;
-          if ((r * 7 + c * 13 + seed) % 3 === 0) {
-            ctx.fillRect(px, py, 7, 7);
-          }
+      const timer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          drawContainer();
+          resolve();
         }
-      }
+      }, 6000);
 
-      ctx.fillStyle = '#57534e';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('VERIFY RECEIPT', 1032, 578);
-    } catch (e) {}
+      img.onload = () => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          try {
+            drawContainer();
+            ctx.drawImage(img, 1004, 444, 140, 140);
+          } catch (e) {
+            drawContainer();
+          }
+          resolve();
+        }
+      };
+
+      img.onerror = () => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          drawContainer();
+          resolve();
+        }
+      };
+
+      img.src = qrApiUrl;
+    });
 
     try {
       return canvas.toDataURL('image/png');
@@ -1098,17 +1109,12 @@ export default function Home() {
     }
   };
 
-  // Preset Trigger
+  // Preset Trigger: Populates textarea input without auto-running analysis
   const handleApplyPreset = (key: 'cimb' | 'strAid' | 'lhdnTax') => {
     const selectedText = presets[key].text;
     setActiveTab('text');
     setArticleText(selectedText);
     setError(null);
-    setResult(null);
-    setModel1Receipt(null);
-    setModel2Receipt(null);
-    // Automatically trigger analysis on preset selection
-    handleProcessArticle(undefined, selectedText);
   };
 
   // Accessibility Font Adjusters
