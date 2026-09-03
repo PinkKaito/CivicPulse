@@ -317,6 +317,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     loadingLongContentHint: 'This can take up to a minute for new content.',
     loadingExtracting: 'Ingesting news article and extracting clean text...',
     loadingAnalyzing: 'Analyzing context, fact-checking, and scoring in parallel...',
+    hedgedPipelineStatus: 'Gonka Router Hedged Pipeline (Primary + Duplicate Immediate)',
     elapsedTime: 'elapsed',
     scoresDifferedBy: 'The two model scores differed by {n} points.',
   },
@@ -409,6 +410,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     loadingLongContentHint: 'Ini mungkin mengambil masa sehingga satu minit untuk kandungan baharu.',
     loadingExtracting: 'Menyedut artikel berita dan mengekstrak teks bersih...',
     loadingAnalyzing: 'Menganalisis konteks, menyemak fakta, dan memberi skor secara serentak...',
+    hedgedPipelineStatus: 'Saluran Berpagar Penghala Gonka (Utama + Duplikat Serta-Merta)',
     elapsedTime: 'berlalu',
     scoresDifferedBy: 'Skor dua model berbeza sebanyak {n} mata.',
   },
@@ -501,6 +503,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     loadingLongContentHint: '分析新内容最多可能需要一分钟。',
     loadingExtracting: '正在提取新闻文章并解析纯文本...',
     loadingAnalyzing: '正在并行分析上下文、核实事实并进行评分...',
+    hedgedPipelineStatus: 'Gonka 路由对冲流水线 (主请求 + 即时并行副本)',
     elapsedTime: '已耗时',
     scoresDifferedBy: '两个模型的评分相差 {n} 分。',
   },
@@ -1568,7 +1571,7 @@ export default function Home() {
                   <div className="space-y-1">
                     <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{t(loadingStep || 'loadingAnalyzing')}</p>
                     <p className="text-[0.625rem] text-stone-400 font-mono">
-                      Gonka Router Hedged Pipeline (Primary + Duplicate Immediate) • {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} {t('elapsedTime')}
+                      {t('hedgedPipelineStatus')} • {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} {t('elapsedTime')}
                     </p>
                     <p className={`text-[0.625rem] ${highContrast ? 'text-white' : 'text-stone-400'}`}>
                       {t('loadingLongContentHint')}
