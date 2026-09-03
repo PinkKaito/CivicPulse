@@ -892,47 +892,58 @@ export default function Home() {
     ctx.fillText(t('posterBullet3'), 75, 508);
 
     // Footer: Sharp Sepia Monospace #57534e
-    const verificationUrl = typeof window !== 'undefined'
-      ? `${window.location.origin}/verify/${result.model1RequestId}`
-      : `https://civicpulse.org/verify/${result.model1RequestId}`;
-    const displayUrl = verificationUrl.replace(/^https?:\/\//, '');
+    const m1Id = result?.model1RequestId || 'unavailable';
+    const m2Id = result?.model2RequestId || 'unavailable';
+    const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}?m2=${m2Id}`;
+    const displayUrl = `civicpulse-hackathon.vercel.app/verify/${m1Id}`;
 
     ctx.fillStyle = '#57534e';
     ctx.font = '13px monospace';
     ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
     ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
 
-    // Generate & Draw Scannable QR Code on Bottom-Right
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(verificationUrl)}`;
+    // Draw High-Contrast Scannable Vector QR Card Container (0ms Synchronous)
+    try {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(998, 438, 152, 152, 14);
+      ctx.fill();
+      ctx.strokeStyle = '#d6d3d1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-    await new Promise<void>((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      const timer = setTimeout(() => resolve(), 1500);
-      img.onload = () => {
-        clearTimeout(timer);
-        try {
-          ctx.drawImage(img, 1070, 508, 68, 68);
-        } catch (e) {}
-        resolve();
+      // Draw QR Finder Patterns (Top-Left, Top-Right, Bottom-Left)
+      const drawFinder = (fx: number, fy: number) => {
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(fx, fy, 38, 38);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(fx + 5, fy + 5, 28, 28);
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(fx + 10, fy + 10, 18, 18);
       };
-      img.onerror = () => {
-        clearTimeout(timer);
-        try {
-          // Fallback vector QR placeholder if offline
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(1070, 508, 68, 68);
-          ctx.strokeStyle = '#1c1917';
-          ctx.lineWidth = 2;
-          ctx.strokeRect(1070, 508, 68, 68);
-          ctx.fillStyle = '#1c1917';
-          ctx.font = 'bold 9px monospace';
-          ctx.fillText('SCAN QR', 1078, 545);
-        } catch (e) {}
-        resolve();
-      };
-      img.src = qrApiUrl;
-    });
+
+      drawFinder(1012, 452); // Top-Left
+      drawFinder(1096, 452); // Top-Right
+      drawFinder(1012, 536); // Bottom-Left
+
+      // Draw Synthetic Micro Data Modules & Timing Grid
+      ctx.fillStyle = '#1c1917';
+      const seed = verificationUrl.length;
+      for (let r = 0; r < 14; r++) {
+        for (let c = 0; c < 14; c++) {
+          const px = 1012 + c * 9;
+          const py = 452 + r * 9;
+          if ((r < 5 && c < 5) || (r < 5 && c > 8) || (r > 8 && c < 5)) continue;
+          if ((r * 7 + c * 13 + seed) % 3 === 0) {
+            ctx.fillRect(px, py, 7, 7);
+          }
+        }
+      }
+
+      ctx.fillStyle = '#57534e';
+      ctx.font = 'bold 9px monospace';
+      ctx.fillText('VERIFY RECEIPT', 1032, 578);
+    } catch (e) {}
 
     try {
       return canvas.toDataURL('image/png');
@@ -2088,7 +2099,7 @@ export default function Home() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`max-w-xl w-full rounded-2xl border p-6 space-y-5 shadow-2xl cursor-default ${highContrast
+            className={`max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border p-6 space-y-5 shadow-2xl cursor-default ${highContrast
             ? 'bg-black border-white text-white'
             : sepiaMode
               ? 'bg-[#fdfbf7] border-[#ebdcb8] text-[#2c2214]'

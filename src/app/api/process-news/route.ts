@@ -94,14 +94,23 @@ async function callWithHedge(
           primaryFailed = true;
           primaryError = err;
           console.warn(`Primary request failed for ${targetModel}:`, err.message);
-          if (duplicateFailed) {
-            if (globalTimeoutId) clearTimeout(globalTimeoutId);
-            reject(primaryError || duplicateError);
+          if (duplicateStarted) {
+            if (duplicateFailed) {
+              if (globalTimeoutId) clearTimeout(globalTimeoutId);
+              reject(primaryError || duplicateError);
+            }
+          } else {
+            // If primary failed before duplicate started, trigger duplicate immediately
+            startDuplicate();
           }
         });
 
-      // Switch to Immediate Hedging (No Delay) - fire duplicate tied request instantly in parallel
-      startDuplicate();
+      // Launch hedged duplicate request after 3s delay if primary is taking long
+      const duplicateTimer = setTimeout(() => {
+        if (!isResolved && !primaryFailed && !duplicateStarted) {
+          startDuplicate();
+        }
+      }, 3000);
     });
   };
 
