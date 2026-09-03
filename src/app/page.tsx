@@ -2030,9 +2030,10 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className={`border-t py-6 text-center text-xs mt-auto ${highContrast ? 'bg-black border-white text-white' : 'border-[#ebdcb8] bg-[#fbf8f3] text-[#8c7960]'
+      <footer className={`border-t py-6 text-center text-xs mt-auto space-y-1 ${highContrast ? 'bg-black border-white text-white' : 'border-[#ebdcb8] bg-[#fbf8f3] text-[#8c7960]'
         }`}>
         <p>{t('footerText')}</p>
+        <p className="text-[0.625rem] opacity-75 font-mono font-semibold">CivicPulse v1.0.0 • Gonka Dual-AI Hedged Consensus Engine</p>
       </footer>
 
       {/* Share Modal Popover with Canvas PNG Preview */}

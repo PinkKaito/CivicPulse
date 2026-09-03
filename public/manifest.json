@@ -1,0 +1,18 @@
+{
+  "name": "CivicPulse — Dual AI Fact-Checker",
+  "short_name": "CivicPulse",
+  "description": "Dual AI Public Fact-Checking & Phishing Guard powered by Gonka Network",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbf8f3",
+  "theme_color": "#433422",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

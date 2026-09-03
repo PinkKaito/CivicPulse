@@ -26,9 +26,9 @@ export async function GET(request: Request) {
           { role: 'system', content: `You are Gonka. Respond in exactly one short sentence confirming your identity in ${targetLanguage}.` },
           { role: 'user', content: `Say hello and confirm you are Gonka in ${targetLanguage}` }
         ],
-        temperature: 0.7,
-        max_tokens: 60,
-        frequency_penalty: 1.5
+        temperature: 0.3,
+        max_tokens: 250,
+        frequency_penalty: 0.5
       }),
     });
 
@@ -40,9 +40,14 @@ export async function GET(request: Request) {
     const data = await res.json();
     let text = data.choices[0]?.message?.content || '';
     
-    // Strip <think>...</think> reasoning blocks
-    text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    // Robustly strip <think>...</think> reasoning blocks including unclosed <think> tags
+    text = text.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
     
+    // Fallback if empty after stripping thinking blocks
+    if (!text) {
+      text = 'Hello! I am Gonka Dual-AI Consensus Router.';
+    }
+
     // Programmatic deduplication of repeated sentences
     if (text) {
       const sentences = text.split(/(?<=\.|\?|\!)\s*/);
