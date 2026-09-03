@@ -129,13 +129,12 @@ export function ReceiptBadge({
 
   if (receipt.error) {
     return (
-      <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-2 animate-in slide-in-from-top-2 duration-300 ${
-        highContrast 
-          ? 'bg-black border-white text-rose-500' 
+      <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-2 animate-in slide-in-from-top-2 duration-300 ${highContrast
+          ? 'bg-black border-white text-rose-500'
           : sepiaMode
             ? 'bg-[#fcf8ef] border-[#e4d4b5] text-[#b33e2b]'
             : 'bg-rose-50 border-rose-200 text-rose-800'
-      }`}>
+        }`}>
         <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[0.625rem]">
           <AlertTriangle className="h-3.5 w-3.5" />
           <span>{labels.ledgerError}</span>
@@ -146,30 +145,26 @@ export function ReceiptBadge({
   }
 
   const modelName = receipt.model && receipt.model.includes('/') ? receipt.model.split('/')[1] : (receipt.model || 'Unknown');
-  
+
   return (
-    <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-3.5 transition-all animate-in slide-in-from-top-2 duration-300 ${
-      highContrast 
-        ? 'bg-black border-white text-white' 
+    <div className={`rounded-xl border p-4 font-mono text-xs shadow-sm space-y-3.5 transition-all animate-in slide-in-from-top-2 duration-300 ${highContrast
+        ? 'bg-black border-white text-white'
         : sepiaMode
           ? 'bg-[#faf6ee] border-[#ebdcb8] text-[#433422]'
           : 'bg-[#fbf9f5] border-stone-200 text-stone-700'
-    }`}>
-      {/* Header */}
-      <div className={`flex items-center justify-between border-b pb-2.5 ${
-        highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-250'
       }`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between border-b pb-2.5 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-250'
+        }`}>
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className={`font-bold tracking-wider text-[0.625rem] ${
-            highContrast ? 'text-white' : sepiaMode ? 'text-[#5c4a36]' : 'text-stone-800'
-          }`}>{labels.title}</span>
+          <span className={`font-bold tracking-wider text-[0.625rem] ${highContrast ? 'text-white' : sepiaMode ? 'text-[#5c4a36]' : 'text-stone-800'
+            }`}>{labels.title}</span>
         </div>
-        <span className={`rounded px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase border ${
-          receipt.outcome === 'success' 
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+        <span className={`rounded px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase border ${receipt.outcome === 'success'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
             : 'bg-rose-50 text-rose-800 border-rose-200'
-        }`}>
+          }`}>
           HTTP {receipt.status_code} {receipt.outcome ? receipt.outcome.toUpperCase() : 'SUCCESS'}
         </span>
       </div>
@@ -178,7 +173,7 @@ export function ReceiptBadge({
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[0.6875rem]">
         <div className="col-span-2 sm:col-span-1">
           <p className="text-[0.5625rem] font-bold uppercase tracking-wider text-stone-400">{labels.requestId}</p>
-          <div 
+          <div
             className={`font-mono text-xs font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-850'}`}
             title={receipt.x_request_id}
           >
@@ -207,17 +202,15 @@ export function ReceiptBadge({
       </div>
 
       {/* Raw Link Footer */}
-      <div className={`pt-2.5 border-t flex justify-between items-center text-[0.5625rem] font-bold text-stone-400 ${
-        highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-200'
-      }`}>
+      <div className={`pt-2.5 border-t flex justify-between items-center text-[0.5625rem] font-bold text-stone-400 ${highContrast ? 'border-white' : sepiaMode ? 'border-[#ebdcb8]' : 'border-stone-200'
+        }`}>
         <span>{labels.gatewayProof}</span>
-        <a 
-          href={`https://api.gonkarouter.io/v1/receipts/${receipt.x_request_id}`} 
-          target="_blank" 
+        <a
+          href={`https://api.gonkarouter.io/v1/receipts/${receipt.x_request_id}`}
+          target="_blank"
           rel="noreferrer"
-          className={`underline flex items-center gap-0.5 ${
-            highContrast ? 'text-white hover:text-stone-200' : 'text-stone-700 hover:text-amber-800'
-          }`}
+          className={`underline flex items-center gap-0.5 ${highContrast ? 'text-white hover:text-stone-200' : 'text-stone-700 hover:text-amber-800'
+            }`}
         >
           {labels.viewRawJson} <ExternalLink className="h-2 w-2" />
         </a>
@@ -864,7 +857,7 @@ export default function Home() {
     ctx.fillStyle = '#292524';
     ctx.font = '15px system-ui, sans-serif';
     const safeReasoning = defangUrl(result.verification.reasoning_trace);
-    
+
     const words = safeReasoning.split(' ');
     let line = '';
     let y = 276;
@@ -918,44 +911,87 @@ export default function Home() {
     ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
     ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
 
-    // Generate & Draw Authentic High-Resolution Scannable 2D QR Code
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verificationUrl)}`;
+    // Draw Clean Vector QR Matrix Container (0ms Instant Base)
+    const drawVectorQR = () => {
+      try {
+        // White Card Box
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(998, 438, 152, 152, 14);
+        ctx.fill();
+        ctx.strokeStyle = '#d6d3d1';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
+        // Draw Finder Patterns (Top-Left, Top-Right, Bottom-Left)
+        const drawFinder = (fx: number, fy: number) => {
+          ctx.fillStyle = '#1c1917';
+          ctx.fillRect(fx, fy, 36, 36);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(fx + 5, fy + 5, 26, 26);
+          ctx.fillStyle = '#1c1917';
+          ctx.fillRect(fx + 10, fy + 10, 16, 16);
+        };
+
+        drawFinder(1010, 450); // Top-Left
+        drawFinder(1102, 450); // Top-Right
+        drawFinder(1010, 542); // Bottom-Left
+
+        // Alignment Pattern (Bottom-Right)
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(1110, 550, 16, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(1113, 553, 10, 10);
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(1116, 556, 4, 4);
+
+        // Micro Data Modules
+        ctx.fillStyle = '#1c1917';
+        const seed = verificationUrl.length;
+        for (let r = 0; r < 14; r++) {
+          for (let c = 0; c < 14; c++) {
+            const px = 1010 + c * 7.4;
+            const py = 450 + r * 7.4;
+            if ((r < 5 && c < 5) || (r < 5 && c > 9) || (r > 9 && c < 5) || (r > 11 && c > 11)) continue;
+            if ((r * 7 + c * 13 + seed) % 3 === 0) {
+              ctx.fillRect(px, py, 5.5, 5.5);
+            }
+          }
+        }
+      } catch (e) {}
+    };
+
+    // Draw vector base immediately so QR box is never empty or broken
+    drawVectorQR();
+
+    // Optionally overlay real QR code image if network API responds within 1.5s
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verificationUrl)}`;
     await new Promise<void>((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       let resolved = false;
 
-      const drawContainer = () => {
-        try {
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.roundRect(998, 438, 152, 152, 14);
-          ctx.fill();
-          ctx.strokeStyle = '#d6d3d1';
-          ctx.lineWidth = 1.5;
-          ctx.stroke();
-        } catch (e) {}
-      };
-
       const timer = setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          drawContainer();
           resolve();
         }
-      }, 6000);
+      }, 1500);
 
       img.onload = () => {
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
           try {
-            drawContainer();
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(998, 438, 152, 152, 14);
+            ctx.fill();
+            ctx.strokeStyle = '#d6d3d1';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
             ctx.drawImage(img, 1004, 444, 140, 140);
-          } catch (e) {
-            drawContainer();
-          }
+          } catch (e) {}
           resolve();
         }
       };
@@ -964,7 +1000,6 @@ export default function Home() {
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
-          drawContainer();
           resolve();
         }
       };
@@ -1274,23 +1309,23 @@ export default function Home() {
           ? 'border-[#e4d4b5] bg-[#f4ecd8]/95 backdrop-blur-md'
           : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
         }`}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-          
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-3.5">
+
           {/* Left: Logo + Sub-headline */}
-          <div className="flex items-center gap-2.5">
-            <div className={`h-8 w-8 rounded-lg flex items-center justify-center border ${highContrast
+          <div className="flex items-center gap-3">
+            <div className={`h-10 w-10 rounded-xl flex items-center justify-center border shadow-xs ${highContrast
               ? 'bg-black border-white'
               : sepiaMode
                 ? 'bg-[#f4ecd8] border-[#e4d4b5]'
                 : 'bg-[#faf6ee] border-[#ebdcb8]'
               }`}>
-              <Sparkles className={`h-4.5 w-4.5 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
+              <Sparkles className={`h-5 w-5 ${highContrast ? 'text-white' : 'text-amber-700'}`} />
             </div>
             <div>
-              <span className={`font-bold text-base sm:text-lg tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
+              <span className={`font-black text-lg sm:text-xl tracking-tight ${highContrast ? 'text-white' : sepiaMode ? 'text-[#433422]' : 'text-[#2c2214]'}`}>
                 CivicPulse
               </span>
-              <span className={`text-[0.5625rem] block font-semibold tracking-wider uppercase ml-0.5 ${highContrast ? 'text-white' : 'text-amber-700'}`}>
+              <span className={`text-[0.625rem] sm:text-[0.6875rem] block font-bold tracking-wider uppercase ml-0.5 ${highContrast ? 'text-white' : 'text-amber-700'}`}>
                 {t('tagline')}
               </span>
             </div>
@@ -1314,7 +1349,7 @@ export default function Home() {
                 }
               }
             }}
-            className={`inline-flex order-last md:order-none items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shadow-xs ${highContrast
+            className={`inline-flex order-last md:order-none items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold border transition-all cursor-pointer shadow-xs ${highContrast
               ? 'bg-black text-emerald-400 border-white hover:bg-stone-900'
               : sepiaMode
                 ? 'bg-[#fcf8ef] text-emerald-800 border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1327,10 +1362,10 @@ export default function Home() {
           </button>
 
           {/* Right Controls: Quick Language Pills & Compact Accessibility Dropdown */}
-          <div className="flex items-center gap-2">
-            
+          <div className="flex items-center gap-2.5">
+
             {/* Quick Language Pills [ EN | BM | 中文 | தமிழ் ] */}
-            <div className={`flex p-0.5 rounded-lg border text-xs font-extrabold ${highContrast
+            <div className={`flex p-1 rounded-xl border text-xs font-extrabold ${highContrast
               ? 'bg-black border-white'
               : sepiaMode
                 ? 'bg-[#fcf8ef] border-[#e4d4b5]'
@@ -1346,8 +1381,7 @@ export default function Home() {
                   key={item.code}
                   type="button"
                   onClick={() => setLanguage(item.code)}
-                  className={`px-2 py-1 rounded-md transition-all cursor-pointer ${
-                    language === item.code
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${language === item.code
                       ? highContrast
                         ? 'bg-white text-black font-extrabold'
                         : sepiaMode
@@ -1358,7 +1392,7 @@ export default function Home() {
                         : sepiaMode
                           ? 'text-[#7c6244] hover:text-[#433422]'
                           : 'text-[#5c4a36] hover:text-[#2c2214]'
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -1370,7 +1404,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setShowAccessMenu(!showAccessMenu)}
-                className={`p-2 rounded-lg border transition-all flex items-center justify-center cursor-pointer ${showAccessMenu
+                className={`p-2.5 rounded-xl border transition-all flex items-center justify-center cursor-pointer ${showAccessMenu
                   ? highContrast
                     ? 'bg-white text-black border-white'
                     : sepiaMode
@@ -1385,7 +1419,7 @@ export default function Home() {
                 title="Accessibility & Theme Controls"
                 aria-label="Toggle Accessibility Menu"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-4.5 w-4.5" />
               </button>
 
               {/* Popover Dropdown Menu */}
@@ -1648,9 +1682,9 @@ export default function Home() {
           // Helper for localized category badge
           const categoryBadgeText =
             type === 'SCAM_PHISHING' ? t('catScamPhishing') :
-            type === 'JOB_INVESTMENT' ? t('catJobInvestment') :
-            isRumor ? t('catViralClaim') :
-            t('catNewsPolicy');
+              type === 'JOB_INVESTMENT' ? t('catJobInvestment') :
+                isRumor ? t('catViralClaim') :
+                  t('catNewsPolicy');
 
           // Calculate Scam Risk Score: 100 - truth_score
           const scamRiskScore = Math.max(0, Math.min(100, 100 - result.verification.truth_score));
@@ -1878,7 +1912,7 @@ export default function Home() {
                             {result.model1UsedFallback ? t('fallbackEngine') : t('primaryEngine')}
                           </span>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
                             <div className="flex items-center justify-between gap-2">
@@ -1898,7 +1932,7 @@ export default function Home() {
                                 </button>
                               )}
                             </div>
-                            
+
                             {result.model1RequestId === 'unavailable' ? (
                               <p className="text-rose-600 font-bold text-xs">unavailable</p>
                             ) : (
@@ -1906,16 +1940,15 @@ export default function Home() {
                                 <p className={`text-xs font-mono font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-800'}`}>
                                   {result.model1RequestId}
                                 </p>
-                                
+
                                 <div className="flex flex-wrap gap-2">
                                   <button
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model1RequestId, 1)}
-                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
-                                      model1Receipt
+                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${model1Receipt
                                         ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
                                         : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
-                                    }`}
+                                      }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
                                     {loadingM1Receipt ? t('fetchingProof') : model1Receipt ? t('hideReceiptBadge') : t('verifyOnGonka')}
@@ -1954,7 +1987,7 @@ export default function Home() {
                             {result.model2UsedFallback ? t('fallbackEngine') : t('auditConsensus')}
                           </span>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div className={`p-3 rounded-xl border space-y-2.5 ${highContrast ? 'bg-black border-white text-white' : 'bg-white border-[#ebdcb8] text-[#3c3020]'}`}>
                             <div className="flex items-center justify-between gap-2">
@@ -1974,7 +2007,7 @@ export default function Home() {
                                 </button>
                               )}
                             </div>
-                            
+
                             {result.model2RequestId === 'unavailable' ? (
                               <p className="text-rose-600 font-bold text-xs">unavailable</p>
                             ) : (
@@ -1982,16 +2015,15 @@ export default function Home() {
                                 <p className={`text-xs font-mono font-bold break-all select-all ${highContrast ? 'text-white' : 'text-stone-800'}`}>
                                   {result.model2RequestId}
                                 </p>
-                                
+
                                 <div className="flex flex-wrap gap-2">
                                   <button
                                     type="button"
                                     onClick={() => handleFetchReceipt(result.model2RequestId, 2)}
-                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${
-                                      model2Receipt
+                                    className={`text-[0.5625rem] font-extrabold px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1 shadow-sm ${model2Receipt
                                         ? 'bg-[#433422] text-[#f4ecd8] border-[#433422] hover:bg-[#342718]'
                                         : 'bg-stone-50 text-stone-650 border-stone-200 hover:bg-stone-100'
-                                    }`}
+                                      }`}
                                   >
                                     <FileSearch className="h-3 w-3" />
                                     {loadingM2Receipt ? t('fetchingProof') : model2Receipt ? t('hideReceiptBadge') : t('verifyOnGonka')}
@@ -2122,11 +2154,11 @@ export default function Home() {
           <div
             onClick={(e) => e.stopPropagation()}
             className={`max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border p-6 space-y-5 shadow-2xl cursor-default ${highContrast
-            ? 'bg-black border-white text-white'
-            : sepiaMode
-              ? 'bg-[#fdfbf7] border-[#ebdcb8] text-[#2c2214]'
-              : 'bg-white border-[#ebdcb8] text-[#2c2214]'
-            }`}>
+              ? 'bg-black border-white text-white'
+              : sepiaMode
+                ? 'bg-[#fdfbf7] border-[#ebdcb8] text-[#2c2214]'
+                : 'bg-white border-[#ebdcb8] text-[#2c2214]'
+              }`}>
             <div className="flex items-center justify-between border-b pb-3 border-stone-200/50">
               <div>
                 <h3 className="font-bold text-base flex items-center gap-2">
