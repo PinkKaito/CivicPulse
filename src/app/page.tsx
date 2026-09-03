@@ -825,11 +825,27 @@ export default function Home() {
     ctx.font = 'bold 17px system-ui, sans-serif';
     ctx.fillText(actionDirective, 70, 148);
 
-    // Article Title: Dark Sharp Stone #1c1917
+    // Article Title: Dark Sharp Stone #1c1917 (Multi-line full title rendering)
     ctx.fillStyle = '#1c1917';
-    ctx.font = 'bold 24px system-ui, sans-serif';
-    const titleText = result.summary.title.length > 55 ? result.summary.title.slice(0, 52) + '...' : result.summary.title;
-    ctx.fillText(titleText, 50, 200);
+    ctx.font = 'bold 22px system-ui, sans-serif';
+    const titleWords = (result.summary.title || '').split(' ');
+    let titleLine = '';
+    let titleY = 192;
+    const maxTitleWidth = 1100;
+    for (let n = 0; n < titleWords.length; n++) {
+      const testLine = titleLine ? `${titleLine} ${titleWords[n]}` : titleWords[n];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxTitleWidth && n > 0) {
+        ctx.fillText(titleLine, 50, titleY);
+        titleLine = titleWords[n];
+        titleY += 26;
+      } else {
+        titleLine = testLine;
+      }
+    }
+    if (titleLine) {
+      ctx.fillText(titleLine, 50, titleY);
+    }
 
     // Reasoning Box (Height 175)
     ctx.fillStyle = isHighRisk ? '#fff5f5' : '#faf6ee';
