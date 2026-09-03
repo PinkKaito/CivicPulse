@@ -315,6 +315,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     errNoConnection: 'Could not reach the verification service. Check your connection and try again.',
     errGeneric: 'Something went wrong during verification. Please try again.',
     loadingLongContentHint: 'This can take up to a minute for new content.',
+    loadingExtracting: 'Ingesting news article and extracting clean text...',
+    loadingAnalyzing: 'Analyzing context, fact-checking, and scoring in parallel...',
+    elapsedTime: 'elapsed',
     scoresDifferedBy: 'The two model scores differed by {n} points.',
   },
   'Bahasa Melayu': {
@@ -404,6 +407,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     errNoConnection: 'Tidak dapat menghubungi perkhidmatan pengesahan. Sila semak sambungan anda dan cuba lagi.',
     errGeneric: 'Sesuatu telah berlaku semasa pengesahan. Sila cuba lagi.',
     loadingLongContentHint: 'Ini mungkin mengambil masa sehingga satu minit untuk kandungan baharu.',
+    loadingExtracting: 'Menyedut artikel berita dan mengekstrak teks bersih...',
+    loadingAnalyzing: 'Menganalisis konteks, menyemak fakta, dan memberi skor secara serentak...',
+    elapsedTime: 'berlalu',
     scoresDifferedBy: 'Skor dua model berbeza sebanyak {n} mata.',
   },
   Chinese: {
@@ -493,6 +499,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     errNoConnection: '无法连接到验证服务。请检查您的网络连接后重试。',
     errGeneric: '验证过程中出现问题，请重试。',
     loadingLongContentHint: '分析新内容最多可能需要一分钟。',
+    loadingExtracting: '正在提取新闻文章并解析纯文本...',
+    loadingAnalyzing: '正在并行分析上下文、核实事实并进行评分...',
+    elapsedTime: '已耗时',
     scoresDifferedBy: '两个模型的评分相差 {n} 分。',
   },
   Tamil: {
@@ -582,6 +591,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     errNoConnection: 'சரிபார்ப்புச் சேவையை அணுக முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.',
     errGeneric: 'சரிபார்ப்பின் போது ஏதோ தவறு நடந்தது. மீண்டும் முயற்சிக்கவும்.',
     loadingLongContentHint: 'புதிய உள்ளடக்கத்திற்கு இதற்கு ஒரு நிமிடம் வரை ஆகலாம்.',
+    loadingExtracting: 'செய்தி கட்டுரையை பெறுகிறது...',
+    loadingAnalyzing: 'சூழலை பகுப்பாய்வு செய்து மதிப்பெண் அளிக்கிறது...',
+    elapsedTime: 'முடிந்தது',
     scoresDifferedBy: 'இரு மாதிரிகளின் மதிப்பெண்கள் {n} புள்ளிகளால் வேறுபட்டன.',
   }
 };
@@ -1136,7 +1148,7 @@ export default function Home() {
         if (!newsUrl.trim()) {
           throw new Error('Please enter a valid News URL.');
         }
-        setLoadingStep('Ingesting news article and extracting clean text...');
+        setLoadingStep('loadingExtracting');
 
         const parseRes = await fetch('/api/parse-news', {
           method: 'POST',
@@ -1161,7 +1173,7 @@ export default function Home() {
       }
 
       // Step 3 & 4: Multi-Model Process Pipeline
-      setLoadingStep('Analyzing context, fact-checking, and scoring in parallel...');
+      setLoadingStep('loadingAnalyzing');
       const targetLanguage = language;
       const processRes = await fetch('/api/process-news', {
         method: 'POST',
@@ -1438,7 +1450,6 @@ export default function Home() {
           </div>
 
           <form onSubmit={handleProcessArticle} className="space-y-5">
-
             {activeTab === 'text' ? (
               <div className="space-y-1.5">
                 <label htmlFor="article-text-area" className={`text-[0.625rem] font-bold uppercase tracking-wider ${textLabelColor}`}>{t('claimTextareaLabel')}</label>
@@ -1555,9 +1566,9 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <RefreshCw className="h-5 w-5 animate-spin text-amber-700 shrink-0" />
                   <div className="space-y-1">
-                    <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{loadingStep || 'Executing Tied-Parallel Dual AI Verification...'}</p>
+                    <p className={`text-xs font-bold ${highContrast ? 'text-white' : 'text-[#433422]'}`}>{t(loadingStep || 'loadingAnalyzing')}</p>
                     <p className="text-[0.625rem] text-stone-400 font-mono">
-                      Gonka Router Hedged Pipeline (Primary + Duplicate Immediate) • {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} elapsed
+                      Gonka Router Hedged Pipeline (Primary + Duplicate Immediate) • {Math.floor(elapsedSec / 60)}:{String(elapsedSec % 60).padStart(2, '0')} {t('elapsedTime')}
                     </p>
                     <p className={`text-[0.625rem] ${highContrast ? 'text-white' : 'text-stone-400'}`}>
                       {t('loadingLongContentHint')}
@@ -2068,8 +2079,13 @@ export default function Home() {
 
       {/* Share Modal Popover with Canvas PNG Preview */}
       {showShareModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className={`max-w-xl w-full rounded-2xl border p-6 space-y-5 shadow-2xl ${highContrast
+        <div
+          onClick={() => setShowShareModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`max-w-xl w-full rounded-2xl border p-6 space-y-5 shadow-2xl cursor-default ${highContrast
             ? 'bg-black border-white text-white'
             : sepiaMode
               ? 'bg-[#fdfbf7] border-[#ebdcb8] text-[#2c2214]'
