@@ -1071,7 +1071,7 @@ export default function Home() {
       ? `${window.location.origin}/verify/${result.model1RequestId}`
       : `https://civicpulse-hackathon.vercel.app/verify/${result.model1RequestId}`;
 
-    return `🚨 CivicPulse AI Fact-Check Report 🚨\n\n⚠️ ACTION: ${actionDirective}\n\n📌 Claim / Source: ${result.summary.title}\n🛑 Suspect Link (Defanged): ${suspectUrl}\n📊 ${scoreTitle}: ${scoreDisplay}% (${scoreBadgeLabel})\n\n💡 Reasoning: ${safeReasoning}\n\n🛡️ Consensus Run ID: ${result.model1RequestId}\nVerified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)\n\nVerify full dual-model audit receipt:\n${verificationUrl}`;
+    return `🚨 *CivicPulse AI Fact-Check Report* 🚨\n\n⚠️ *ACTION:* *${actionDirective}*\n\n📌 *Claim / Source:* *${result.summary.title}*\n🛑 *Suspect Link (Defanged):* ${suspectUrl}\n📊 *${scoreTitle}:* *${scoreDisplay}% (${scoreBadgeLabel})*\n\n💡 *Reasoning:* ${safeReasoning}\n\n🛡️ *Consensus Run ID:* \`${result.model1RequestId}\`\n*Verified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)*\n\n*Verify full dual-model audit receipt:*\n${verificationUrl}`;
   };
 
   const handleShareWhatsApp = () => {
