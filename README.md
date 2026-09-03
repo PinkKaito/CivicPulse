@@ -106,15 +106,64 @@ answer.
 
 | Feature | What it does |
 |---|---|
-| **Two-model verification** | Two different model *families* (different training data, different blind spots) must corroborate. Agreement = signal; disagreement = flagged, not hidden. |
+| **Two-model verification** | Two different model *families* (DeepSeek + MiniMax) corroborate independently. Agreement = signal; disagreement = flagged, not hidden. |
 | **Truth / Scam-Risk scoring** | One 0–100 number, framed as trust (Truth Score) for news/rumors and as danger (Scam Risk Score) for scams. |
-| **Divergence detection** | When the models disagree by >25 points, the result says so and by how much. |
-| **`VIRAL_RUMOR` category with hybrid alarm styling** | Hoaxes / chain messages / unsourced "policy" claims are scored on the Truth Score scale — but if the auditor rates one **HIGH RISK** or **SUSPICIOUS**, the card switches to the same red alarm treatment (and shows the red-flags list) that scam cards get. A mild rumor stays calm and informational. |
-| **Gonka Proof of Execution** | A panel (auto-opened on the first result) showing both Gonka request IDs, which model answered, whether a fallback fired, and the serving node ID — with a "Verify on Gonka" button that fetches the receipt. |
+| **Divergence detection** | When the models disagree by >25 points, the result explicitly flags the discrepancy and calculates the exact score delta. |
+| **`VIRAL_RUMOR` category with hybrid alarm styling** | Hoaxes / chain messages / unsourced "policy" claims are scored on the Truth Score scale — but if the auditor rates one **HIGH RISK** or **SUSPICIOUS**, the card switches to red alarm treatment. |
+| **Visual Social Share Card (PNG)** | 1-click export of `1200x630` PNG report cards featuring a character-aware multi-language canvas wrapping engine and a high-contrast 2D QR matrix linking to live dual-model verification pages on Vercel. |
+| **3-Second Intelligent Hedging** | Eliminates Cloudflare rate limiting (`429 / rate_limited`) on Gonka router by delaying hedged duplicate requests by 3 seconds while maintaining 100% failover redundancy. |
+| **Gonka Proof of Execution** | A panel showing both Gonka request IDs, serving node IDs, and fallback statuses — with a "Verify on Gonka" button that fetches raw cryptographic receipts side-by-side. |
 | **Two input methods** | Paste raw text, **or** paste a news URL — a lightweight parser (Cheerio) extracts the clean article body. |
-| **Multi-language** | UI and AI analysis output in **English, 中文 (Chinese), Bahasa Melayu, and Tamil**. |
-| **Accessibility** | Sepia reading theme, high-contrast mode, adjustable font size. |
-| **Sample scam presets** | One-click CIMB / STR aid / LHDN tax-refund scam examples for quick demos. |
+| **Strict Multilingual Output** | UI and AI analysis outputs 100% in **English, Bahasa Melayu, 中文 (Chinese), and Tamil**, enforced via end-of-prompt priority directives and automated translation passes. |
+| **Accessibility & Themes** | Sepia reading theme, high-contrast dark mode, root font-size scaling, and wide `max-w-7xl` edge-to-edge layout. |
+| **PWA & Mobile Installability** | Enables 1-click home screen installation on iOS, Android, and Desktop without App Store friction, launching full-screen (`standalone` mode) with branded theme colors for instant, native-like mobile fact-checking on-the-go. |
+| **Tab-Aware Demo Presets** | Contextual one-click presets for both text claims (CIMB scam, STR aid, NADMA flood relief) and live news URLs (SinChew Sabah news link). |
+
+---
+
+## 📋 Preset Demonstration Scenarios & Real-World Sources
+
+CivicPulse provides pre-configured test presets to demonstrate both real-world scam detection and authentic public service announcements during evaluations:
+
+---
+
+### Preset 1: 🚨 Bank Account Frozen Alert (Phishing / Smishing — English)
+* **Status:** High Scam Risk / Low Truth Score
+* **Source Attribution:** Modeled after joint advisories by the **Royal Malaysia Police (PDRM) Commercial Crime Investigation Department (JSJK)** and the **National Scam Response Centre (NSRC 997)**.
+* **Threat Characteristics:**
+  * Uses psychological coercion and urgency tactics (*"within 24 hours"* / *"permanent account suspension"*).
+  * Directs targets to a counterfeit phishing domain (`cimb-online-security-verify.com`) disguised as an authentic banking institution.
+* **Primary Target:** Financial credentials and account harvesting.
+
+---
+
+### Preset 2: ✅ STR Cash Aid Disbursement (Official Advisory — English)
+* **Status:** High Truth Score / Safe Rating
+* **Source Attribution:** Based on official press releases issued by the **Inland Revenue Board of Malaysia (HASiL / LHDNM)** and the **Ministry of Finance Malaysia (MOF)**.
+* **Official Portal:** [https://bantuantunai.hasil.gov.my](https://bantuantunai.hasil.gov.my)
+* **Legitimacy Characteristics:**
+  * Directs recipients exclusively to the official `.gov.my` sovereign portal.
+  * Explicitly includes security reminders stating that no third-party links, fees, or manual PINs are ever required.
+
+---
+
+### Preset 3: ✅ Monsoon Disaster Relief Notice (Official Advisory — 中文)
+* **Status:** High Truth Score / Safe Rating
+* **Source Attribution:** Based on public disaster assistance advisories issued by the **National Disaster Management Agency (NADMA)** under the Prime Minister's Department of Malaysia.
+* **Official Portal:** [https://www.nadma.gov.my](https://www.nadma.gov.my)
+* **Legitimacy Characteristics:**
+  * Transparently routes citizens to the authentic administrative disaster portal.
+  * Includes proactive fraud safeguards reminding the public that government bodies never solicit OTPs, passwords, or banking credentials via private messaging.
+
+---
+
+### Preset 4: 📰 SinChew Sabah News Article (Live News Link Preset — 中文 / Link)
+* **Status:** High Truth Score / Safe Rating
+* **Source Attribution:** Live digital news report published by **Sin Chew Daily Sabah (星洲日报沙巴)**.
+* **Official URL:** `https://sabah.sinchew.com.my/news/20260903/sabah/7813698`
+* **Legitimacy Characteristics:**
+  * Demonstrates CivicPulse's real-time Web Scraping & URL Article Body Extraction engine (via Cheerio parser).
+  * Evaluates authentic news reporting regarding community health events (UMS World Mosquito Day Carnival) sponsored by recognized academic institutions (Universiti Malaysia Sabah & National University of Singapore).
 
 ---
 
