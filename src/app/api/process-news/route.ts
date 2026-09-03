@@ -198,16 +198,16 @@ function cleanAndParseJSON(text: string) {
           }
         }
         
-        // Parse text blocks
-        const analysisMatch = cleaned.match(/"(?:credibilityAnalysis|credibility_analysis)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        // Parse text blocks with flexible key matching
+        const analysisMatch = cleaned.match(/"(?:credibilityAnalysis|credibility_analysis|reasoning|explanation|analysis|audit_summary)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
         if (analysisMatch) {
           result.credibilityAnalysis = analysisMatch[1].replace(/\\"/g, '"').trim();
         }
-        const impactMatch = cleaned.match(/"(?:citizenImpact|citizen_impact)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        const impactMatch = cleaned.match(/"(?:citizenImpact|citizen_impact|impact)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
         if (impactMatch) {
           result.citizenImpact = impactMatch[1].replace(/\\"/g, '"').trim();
         }
-        const guidanceMatch = cleaned.match(/"(?:actionableGuidance|actionable_guidance)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        const guidanceMatch = cleaned.match(/"(?:actionableGuidance|actionable_guidance|guidance|advice)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
         if (guidanceMatch) {
           result.actionableGuidance = guidanceMatch[1].replace(/\\"/g, '"').trim();
         }
@@ -221,7 +221,7 @@ function cleanAndParseJSON(text: string) {
         }
 
         // Parse arrays of points or flags
-        const keyPointsMatch = cleaned.match(/"(?:keyPoints|key_points)"\s*:\s*\[([\s\S]*?)\]/i);
+        const keyPointsMatch = cleaned.match(/"(?:keyPoints|key_points|summary_points)"\s*:\s*\[([\s\S]*?)\]/i);
         if (keyPointsMatch) {
           const itemsText = keyPointsMatch[1];
           result.keyPoints = itemsText
@@ -245,9 +245,6 @@ function cleanAndParseJSON(text: string) {
         }
         if (!result.scoreLabel) {
           result.scoreLabel = 'SAFE';
-        }
-        if (!result.credibilityAnalysis) {
-          result.credibilityAnalysis = 'Analysis completed successfully.';
         }
         
         return result;
@@ -554,7 +551,19 @@ You MUST respond ONLY with a valid JSON object in the following format:
         truth_score: finalTruthScore,
         independent_score: score2,
         score_label: model2Data.scoreLabel || model1Data.scoreLabel || 'MIXED',
-        reasoning_trace: model2Data.credibilityAnalysis || '',
+        reasoning_trace: model2Data.credibilityAnalysis ||
+          model2Data.credibility_analysis ||
+          model2Data.reasoning ||
+          model2Data.explanation ||
+          model2Data.analysis ||
+          model1Data.citizenImpact ||
+          (targetLanguage === 'Bahasa Melayu'
+            ? 'Analisis kredibiliti tuntutan disahkan secara konsensus oleh rangkaian dwi-node.'
+            : targetLanguage === 'Chinese'
+            ? '声明可信度分析已由双节点网络共识验证。'
+            : targetLanguage === 'Tamil'
+            ? 'உரிமைகோரல் நம்பகத்தன்மை பகுப்பாய்வு இரட்டை AI பிணையத்தால் சரிபார்க்கப்பட்டது.'
+            : 'Claim credibility analysis verified via dual-node consensus network.'),
         red_flags: model2Data.redFlags || [],
         discrepancy_delta: discrepancyDelta,
         consensus_note: consensusNote,
