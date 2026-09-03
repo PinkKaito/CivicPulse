@@ -1067,9 +1067,9 @@ export default function Home() {
     const actionDirective = isHighRisk ? 'JANGAN TEKAN LINK / DO NOT CLICK ANY LINKS' : 'MAKLUMAN RASMI DISAHKAN / OFFICIAL ANNOUNCEMENT';
     const safeReasoning = defangUrl(result.verification.reasoning_trace);
     const suspectUrl = extractSuspectUrl(articleText || newsUrl || result.verification.reasoning_trace);
-    const verificationUrl = typeof window !== 'undefined'
+    const verificationUrl = typeof window !== 'undefined' && !window.location.origin.includes('localhost')
       ? `${window.location.origin}/verify/${result.model1RequestId}`
-      : `https://civicpulse.org/verify/${result.model1RequestId}`;
+      : `https://civicpulse-hackathon.vercel.app/verify/${result.model1RequestId}`;
 
     return `🚨 CivicPulse AI Fact-Check Report 🚨\n\n⚠️ ACTION: ${actionDirective}\n\n📌 Claim / Source: ${result.summary.title}\n🛑 Suspect Link (Defanged): ${suspectUrl}\n📊 ${scoreTitle}: ${scoreDisplay}% (${scoreBadgeLabel})\n\n💡 Reasoning: ${safeReasoning}\n\n🛡️ Consensus Run ID: ${result.model1RequestId}\nVerified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)\n\nVerify full dual-model audit receipt:\n${verificationUrl}`;
   };
