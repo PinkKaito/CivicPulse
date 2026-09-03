@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 import {
   FileText,
   Link as LinkIcon,
@@ -910,7 +911,7 @@ export default function Home() {
     // Footer: Sharp Sepia Monospace #57534e
     const m1Id = result?.model1RequestId || 'unavailable';
     const m2Id = result?.model2RequestId || 'unavailable';
-    const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}?m2=${m2Id}`;
+    const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}`;
     const displayUrl = `civicpulse-hackathon.vercel.app/verify/${m1Id}`;
 
     ctx.fillStyle = '#57534e';
@@ -918,110 +919,49 @@ export default function Home() {
     ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
     ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
 
-    // Draw Clean Vector QR Matrix Container with full data modules (0ms Instant & CORS-Safe)
-    const drawVectorQR = (targetUrl: string) => {
-      try {
-        // White Rounded Pill above QR Code: "Scan to verify"
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.roundRect(998, 396, 152, 34, 10);
-        ctx.fill();
-        ctx.strokeStyle = '#d6d3d1';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+    // Generate valid QR code directly onto the canvas
+    try {
+      // White Rounded Pill above QR Code: "Scan to verify"
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(998, 396, 152, 34, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#d6d3d1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-        ctx.fillStyle = '#1c1917';
-        ctx.font = 'bold 18px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Scan to verify', 1074, 418);
-        ctx.textAlign = 'left';
+      ctx.fillStyle = '#1c1917';
+      ctx.font = 'bold 18px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Scan to verify', 1074, 418);
+      ctx.textAlign = 'left';
 
-        // White Card Box
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.roundRect(998, 438, 152, 152, 14);
-        ctx.fill();
-        ctx.strokeStyle = '#d6d3d1';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+      // White Card Box
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(998, 438, 152, 152, 14);
+      ctx.fill();
+      ctx.strokeStyle = '#d6d3d1';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-        const matrixSize = 25;
-        const cellSize = 136 / matrixSize;
-        const startX = 1006;
-        const startY = 446;
-
-        // Generate deterministic QR grid matrix for targetUrl
-        const grid: boolean[][] = Array.from({ length: matrixSize }, () => Array(matrixSize).fill(false));
-        const isReserved: boolean[][] = Array.from({ length: matrixSize }, () => Array(matrixSize).fill(false));
-
-        // Finder Patterns (7x7)
-        const markFinder = (r0: number, c0: number) => {
-          for (let r = 0; r < 7; r++) {
-            for (let c = 0; c < 7; c++) {
-              const row = r0 + r;
-              const col = c0 + c;
-              if (row >= 0 && row < matrixSize && col >= 0 && col < matrixSize) {
-                isReserved[row][col] = true;
-                grid[row][col] = (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4));
-              }
-            }
-          }
-        };
-
-        markFinder(0, 0);                     // Top-Left
-        markFinder(0, matrixSize - 7);        // Top-Right
-        markFinder(matrixSize - 7, 0);        // Bottom-Left
-
-        // Alignment Pattern (5x5) at (18, 18)
-        const alignR = 18, alignC = 18;
-        for (let r = -2; r <= 2; r++) {
-          for (let c = -2; c <= 2; c++) {
-            isReserved[alignR + r][alignC + c] = true;
-            grid[alignR + r][alignC + c] = (Math.abs(r) === 2 || Math.abs(c) === 2 || (r === 0 && c === 0));
-          }
+      // Create real, scannable QR canvas
+      const qrCanvas = document.createElement('canvas');
+      await QRCode.toCanvas(qrCanvas, verificationUrl, {
+        width: 136,
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        color: {
+          dark: '#1c1917',
+          light: '#ffffff'
         }
+      });
 
-        // Timing Patterns
-        for (let i = 8; i < matrixSize - 8; i++) {
-          isReserved[6][i] = true;
-          grid[6][i] = i % 2 === 0;
-          isReserved[i][6] = true;
-          grid[i][6] = i % 2 === 0;
-        }
-
-        // Data Modules: BitStream derived from verificationUrl
-        const urlStr = targetUrl || 'https://civicpulse-hackathon.vercel.app';
-        let hash = 5381;
-        for (let i = 0; i < urlStr.length; i++) {
-          hash = ((hash << 5) + hash) + urlStr.charCodeAt(i);
-        }
-
-        let bitIndex = 0;
-        for (let r = 0; r < matrixSize; r++) {
-          for (let c = 0; c < matrixSize; c++) {
-            if (!isReserved[r][c]) {
-              const cellHash = (hash + r * 37 + c * 17 + bitIndex * 13) ^ (r * c);
-              grid[r][c] = (cellHash % 3) !== 0;
-              bitIndex++;
-            }
-          }
-        }
-
-        // Draw Matrix Modules to Canvas
-        ctx.fillStyle = '#1c1917';
-        for (let r = 0; r < matrixSize; r++) {
-          for (let c = 0; c < matrixSize; c++) {
-            if (grid[r][c]) {
-              const px = startX + c * cellSize;
-              const py = startY + r * cellSize;
-              ctx.fillRect(px, py, cellSize - 0.2, cellSize - 0.2);
-            }
-          }
-        }
-      } catch (e) { }
-    };
-
-    drawVectorQR(verificationUrl);
+      // Draw into main card canvas
+      ctx.drawImage(qrCanvas, 1006, 446);
+    } catch (e) {
+      console.error("QR Code generation error:", e);
+    }
 
     try {
       return canvas.toDataURL('image/png');
@@ -1030,19 +970,19 @@ export default function Home() {
     }
   };
 
-  const handleOpenShareModal = async () => {
-    if (!result) return;
-    setShowShareModal(true);
-    setShareImageDataUrl(null);
-    try {
-      const imgData = await generateShareCardImage(result);
-      if (imgData) {
-        setShareImageDataUrl(imgData);
-      }
-    } catch (err) {
-      console.warn('Share modal image generation error handled:', err);
-    }
-  };
+      const handleOpenShareModal = async () => {
+        if (!result) return;
+        setShowShareModal(true);
+        setShareImageDataUrl(null);
+        try {
+          const imgData = await generateShareCardImage(result);
+          if (imgData) {
+            setShareImageDataUrl(imgData);
+          }
+        } catch (err) {
+          console.warn('Share modal image generation error handled:', err);
+        }
+      };
 
   const handleDownloadImage = () => {
     if (!shareImageDataUrl) return;
