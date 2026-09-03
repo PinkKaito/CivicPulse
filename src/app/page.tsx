@@ -1274,7 +1274,7 @@ export default function Home() {
           ? 'border-[#e4d4b5] bg-[#f4ecd8]/95 backdrop-blur-md'
           : 'border-[#ebdcb8] bg-[#faf6ee]/90 backdrop-blur-md'
         }`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
           
           {/* Left: Logo + Sub-headline */}
           <div className="flex items-center gap-2.5">
@@ -1454,7 +1454,7 @@ export default function Home() {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-10 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 space-y-8">
 
         {/* Search & Paste Inputs */}
         <section className={`border rounded-xl p-6 space-y-6 shadow-sm ${cardBgColor} ${borderColor}`}>
@@ -1671,19 +1671,19 @@ export default function Home() {
                   }`}>
                   {result.summary.title}
                 </h2>
-                <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[0.625rem] font-semibold uppercase border ${highContrast
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.6875rem] font-extrabold uppercase tracking-wide whitespace-nowrap border ${highContrast
                     ? 'bg-black text-white border-white'
-                    : (alarmMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-800 border-[#ebdcb8]')
+                    : (alarmMode ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-[#faf6ee] text-amber-900 border-[#ebdcb8]')
                     }`}>
-                    <TrendingUp className="h-3 w-3" />
-                    {categoryBadgeText}
+                    <TrendingUp className="h-3.5 w-3.5 shrink-0" />
+                    <span className="whitespace-nowrap">{categoryBadgeText}</span>
                   </span>
 
                   <button
                     type="button"
                     onClick={handleOpenShareModal}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.625rem] font-bold border transition-all cursor-pointer shadow-xs ${highContrast
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[0.6875rem] font-extrabold tracking-wide border whitespace-nowrap transition-all cursor-pointer shadow-xs hover:scale-[1.03] active:scale-[0.97] ${highContrast
                       ? 'bg-black text-white border-white hover:bg-stone-900'
                       : sepiaMode
                         ? 'bg-[#fcf8ef] text-[#433422] border-[#e4d4b5] hover:bg-[#ebdcb8]'
@@ -1691,8 +1691,8 @@ export default function Home() {
                       }`}
                     title="Share Fact-Check Report Card"
                   >
-                    <Share2 className="h-3 w-3 text-amber-700" />
-                    <span>{t('shareCard')}</span>
+                    <Share2 className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                    <span className="whitespace-nowrap">{t('shareCard')}</span>
                   </button>
                 </div>
               </div>
