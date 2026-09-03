@@ -229,27 +229,35 @@ async function translateJSONToTargetLanguage(
   }
 
   console.log(`CJK detected in non-Chinese output. Running fast translation pass into ${targetLang}...`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000); // 8-second hard timeout cap
+
   try {
-    const res = await openai.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert civic translator. Translate ALL string values in the provided JSON object strictly and entirely into ${targetLang}. Preserve the exact JSON keys and structure. Do not leave any Chinese or foreign characters untranslated.`
-        },
-        {
-          role: 'user',
-          content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}`
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 1500,
-    });
+    const res = await openai.chat.completions.create(
+      {
+        model: 'deepseek-ai/DeepSeek-V4-Flash-0731',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert civic translator. Translate ALL string values in the provided JSON object strictly and entirely into ${targetLang}. Preserve the exact JSON keys and structure. Do not leave any Chinese or foreign characters untranslated.`
+          },
+          {
+            role: 'user',
+            content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}`
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 1500,
+      },
+      { signal: controller.signal }
+    );
+    clearTimeout(timer);
     const text = res.choices[0]?.message?.content || '';
     const parsed = cleanAndParseJSON(text);
     return parsed || dataObj;
   } catch (e) {
-    console.warn('Translation fallback pass error:', e);
+    clearTimeout(timer);
+    console.warn('Translation fallback pass error or timeout, returning original object:', e);
     return dataObj;
   }
 }
