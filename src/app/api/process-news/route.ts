@@ -127,8 +127,8 @@ async function callWithHedge(
 function cleanAndParseJSON(text: string) {
   let cleaned = text.trim();
   
-  // 0. Strip <think>...</think> reasoning blocks
-  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  // 0. Strip <think>...</think> reasoning blocks (including unclosed ones)
+  cleaned = cleaned.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
   
   // 1. Strip markdown code blocks
   cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
@@ -139,79 +139,97 @@ function cleanAndParseJSON(text: string) {
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
     cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
+
+  // 3. Normalize raw unescaped linebreaks inside string quotes
+  const normalized = cleaned.replace(/"([^"\\]*(?:\\.[^"\\]*)*)"/g, (match) => {
+    return match.replace(/\r?\n/g, ' ');
+  });
   
   try {
-    return JSON.parse(cleaned);
+    return JSON.parse(normalized);
   } catch (parseError) {
-    console.warn("JSON.parse failed, attempting regex recovery for text:", cleaned);
     try {
-      // Try resolving trailing commas in object or array definitions
-      const fixedCleaned = cleaned
-        .replace(/,\s*}/g, '}')
-        .replace(/,\s*\]/g, ']');
-      return JSON.parse(fixedCleaned);
-    } catch (secondError) {
-      // Regex-based robust data extraction fallback
-      const result: any = {};
-      
-      // Parse preliminary/independent scores
-      const scoreMatch = cleaned.match(/"(?:independentScore|preliminaryScore|independent_score|preliminary_score)"\s*:\s*"?(\d+)"?/i);
-      if (scoreMatch) {
-        const val = parseInt(scoreMatch[1], 10);
-        result.independentScore = val;
-        result.preliminaryScore = val;
-      }
-      
-      // Parse scoreLabel
-      const labelMatch = cleaned.match(/"(?:scoreLabel|score_label)"\s*:\s*"([^"]+)"/i);
-      if (labelMatch) {
-        result.scoreLabel = labelMatch[1];
-      }
-      
-      // Parse text blocks
-      const analysisMatch = cleaned.match(/"(?:credibilityAnalysis|credibility_analysis)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
-      if (analysisMatch) {
-        result.credibilityAnalysis = analysisMatch[1].replace(/\\"/g, '"');
-      }
-      const impactMatch = cleaned.match(/"(?:citizenImpact|citizen_impact)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
-      if (impactMatch) {
-        result.citizenImpact = impactMatch[1].replace(/\\"/g, '"');
-      }
-      const guidanceMatch = cleaned.match(/"(?:actionableGuidance|actionable_guidance)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
-      if (guidanceMatch) {
-        result.actionableGuidance = guidanceMatch[1].replace(/\\"/g, '"');
-      }
-      const titleMatch = cleaned.match(/"title"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
-      if (titleMatch) {
-        result.title = titleMatch[1].replace(/\\"/g, '"');
-      }
-      const categoryMatch = cleaned.match(/"category"\s*:\s*"([^"]+)"/i);
-      if (categoryMatch) {
-        result.category = categoryMatch[1];
-      }
+      return JSON.parse(cleaned);
+    } catch (e2) {
+      console.warn("JSON.parse failed, attempting regex recovery for text:", cleaned);
+      try {
+        // Try resolving trailing commas in object or array definitions
+        const fixedCleaned = normalized
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*\]/g, ']');
+        return JSON.parse(fixedCleaned);
+      } catch (secondError) {
+        // Regex-based robust data extraction fallback
+        const result: any = {};
+        
+        // Parse preliminary/independent scores
+        const scoreMatch = cleaned.match(/"(?:independentScore|preliminaryScore|independent_score|preliminary_score)"\s*:\s*"?(\d+)"?/i);
+        if (scoreMatch) {
+          const val = parseInt(scoreMatch[1], 10);
+          result.independentScore = val;
+          result.preliminaryScore = val;
+        }
+        
+        // Parse scoreLabel
+        const labelMatch = cleaned.match(/"(?:scoreLabel|score_label)"\s*:\s*"([^"]+)"/i);
+        if (labelMatch) {
+          result.scoreLabel = labelMatch[1].toUpperCase();
+          if (!result.independentScore) {
+            if (result.scoreLabel === 'VERIFIED' || result.scoreLabel === 'SAFE') {
+              result.independentScore = 85;
+              result.preliminaryScore = 85;
+            } else if (result.scoreLabel === 'HIGH RISK' || result.scoreLabel === 'SUSPICIOUS') {
+              result.independentScore = 20;
+              result.preliminaryScore = 20;
+            }
+          }
+        }
+        
+        // Parse text blocks
+        const analysisMatch = cleaned.match(/"(?:credibilityAnalysis|credibility_analysis)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        if (analysisMatch) {
+          result.credibilityAnalysis = analysisMatch[1].replace(/\\"/g, '"').trim();
+        }
+        const impactMatch = cleaned.match(/"(?:citizenImpact|citizen_impact)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        if (impactMatch) {
+          result.citizenImpact = impactMatch[1].replace(/\\"/g, '"').trim();
+        }
+        const guidanceMatch = cleaned.match(/"(?:actionableGuidance|actionable_guidance)"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        if (guidanceMatch) {
+          result.actionableGuidance = guidanceMatch[1].replace(/\\"/g, '"').trim();
+        }
+        const titleMatch = cleaned.match(/"title"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|\r?\n|\}))/i);
+        if (titleMatch) {
+          result.title = titleMatch[1].replace(/\\"/g, '"').trim();
+        }
+        const categoryMatch = cleaned.match(/"category"\s*:\s*"([^"]+)"/i);
+        if (categoryMatch) {
+          result.category = categoryMatch[1];
+        }
 
-      // Parse arrays of points or flags
-      const keyPointsMatch = cleaned.match(/"(?:keyPoints|key_points)"\s*:\s*\[([\s\S]*?)\]/i);
-      if (keyPointsMatch) {
-        const itemsText = keyPointsMatch[1];
-        result.keyPoints = itemsText
-          .split(/",?\s*"/)
-          .map(item => item.replace(/^"|"$/g, '').trim())
-          .filter(Boolean);
+        // Parse arrays of points or flags
+        const keyPointsMatch = cleaned.match(/"(?:keyPoints|key_points)"\s*:\s*\[([\s\S]*?)\]/i);
+        if (keyPointsMatch) {
+          const itemsText = keyPointsMatch[1];
+          result.keyPoints = itemsText
+            .split(/",?\s*"/)
+            .map(item => item.replace(/^"|"$/g, '').trim())
+            .filter(Boolean);
+        }
+        const redFlagsMatch = cleaned.match(/"(?:redFlags|red_flags)"\s*:\s*\[([\s\S]*?)\]/i);
+        if (redFlagsMatch) {
+          const itemsText = redFlagsMatch[1];
+          result.redFlags = itemsText
+            .split(/",?\s*"/)
+            .map(item => item.replace(/^"|"$/g, '').trim())
+            .filter(Boolean);
+        }
+        
+        if (result.title || result.independentScore || result.preliminaryScore || result.credibilityAnalysis) {
+          return result;
+        }
+        throw parseError;
       }
-      const redFlagsMatch = cleaned.match(/"(?:redFlags|red_flags)"\s*:\s*\[([\s\S]*?)\]/i);
-      if (redFlagsMatch) {
-        const itemsText = redFlagsMatch[1];
-        result.redFlags = itemsText
-          .split(/",?\s*"/)
-          .map(item => item.replace(/^"|"$/g, '').trim())
-          .filter(Boolean);
-      }
-      
-      if (result.title || result.independentScore || result.preliminaryScore || result.credibilityAnalysis) {
-        return result;
-      }
-      throw parseError;
     }
   }
 }
@@ -306,6 +324,12 @@ TARGET OUTPUT LANGUAGE: ${targetLanguage.toUpperCase()} (${targetLanguage})
 3. DO NOT leave any foreign words, Chinese characters (e.g. "通知", "自己操作", "政府财政部"), or untranslated terms in the output. Translate every single phrase into ${targetLanguage}.
 `;
 
+    const provenanceRule = `
+CRITICAL PROVENANCE & OFFICIAL DOMAIN RULE:
+1. If the text explicitly references a verified official government domain (e.g. .gov.my such as nadma.gov.my, hasil.gov.my, mof.gov.my, malaysia.gov.my) AND warns citizens against sharing passwords/OTPs, assign preliminaryScore / independentScore >= 85 (SAFE or VERIFIED).
+2. Do NOT apply citation penalties to legitimate announcements referencing official government portals (.gov.my).
+`;
+
     // Model 1 (Extractor & Context Analyst)
     const model1Promise = callWithHedge(
       openai,
@@ -318,8 +342,10 @@ Your task is to analyze the provided text and output a structured JSON response 
 
 ${languageInstruction}
 
+${provenanceRule}
+
 STRICT FACTUAL & SAFETY GUIDELINES:
-1. CITATION & PROVENANCE PENALTY: If the text describes specific government policies, cash handouts, deadlines, or mandatory registration but lacks verifiable links/sources/named officials, assign a preliminaryScore <= 45.
+1. CITATION & PROVENANCE PENALTY: If the text describes specific government policies, cash handouts, or mandatory registration BUT lacks verifiable links or official domains, assign a preliminaryScore <= 45. However, if an official government domain (.gov.my) is provided, assign preliminaryScore >= 85.
 2. ADAPTIVE CIVIC GUIDANCE:
    - If the claim is SUSPICIOUS, UNVERIFIED, or HIGH RISK: 
      * "citizenImpact" must explain the potential harm or scam danger to the public (e.g., risk of identity theft, phishing, or financial loss).
@@ -330,7 +356,7 @@ Respond ONLY with a valid JSON object matching this schema:
 {
   "title": "A concise headline translated into ${targetLanguage}",
   "category": "NEWS_POLICY" | "PUBLIC_HEALTH" | "COMMUNITY_DEVELOPMENT" | "SCAM_PHISHING" | "JOB_INVESTMENT" | "VIRAL_RUMOR",
-  "preliminaryScore": 50, // Number 0-100
+  "preliminaryScore": 85, // Number 0-100
   "scoreLabel": "VERIFIED" | "SAFE" | "MIXED" | "SUSPICIOUS" | "HIGH RISK",
   "keyPoints": [
     "Key summary point 1 translated into ${targetLanguage}",
@@ -361,18 +387,20 @@ Respond ONLY with a valid JSON object matching this schema:
 
 ${languageInstruction}
 
+${provenanceRule}
+
 STRICT FACTUAL & SAFETY VERIFICATION RULES:
 1. PLAUSIBILITY IS NOT PROOF: A well-written, professional tone or use of official-sounding terminology (e.g. "Ministry of Transport", "MyKad", "effective Nov 1") does NOT grant credibility.
-2. CITATION PENALTY: Only apply this penalty to critical claims (such as new laws, mandatory registration deadlines, cash handouts, or national policy changes). Do NOT penalize general harmless news (like sports reports, entertainment, or cultural articles) for lacking official links or government citations; score general harmless news based on standard consistency and plausibility.
+2. CITATION PENALTY: Apply citation penalties ONLY when critical policy/handout claims lack official links. If the text cites official .gov.my domains (e.g. nadma.gov.my, hasil.gov.my), assign independentScore >= 85 (SAFE / VERIFIED).
 3. SCORING SCALE:
-   - 80-100%: Independently verifiable facts from recognized, cited primary sources.
+   - 80-100%: Independently verifiable facts from recognized, cited primary sources or official government domains (.gov.my).
    - 60-79%: Mixed/nuanced news with minor context omissions.
    - 30-59%: Unsubstantiated, unverified policy claims or suspicious unsourced announcements.
    - 0-29%: Blatant scams, phishing, or proven fabrications.
 
 You MUST respond ONLY with a valid JSON object in the following format:
 {
-  "independentScore": 80, // A number between 0 and 100 representing the factual consistency and legitimacy. Must strictly follow the scoring scale rules above.
+  "independentScore": 85, // A number between 0 and 100 representing the factual consistency and legitimacy.
   "scoreLabel": "SAFE", // Must be EXACTLY one of: 'VERIFIED' | 'SAFE' | 'MIXED' | 'SUSPICIOUS' | 'HIGH RISK'
   "credibilityAnalysis": "A 1-sentence concise explanation of why this score was given, noting sources, potential bias, manipulative urgency, or financial red flags translated entirely into ${targetLanguage}.",
   "redFlags": [
