@@ -303,7 +303,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     shareVerifyOn: 'Verify on CivicPulse',
     shareScamWarning: '⚠️ DO NOT CLICK ANY LINKS OR SHARE YOUR BANK DETAILS!',
     shareSafeNotice: '✅ VERIFIED OFFICIAL ANNOUNCEMENT - SAFE TO READ',
-    downloadImageCard: 'Download Image Card 🖼️',
+    downloadImageCard: 'Download Image Card',
     posterChecklistHeader: 'QUICK PROTECTION CHECKLIST:',
     posterBullet1: '• 🚫 Never share OTP/TAC or banking passwords',
     posterBullet2: '• 🔍 Verify claims only via official .gov.my channels',
@@ -393,7 +393,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     shareVerifyOn: 'Sahkan di CivicPulse',
     shareScamWarning: '⚠️ JANGAN TEKAN PAUTAN ATAU KONGSI MAKLUMAT BANK ANDA!',
     shareSafeNotice: '✅ MAKLUMAN RASMI DISAHKAN - SELAMAT UNTUK DIBACA',
-    downloadImageCard: 'Muat Turun Kad Gambar 🖼️',
+    downloadImageCard: 'Muat Turun Kad Gambar',
     posterChecklistHeader: 'SENARAI SEMAK PERLINDUNGAN:',
     posterBullet1: '• 🚫 Jangan berkongsi OTP/TAC atau kata laluan bank',
     posterBullet2: '• 🔍 Semak maklumat hanya di portal rasmi .gov.my',
@@ -482,7 +482,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     shareVerifyOn: '在 CivicPulse 查看完整报告',
     shareScamWarning: '⚠️ 切勿点击任何链接或提供银行/个人信息！',
     shareSafeNotice: '✅ 官方通告已核实 - 可放心阅读',
-    downloadImageCard: '下载图片卡片 🖼️',
+    downloadImageCard: '下载图片卡片',
     posterChecklistHeader: '快速防诈指南：',
     posterBullet1: '• 🚫 切勿提供 OTP/TAC 动态码或银行密码',
     posterBullet2: '• 🔍 仅通过官方 .gov.my 渠道核对信息',
@@ -571,7 +571,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     shareVerifyOn: 'CivicPulse இல் சரிபார்க்கவும்',
     shareScamWarning: '⚠️ எவ்வித இணைப்பையும் கிளிக் செய்ய வேண்டாம்! வங்கி விவரங்களைப் பகிர வேண்டாம்!',
     shareSafeNotice: '✅ அதிகாரப்பூர்வ அறிவிப்பு சரிபார்க்கப்பட்டது',
-    downloadImageCard: 'பட கார்டைப் பதிவிறக்கவும் 🖼️',
+    downloadImageCard: 'பட கார்டைப் பதிவிறக்கவும்',
     posterChecklistHeader: 'பாதுகாப்பு சரிபார்ப்புப் பட்டியல்:',
     posterBullet1: '• 🚫 OTP/TAC அல்லது வங்கி கடவுச்சொல்லை பகிர வேண்டாம்',
     posterBullet2: '• 🔍 அதிகாரப்பூர்வ .gov.my தளம் மூலம் மட்டுமே சரிபார்க்கவும்',
@@ -653,7 +653,7 @@ export default function Home() {
       shareVerifyOn: 'Verify on CivicPulse',
       shareScamWarning: '⚠️ DO NOT CLICK ANY LINKS OR SHARE YOUR BANK DETAILS!',
       shareSafeNotice: '✅ VERIFIED OFFICIAL ANNOUNCEMENT - SAFE TO READ',
-      downloadImageCard: 'Download Image Card 🖼️',
+      downloadImageCard: 'Download Image Card',
       posterChecklistHeader: 'QUICK PROTECTION CHECKLIST:',
       posterBullet1: '• 🚫 Never share OTP/TAC or banking passwords',
       posterBullet2: '• 🔍 Verify claims only via official .gov.my channels',
@@ -893,34 +893,51 @@ export default function Home() {
     await new Promise<void>((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
+      const timer = setTimeout(() => resolve(), 1500);
       img.onload = () => {
-        ctx.drawImage(img, 1070, 508, 68, 68);
+        clearTimeout(timer);
+        try {
+          ctx.drawImage(img, 1070, 508, 68, 68);
+        } catch (e) {}
         resolve();
       };
       img.onerror = () => {
-        // Fallback vector QR placeholder if offline
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(1070, 508, 68, 68);
-        ctx.strokeStyle = '#1c1917';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(1070, 508, 68, 68);
-        ctx.fillStyle = '#1c1917';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('SCAN QR', 1078, 545);
+        clearTimeout(timer);
+        try {
+          // Fallback vector QR placeholder if offline
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(1070, 508, 68, 68);
+          ctx.strokeStyle = '#1c1917';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(1070, 508, 68, 68);
+          ctx.fillStyle = '#1c1917';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText('SCAN QR', 1078, 545);
+        } catch (e) {}
         resolve();
       };
       img.src = qrApiUrl;
     });
 
-    return canvas.toDataURL('image/png');
+    try {
+      return canvas.toDataURL('image/png');
+    } catch (e) {
+      return '';
+    }
   };
 
   const handleOpenShareModal = async () => {
     if (!result) return;
     setShowShareModal(true);
     setShareImageDataUrl(null);
-    const imgData = await generateShareCardImage(result);
-    setShareImageDataUrl(imgData);
+    try {
+      const imgData = await generateShareCardImage(result);
+      if (imgData) {
+        setShareImageDataUrl(imgData);
+      }
+    } catch (err) {
+      console.warn('Share modal image generation error handled:', err);
+    }
   };
 
   const handleDownloadImage = () => {
@@ -974,17 +991,27 @@ export default function Home() {
 
   const handleCopyShareText = async () => {
     const shareText = getShareTextString();
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(shareText);
-      setCopiedShare(true);
-      setTimeout(() => setCopiedShare(false), 2500);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareText);
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2500);
+      }
+    } catch (e) {
+      console.warn('Clipboard write error:', e);
     }
   };
 
-  const handleCopyId = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(''), 2000);
+  const handleCopyId = async (id: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(id);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(''), 2000);
+      }
+    } catch (e) {
+      console.warn('Clipboard copy error:', e);
+    }
   };
 
   const handleFetchReceipt = async (requestId: string, modelNum: 1 | 2) => {
