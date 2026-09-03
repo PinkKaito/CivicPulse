@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <rect width="512" height="512" rx="128" fill="#433422"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#ebdcb8" stroke-width="14" opacity="0.4"/>
+  
+  <!-- Primary Sparkle Star -->
+  <path d="M 256 116 Q 256 256 396 256 Q 256 256 256 396 Q 256 256 116 256 Q 256 256 256 116 Z" fill="#f59e0b"/>
+  
+  <!-- Secondary Accent Sparkle -->
+  <path d="M 370 90 Q 370 130 410 130 Q 370 130 370 170 Q 370 130 330 130 Q 370 130 370 90 Z" fill="#ebdcb8"/>
+  
+  <!-- Minor Dot Sparkle -->
+  <circle cx="140" cy="370" r="14" fill="#ebdcb8" opacity="0.8"/>
+</svg>
