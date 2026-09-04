@@ -224,7 +224,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
   English: {
     tagline: 'Dual AI Public Fact-Checking & Phishing Guard',
     networkBadge: 'Gonka Network: Active',
-    networkBadgeOffline: 'Gonka Network: Offline (Cached)',
+    networkBadgeOffline: 'Gonka Network: Offline',
     sepiaTheme: 'Sepia',
     contrastMode: 'Contrast',
     pasteClaimTab: 'Paste Claim',
