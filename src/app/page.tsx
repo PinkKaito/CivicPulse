@@ -1067,19 +1067,103 @@ export default function Home() {
     return 'N/A';
   };
 
+  const textShareLabels: Record<string, Record<string, string>> = {
+    English: {
+      reportHeader: '🚨 *CivicPulse AI Fact-Check Report* 🚨',
+      actionLabel: 'ACTION',
+      actionScam: '⚠️ DO NOT CLICK ANY LINKS OR SHARE BANK DETAILS!',
+      actionSafe: '✅ VERIFIED OFFICIAL ANNOUNCEMENT - SAFE TO READ',
+      claimSource: '📌 Claim / Source:',
+      suspectLink: '🛑 Link (Defanged):',
+      reasoningLabel: '💡 Reasoning:',
+      runIdLabel: '🛡️ Consensus Run ID:',
+      verifiedVia: 'Verified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)',
+      verifyReceipt: 'Verify full dual-model audit receipt:',
+      safe: 'SAFE',
+      highRisk: 'HIGH RISK',
+      suspicious: 'SUSPICIOUS',
+      verified: 'VERIFIED',
+      mixed: 'MIXED'
+    },
+    'Bahasa Melayu': {
+      reportHeader: '🚨 *Laporan Pengesahan Fakta AI CivicPulse* 🚨',
+      actionLabel: 'TINDAKAN',
+      actionScam: '⚠️ JANGAN TEKAN PAUTAN ATAU KONGSI MAKLUMAT BANK!',
+      actionSafe: '✅ MAKLUMAN RASMI DISAHKAN - SELAMAT DIBACA',
+      claimSource: '📌 Tuntutan / Sumber:',
+      suspectLink: '🛑 Pautan (Nyahaktif):',
+      reasoningLabel: '💡 Ulasan / Analisis:',
+      runIdLabel: '🛡️ ID Konsensus:',
+      verifiedVia: 'Disahkan melalui Rangkaian Dwi-Node Gonka (DeepSeek + Kimi)',
+      verifyReceipt: 'Sahkan resit audit penuh dwi-model:',
+      safe: 'SELAMAT',
+      highRisk: 'RISIKO TINGGI',
+      suspicious: 'MENCURIGAKAN',
+      verified: 'DISAHKAN',
+      mixed: 'CAMPURAN'
+    },
+    Chinese: {
+      reportHeader: '🚨 *CivicPulse AI 事实核查与防诈报告* 🚨',
+      actionLabel: '建议行动',
+      actionScam: '⚠️ 切勿点击任何链接或提供银行个人信息！',
+      actionSafe: '✅ 官方通告已核实 - 可放心阅读',
+      claimSource: '📌 声明 / 来源：',
+      suspectLink: '🛑 可疑链接 (已安全化处理)：',
+      reasoningLabel: '💡 研判与分析：',
+      runIdLabel: '🛡️ 共识运行 ID：',
+      verifiedVia: '通过 Gonka 双节点共识网络 (DeepSeek + Kimi) 验证',
+      verifyReceipt: '查看双模型审计凭证与完整证明：',
+      safe: '安全',
+      highRisk: '高风险',
+      suspicious: '可疑',
+      verified: '已核实',
+      mixed: '混合'
+    },
+    Tamil: {
+      reportHeader: '🚨 *CivicPulse AI உண்மை சரிபார்ப்பு அறிக்கை* 🚨',
+      actionLabel: 'நடவடிக்கை',
+      actionScam: '⚠️ இணைப்புகளைக் கிளிக் செய்ய வேண்டாம் / வங்கி விவரங்களைப் பகிர வேண்டாம்!',
+      actionSafe: '✅ சரிபார்க்கப்பட்ட அதிகாரப்பூர்வ அறிவிப்பு - படிக்க பாதுகாப்பானது',
+      claimSource: '📌 உரிமைகோரல் / ஆதாரம்:',
+      suspectLink: '🛑 இணைப்பு (பாதுகாக்கப்பட்டது):',
+      reasoningLabel: '💡 பகுப்பாய்வு:',
+      runIdLabel: '🛡️ ஒருமித்த கருத்து ID:',
+      verifiedVia: 'Gonka இரட்டை முனை நெட்வொர்க் மூலம் சரிபார்க்கப்பட்டது (DeepSeek + Kimi)',
+      verifyReceipt: 'முழு தணிக்கை ரசீதை சரிபார்க்கவும்:',
+      safe: 'பாதுகாப்பானது',
+      highRisk: 'அதிக ஆபத்து',
+      suspicious: 'சந்தேகத்திற்குரியது',
+      verified: 'சரிபார்க்கப்பட்டது',
+      mixed: 'கலப்பு'
+    }
+  };
+
   const getShareTextString = (): string => {
     if (!result) return '';
+    const st = textShareLabels[language] || textShareLabels.English;
+
     const type = result.summary.contentType || 'NEWS_POLICY';
     const isScam = type === 'SCAM_PHISHING' || type === 'JOB_INVESTMENT';
     const scamRiskScore = Math.max(0, Math.min(100, 100 - result.verification.truth_score));
     const scoreDisplay = isScam ? scamRiskScore : result.verification.truth_score;
     const scoreTitle = isScam ? t('scamRiskScore') : t('truthScore');
+
+    const getLocalizedScoreLabel = (label: string): string => {
+      const upper = (label || '').toUpperCase().trim();
+      if (upper === 'SAFE') return st.safe;
+      if (upper === 'HIGH RISK') return st.highRisk;
+      if (upper === 'SUSPICIOUS') return st.suspicious;
+      if (upper === 'VERIFIED') return st.verified;
+      if (upper === 'MIXED') return st.mixed;
+      return upper;
+    };
+
     const scoreBadgeLabel = isScam
-      ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
-      : (result.verification.score_label || 'MIXED');
+      ? (scamRiskScore >= 75 ? st.highRisk : scamRiskScore >= 40 ? st.suspicious : st.safe)
+      : getLocalizedScoreLabel(result.verification.score_label || 'MIXED');
 
     const isHighRisk = isScam || scamRiskScore >= 40;
-    const actionDirective = isHighRisk ? 'JANGAN TEKAN LINK / DO NOT CLICK ANY LINKS' : 'MAKLUMAN RASMI DISAHKAN / OFFICIAL ANNOUNCEMENT';
+    const actionDirective = isHighRisk ? st.actionScam : st.actionSafe;
     const safeReasoning = defangUrl(result.verification.reasoning_trace);
     const suspectUrl = extractSuspectUrl(articleText || newsUrl || result.verification.reasoning_trace);
     const m2Id = result?.model2RequestId || 'unavailable';
@@ -1087,7 +1171,7 @@ export default function Home() {
       ? `${window.location.origin}/verify/${result.model1RequestId}?m2=${m2Id}&lang=${encodeURIComponent(language)}`
       : `https://civicpulse-hackathon.vercel.app/verify/${result.model1RequestId}?m2=${m2Id}&lang=${encodeURIComponent(language)}`;
 
-    return `🚨 *CivicPulse AI Fact-Check Report* 🚨\n\n⚠️ *ACTION:* *${actionDirective}*\n\n📌 *Claim / Source:* *${result.summary.title}*\n🛑 *Suspect Link (Defanged):* ${suspectUrl}\n📊 *${scoreTitle}:* *${scoreDisplay}% (${scoreBadgeLabel})*\n\n💡 *Reasoning:* ${safeReasoning}\n\n🛡️ *Consensus Run ID:* \`${result.model1RequestId}\`\n*Verified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)*\n\n*Verify full dual-model audit receipt:*\n${verificationUrl}`;
+    return `${st.reportHeader}\n\n⚠️ *${st.actionLabel}:* *${actionDirective}*\n\n${st.claimSource} *${result.summary.title}*\n${st.suspectLink} ${suspectUrl}\n📊 *${scoreTitle}:* *${scoreDisplay}% (${scoreBadgeLabel})*\n\n${st.reasoningLabel} ${safeReasoning}\n\n${st.runIdLabel} \`${result.model1RequestId}\`\n*${st.verifiedVia}*\n\n*${st.verifyReceipt}*\n${verificationUrl}`;
   };
 
   const handleShareWhatsApp = () => {
