@@ -32,24 +32,20 @@ export async function POST(request: Request) {
 
     // 2. Handle URL Input
     const trimmedUrl = typeof url === 'string' ? url.trim() : '';
-    if (!trimmedUrl) {
+    if (!trimmedUrl || !trimmedUrl.startsWith('http')) {
       return NextResponse.json(
-        { error: 'Either url or rawText must be provided and cannot be empty.' },
+        { error: 'Valid news URL starting with http:// or https:// is required.' },
         { status: 400 }
       );
     }
 
     let targetUrl = trimmedUrl;
-    if (!/^https?:\/\//i.test(targetUrl)) {
-      targetUrl = 'https://' + targetUrl;
-    }
 
-    // Fetch the URL with rich browser headers
-    let response: Response | null = null;
+    // Fetch the URL with realistic desktop browser headers
     let html = '';
 
     try {
-      response = await fetch(targetUrl, {
+      const res = await fetch(targetUrl, {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -58,13 +54,16 @@ export async function POST(request: Request) {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache',
         },
+        next: { revalidate: 60 },
       });
 
-      if (response && response.ok) {
-        html = await response.text();
+      if (res.ok) {
+        html = await res.text();
+      } else {
+        console.warn(`Fetch returned non-200 status (${res.status}) for URL:`, targetUrl);
       }
     } catch (fetchErr) {
-      console.warn('Live fetch error for URL:', targetUrl, fetchErr);
+      console.warn('Live fetch exception for URL:', targetUrl, fetchErr);
     }
 
     // Fallback strictly for the demo sample SinChew URL if live crawler is blocked by anti-bot rules
@@ -79,35 +78,35 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!html) {
+    if (!html || html.length < 100) {
       return NextResponse.json(
-        { error: `We could not read that link. Try pasting the article text directly instead.` },
-        { status: 500 }
+        { error: 'Failed to retrieve article from the provided source (blocked by news site or anti-bot rules). Please copy and paste the text directly.' },
+        { status: 422 }
       );
     }
+
     const $ = cheerio.load(html);
 
     // Extract Title
     const title =
+      $('meta[property="og:title"]').attr('content')?.trim() ||
       $('title').text().trim() ||
       $('h1').first().text().trim() ||
       'Untitled Article';
 
-    // Extract OpenGraph description (with fallback to normal description)
+    // Extract OpenGraph description
     const ogDescription =
       $('meta[property="og:description"]').attr('content')?.trim() ||
       $('meta[name="description"]').attr('content')?.trim() ||
       '';
 
-    // Remove unwanted elements to get clean text
+    // Remove unwanted elements
     $(
       'script, style, nav, footer, iframe, noscript, header, ads, .ads, #ads, .sidebar, #sidebar, .comments, #comments, svg, path, button, link'
     ).remove();
 
     // Extract text paragraphs
     const bodyParagraphs: string[] = [];
-
-    // Try finding paragraphs in common content containers first, then fallback
     const containers = [
       'article',
       'main',
@@ -134,7 +133,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fallback: search all paragraphs on the page
     if (!foundContent) {
       $('p').each((_, el) => {
         const txt = $(el).text().replace(/\s+/g, ' ').trim();
@@ -144,16 +142,21 @@ export async function POST(request: Request) {
       });
     }
 
-    // Fallback 2: get readable text from body
     if (bodyParagraphs.length === 0) {
-      const mainText = $('body')
-        .text()
-        .replace(/\s+/g, ' ')
-        .trim();
-      bodyParagraphs.push(mainText);
+      const mainText = $('body').text().replace(/\s+/g, ' ').trim();
+      if (mainText.length > 50) {
+        bodyParagraphs.push(mainText);
+      }
     }
 
-    const bodyText = bodyParagraphs.join('\n\n');
+    const bodyText = bodyParagraphs.join('\n\n').slice(0, 10000);
+
+    if (!bodyText || bodyText.length < 50) {
+      return NextResponse.json(
+        { error: 'Could not extract sufficient text from this URL. Please copy and paste the article text directly.' },
+        { status: 422 }
+      );
+    }
 
     return NextResponse.json({
       title,
@@ -164,8 +167,8 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('Error parsing news:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to parse news URL.' },
-      { status: 500 }
+      { error: 'Unable to parse news article. Please paste the article text directly.' },
+      { status: 422 }
     );
   }
 }
