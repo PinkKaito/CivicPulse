@@ -258,14 +258,25 @@ async function translateJSONToTargetLanguage(
   dataObj: any,
   targetLang: string
 ): Promise<any> {
-  if (!dataObj || targetLang === 'Chinese') return dataObj;
+  if (!dataObj) return dataObj;
   const jsonStr = JSON.stringify(dataObj);
-  // Check if string contains CJK ideographs (\u4e00-\u9fff\u3400-\u4dbf)
-  if (!/[\u4e00-\u9fff\u3400-\u4dbf]/.test(jsonStr)) {
-    return dataObj;
+
+  let needsTranslation = false;
+  if (targetLang === 'Chinese') {
+    // If target is Chinese but output lacks Chinese CJK characters, it needs translation to Chinese
+    if (!/[\u4e00-\u9fff\u3400-\u4dbf]/.test(jsonStr)) {
+      needsTranslation = true;
+    }
+  } else {
+    // If target is non-Chinese (English, Malay, Tamil) but CJK characters are found, it needs translation
+    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(jsonStr)) {
+      needsTranslation = true;
+    }
   }
 
-  console.log(`CJK detected in non-Chinese output (${targetLang}). Running fast translation pass into ${targetLang}...`);
+  if (!needsTranslation) return dataObj;
+
+  console.log(`Translation pass needed for output into ${targetLang}...`);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000); // 12-second hard timeout cap
 
@@ -276,11 +287,11 @@ async function translateJSONToTargetLanguage(
         messages: [
           {
             role: 'system',
-            content: `You are an expert civic translator. Translate ALL string values in the provided JSON object strictly and entirely into ${targetLang}. Preserve the exact JSON keys and structure. Do not leave any Chinese or foreign characters untranslated.`
+            content: `You are an expert civic translator. Translate ALL string values in the provided JSON object strictly and entirely into ${targetLang}. Preserve the exact JSON keys and structure.`
           },
           {
             role: 'user',
-            content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}\n\nCRITICAL: The output MUST contain ZERO Chinese characters. Translate every single Chinese phrase into ${targetLang}.`
+            content: `Translate all JSON values entirely into ${targetLang}:\n${jsonStr}\n\nCRITICAL: Output must be 100% in ${targetLang}.`
           }
         ],
         temperature: 0.0,
@@ -477,15 +488,13 @@ You MUST respond ONLY with a valid JSON object in the following format:
       };
     }
 
-    // Run automatic translation fallback pass if CJK characters are detected in non-Chinese outputs
-    if (targetLanguage !== 'Chinese') {
-      const [translated1, translated2] = await Promise.all([
-        translateJSONToTargetLanguage(openai, model1Data, targetLanguage),
-        translateJSONToTargetLanguage(openai, model2Data, targetLanguage),
-      ]);
-      model1Data = translated1;
-      model2Data = translated2;
-    }
+    // Run automatic translation fallback pass if output language does not match targetLanguage
+    const [translated1, translated2] = await Promise.all([
+      translateJSONToTargetLanguage(openai, model1Data, targetLanguage),
+      translateJSONToTargetLanguage(openai, model2Data, targetLanguage),
+    ]);
+    model1Data = translated1;
+    model2Data = translated2;
 
     // Ensure array structure is preserved
     if (!Array.isArray(model1Data.keyPoints)) {

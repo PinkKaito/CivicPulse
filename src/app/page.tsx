@@ -972,7 +972,7 @@ export default function Home() {
     // Footer: Sharp Sepia Monospace #57534e (Localized)
     const m1Id = result?.model1RequestId || 'unavailable';
     const m2Id = result?.model2RequestId || 'unavailable';
-    const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}?m2=${m2Id}`;
+    const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}?m2=${m2Id}&lang=${encodeURIComponent(language)}`;
     const displayUrl = `civicpulse-hackathon.vercel.app/verify/${m1Id}`;
 
     const footerLine1 = t('cardFooterConsensus').replace('{id}', result.model1RequestId);
@@ -1084,8 +1084,8 @@ export default function Home() {
     const suspectUrl = extractSuspectUrl(articleText || newsUrl || result.verification.reasoning_trace);
     const m2Id = result?.model2RequestId || 'unavailable';
     const verificationUrl = typeof window !== 'undefined' && !window.location.origin.includes('localhost')
-      ? `${window.location.origin}/verify/${result.model1RequestId}?m2=${m2Id}`
-      : `https://civicpulse-hackathon.vercel.app/verify/${result.model1RequestId}?m2=${m2Id}`;
+      ? `${window.location.origin}/verify/${result.model1RequestId}?m2=${m2Id}&lang=${encodeURIComponent(language)}`
+      : `https://civicpulse-hackathon.vercel.app/verify/${result.model1RequestId}?m2=${m2Id}&lang=${encodeURIComponent(language)}`;
 
     return `🚨 *CivicPulse AI Fact-Check Report* 🚨\n\n⚠️ *ACTION:* *${actionDirective}*\n\n📌 *Claim / Source:* *${result.summary.title}*\n🛑 *Suspect Link (Defanged):* ${suspectUrl}\n📊 *${scoreTitle}:* *${scoreDisplay}% (${scoreBadgeLabel})*\n\n💡 *Reasoning:* ${safeReasoning}\n\n🛡️ *Consensus Run ID:* \`${result.model1RequestId}\`\n*Verified via Gonka Dual-Node Consensus Network (DeepSeek + Kimi)*\n\n*Verify full dual-model audit receipt:*\n${verificationUrl}`;
   };
