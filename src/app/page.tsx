@@ -308,6 +308,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet1: '• 📰 Check primary sources before resharing on social media',
     posterNewsBullet2: '• 🔍 Distinguish official facts from editorial opinion or spin',
     posterNewsBullet3: '• 📢 Cross-verify viral headlines with verified news outlets',
+    scanToVerify: 'Scan to verify',
     // Pipeline error / status messages ({n} is substituted at render time)
     errNotConfigured: 'The verification service is not set up correctly right now. Please try again later.',
     errModelsSlow: 'Our verification models are taking longer than expected — please try again.',
@@ -408,6 +409,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet1: '• 📰 Semak sumber utama sebelum berkongsi di media sosial',
     posterNewsBullet2: '• 🔍 Bezakan fakta rasmi daripada pandangan editorial atau olahan',
     posterNewsBullet3: '• 📢 Semak silang tajuk berita tular dengan agensi berita rasmi',
+    scanToVerify: 'Imbas untuk sahkan',
     errNotConfigured: 'Perkhidmatan pengesahan tidak disediakan dengan betul buat masa ini. Sila cuba sebentar lagi.',
     errModelsSlow: 'Model pengesahan kami mengambil masa lebih lama daripada jangkaan — sila cuba lagi.',
     errBadInput: 'Input itu tidak dapat dianalisis. Sila tampal teks penuh artikel atau pautan berita yang sah.',
@@ -507,6 +509,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet1: '• 📰 在社交媒体转发前，请务必核实原始官方来源',
     posterNewsBullet2: '• 🔍 注意区分官方事实与主观评论或舆论引导',
     posterNewsBullet3: '• 📢 将热搜标题与权威新闻机构的报道进行交叉对比',
+    scanToVerify: '扫码核验',
     errNotConfigured: '验证服务目前配置不正确，请稍后再试。',
     errModelsSlow: '我们的验证模型响应时间比预期长，请重试。',
     errBadInput: '无法分析该输入。请粘贴完整的文章内容或有效的新闻链接。',
@@ -604,6 +607,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet1: '• 📰 சமூக ஊடகங்களில் பகிர்வதற்கு முன் முதன்மை ஆதாரங்களைச் சரிபார்க்கவும்',
     posterNewsBullet2: '• 🔍 அதிகாரப்பூர்வ உண்மைகளை கருத்துகளிலிருந்து வேறுபடுத்திப் பார்க்கவும்',
     posterNewsBullet3: '• 📢 பரவலான செய்திகளை சரிபார்க்கப்பட்ட செய்தி நிறுவனங்களுடன் சரிபார்க்கவும்',
+    scanToVerify: 'சரிபார்க்க ஸ்கேன் செய்க',
     errNotConfigured: 'சரிபார்ப்புச் சேவை தற்போது சரியாக அமைக்கப்படவில்லை. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
     errModelsSlow: 'எங்கள் சரிபார்ப்பு மாதிரிகள் எதிர்பார்த்ததை விட அதிக நேரம் எடுக்கின்றன — மீண்டும் முயற்சிக்கவும்.',
     errBadInput: 'அந்த உள்ளீட்டைப் பகுப்பாய்வு செய்ய முடியவில்லை. முழு கட்டுரை உரையையோ சரியான செய்தி இணைப்பையோ ஒட்டவும்.',
@@ -913,7 +917,7 @@ export default function Home() {
 
     ctx.fillStyle = isHighRisk ? '#fff1f2' : '#ecfdf5';
     ctx.beginPath();
-    ctx.roundRect(50, 412, 1100, 118, 14);
+    ctx.roundRect(50, 412, 928, 152, 14);
     ctx.fill();
     ctx.strokeStyle = isHighRisk ? '#fda4af' : '#a7f3d0';
     ctx.lineWidth = 1.5;
@@ -921,13 +925,13 @@ export default function Home() {
 
     ctx.fillStyle = isHighRisk ? '#881337' : '#064e3b';
     ctx.font = 'bold 13px system-ui, sans-serif';
-    ctx.fillText(checklistHeader, 75, 436);
+    ctx.fillText(checklistHeader, 75, 438);
 
     ctx.fillStyle = '#111827';
     ctx.font = 'bold 14px system-ui, sans-serif';
-    ctx.fillText(bullet1, 75, 460);
-    ctx.fillText(bullet2, 75, 484);
-    ctx.fillText(bullet3, 75, 508);
+    ctx.fillText(bullet1, 75, 468);
+    ctx.fillText(bullet2, 75, 498);
+    ctx.fillText(bullet3, 75, 528);
 
     // Footer: Sharp Sepia Monospace #57534e
     const m1Id = result?.model1RequestId || 'unavailable';
@@ -936,31 +940,33 @@ export default function Home() {
     const displayUrl = `civicpulse-hackathon.vercel.app/verify/${m1Id}`;
 
     ctx.fillStyle = '#57534e';
-    ctx.font = '13px monospace';
-    ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 560);
-    ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 582);
+    ctx.font = '12px monospace';
+    ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 584);
+    ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 602);
 
     // Generate valid QR code directly onto the canvas
     try {
-      // White Rounded Pill above QR Code: "Scan to verify"
+      // White Rounded Pill above QR Code: Localized "Scan to verify" badge
+      const scanBadgeText = t('scanToVerify');
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(998, 396, 152, 34, 10);
+      ctx.roundRect(998, 370, 152, 32, 10);
       ctx.fill();
       ctx.strokeStyle = '#d6d3d1';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
       ctx.fillStyle = '#1c1917';
-      ctx.font = 'bold 18px system-ui, sans-serif';
+      const badgeFontSize = language === 'Bahasa Melayu' ? '13px' : language === 'Tamil' ? '11px' : '15px';
+      ctx.font = `bold ${badgeFontSize} system-ui, sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('Scan to verify', 1074, 418);
+      ctx.fillText(scanBadgeText, 1074, 391);
       ctx.textAlign = 'left';
 
       // White Card Box
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(998, 438, 152, 152, 14);
+      ctx.roundRect(998, 412, 152, 152, 14);
       ctx.fill();
       ctx.strokeStyle = '#d6d3d1';
       ctx.lineWidth = 1.5;
@@ -979,7 +985,7 @@ export default function Home() {
       });
 
       // Draw into main card canvas
-      ctx.drawImage(qrCanvas, 1006, 446);
+      ctx.drawImage(qrCanvas, 1006, 420);
     } catch (e) {
       console.error("QR Code generation error:", e);
     }
