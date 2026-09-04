@@ -124,10 +124,10 @@ Since Ivan can't attend 6 Sep, the plan below shifts more of the technical load 
 
 ## Sat 5 Sep, 11:59 PM MYT — SUBMIT
 
-- [ ] Public GitHub repo, clean commit history (from 26 Aug onward)
-- [ ] README complete
+- [/] Public GitHub repo, clean commit history (from 26 Aug onward)
+- [/] README complete
 - [ ] Demo video uploaded (YouTube/Loom, unlisted OK)
-- [ ] AI tool declarations included
+- [/] AI tool declarations included
 - [ ] Submitted on Devfolio before deadline
 
 ## Sun 6 Sep — Pitch Day at APU
