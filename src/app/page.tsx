@@ -224,6 +224,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
   English: {
     tagline: 'Dual AI Public Fact-Checking & Phishing Guard',
     networkBadge: 'Gonka Network: Active',
+    networkBadgeOffline: 'Gonka Network: Offline (Cached)',
     sepiaTheme: 'Sepia',
     contrastMode: 'Contrast',
     pasteClaimTab: 'Paste Claim',
@@ -328,6 +329,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
   'Bahasa Melayu': {
     tagline: 'Pengawal Pengesahan Fakta & Anti-Penipuan AI Dwi',
     networkBadge: 'Rangkaian Gonka: Aktif',
+    networkBadgeOffline: 'Rangkaian Gonka: Luar Talian',
     sepiaTheme: 'Sepia',
     contrastMode: 'Kontras',
     pasteClaimTab: 'Tampal Tuntutan',
@@ -431,6 +433,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
   Chinese: {
     tagline: '双重 AI 公共事实核查与反诈骗防护',
     networkBadge: 'Gonka 网络：在线',
+    networkBadgeOffline: 'Gonka 网络：离线',
     sepiaTheme: '复古暖色',
     contrastMode: '高对比度',
     pasteClaimTab: '粘贴声明',
@@ -534,6 +537,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
   Tamil: {
     tagline: 'இரட்டை AI பொது உண்மை சரிபார்ப்பு & ஏமாற்று பாதுகாப்பு',
     networkBadge: 'Gonka நெட்வொர்க்: செயல்படுகிறது',
+    networkBadgeOffline: 'Gonka நெட்வொர்க்: ஆஃப்லைன்',
     sepiaTheme: 'செபியா',
     contrastMode: 'முரண்பாடு',
     pasteClaimTab: 'உரையை ஒட்டவும்',
@@ -729,6 +733,26 @@ export default function Home() {
   // Inputs
   const [articleText, setArticleText] = useState<string>('');
   const [newsUrl, setNewsUrl] = useState<string>('');
+
+  // Online / Offline status detector
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
+  }, []);
 
   // States
   const [loading, setLoading] = useState<boolean>(false);
@@ -1444,7 +1468,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Center / Right Badge: Gonka Network Active (Clickable Scroll to Audit) */}
+          {/* Center / Right Badge: Gonka Network Active/Offline (Clickable Scroll to Audit) */}
           <button
             type="button"
             onClick={() => {
@@ -1462,16 +1486,23 @@ export default function Home() {
                 }
               }
             }}
-            className={`inline-flex order-last md:order-none items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold border transition-all cursor-pointer shadow-xs ${highContrast
-              ? 'bg-black text-emerald-400 border-white hover:bg-stone-900'
-              : sepiaMode
-                ? 'bg-[#fcf8ef] text-emerald-800 border-[#e4d4b5] hover:bg-[#ebdcb8]'
-                : 'bg-emerald-50/80 text-emerald-900 border-emerald-200 hover:bg-emerald-100/80'
-              }`}
-            title="Click to view execution audit & cryptographic receipts"
+            className={`inline-flex order-last md:order-none items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold border transition-all cursor-pointer shadow-xs ${
+              isOnline
+                ? highContrast
+                  ? 'bg-black text-emerald-400 border-white hover:bg-stone-900'
+                  : sepiaMode
+                    ? 'bg-[#fcf8ef] text-emerald-800 border-[#e4d4b5] hover:bg-[#ebdcb8]'
+                    : 'bg-emerald-50/80 text-emerald-900 border-emerald-200 hover:bg-emerald-100/80'
+                : highContrast
+                  ? 'bg-black text-amber-400 border-white hover:bg-stone-900'
+                  : sepiaMode
+                    ? 'bg-[#fffbf0] text-amber-900 border-amber-300 hover:bg-[#fceecb]'
+                    : 'bg-amber-50/90 text-amber-900 border-amber-300 hover:bg-amber-100/90'
+            }`}
+            title={isOnline ? "Click to view execution audit & cryptographic receipts" : "Offline mode — using cached resources"}
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span>{t('networkBadge')}</span>
+            <span className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span>{isOnline ? t('networkBadge') : t('networkBadgeOffline')}</span>
           </button>
 
           {/* Right Controls: Quick Language Pills & Compact Accessibility Dropdown */}

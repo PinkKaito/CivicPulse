@@ -110,10 +110,30 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
     }
   }, [id, m2Id]);
 
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
+  }, []);
+
   const verifyTranslations: Record<string, Record<string, string>> = {
     English: {
       backBtn: 'Back to CivicPulse',
       badgeConsensus: 'Gonka Dual-AI Hedged Consensus',
+      badgeConsensusOffline: 'Gonka Consensus: Offline (Read-Only)',
       pageTitle: 'Cryptographic Dual-Node Audit Receipts',
       verifyingText: 'Verifying dual-node execution proofs on Gonka Network...',
       verifiedBanner: 'Verified Dual-Node Consensus Execution Propagated',
@@ -125,6 +145,7 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
     'Bahasa Melayu': {
       backBtn: 'Kembali ke CivicPulse',
       badgeConsensus: 'Konsensus Berpagar Dwi-AI Gonka',
+      badgeConsensusOffline: 'Konsensus Gonka: Luar Talian',
       pageTitle: 'Resit Audit Dwi-Node Kriptografi',
       verifyingText: 'Memeriksa bukti pelaksanaan dwi-node di Rangkaian Gonka...',
       verifiedBanner: 'Pelaksanaan Konsensus Dwi-Node Disahkan & Disebarkan',
@@ -136,6 +157,7 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
     Chinese: {
       backBtn: '返回 CivicPulse 首页',
       badgeConsensus: 'Gonka 双 AI 对冲共识',
+      badgeConsensusOffline: 'Gonka 共识：离线 (只读)',
       pageTitle: '双节点密码学审计凭证',
       verifyingText: '正在 Gonka 网络验证双节点执行证明...',
       verifiedBanner: '双节点共识执行验证已通过并广播',
@@ -147,6 +169,7 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
     Tamil: {
       backBtn: 'CivicPulse க்குத் திரும்பு',
       badgeConsensus: 'Gonka இரட்டை AI ஒருமித்த கருத்து',
+      badgeConsensusOffline: 'Gonka ஒருமித்த கருத்து: ஆஃப்லைன்',
       pageTitle: 'கிரிப்டோகிராஃபிக் இரட்டை முனை தணிக்கை ரசீதுகள்',
       verifyingText: 'Gonka நெட்வொர்க்கில் சான்றுகளைச் சரிபார்க்கிறது...',
       verifiedBanner: 'சரிபார்க்கப்பட்ட இரட்டை முனை ஒருமித்த இயக்கம்',
@@ -190,9 +213,13 @@ export default function VerifyReceiptPage({ params }: { params: Promise<{ id: st
             ))}
           </div>
 
-          <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-bold">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{vt.badgeConsensus}</span>
+          <div className={`hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors ${
+            isOnline
+              ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+              : 'border-amber-300 bg-amber-50 text-amber-900'
+          }`}>
+            <span className={`h-2 w-2 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span>{isOnline ? vt.badgeConsensus : (vt.badgeConsensusOffline || 'Gonka Consensus: Offline')}</span>
           </div>
         </div>
       </header>
