@@ -309,6 +309,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet2: '• 🔍 Distinguish official facts from editorial opinion or spin',
     posterNewsBullet3: '• 📢 Cross-verify viral headlines with verified news outlets',
     scanToVerify: 'Scan to verify',
+    gonkaVerifiedBadge: 'CivicPulse  •  Gonka Network Verified',
+    cardFooterConsensus: 'Consensus Run ID: {id} • Dual-Node Hedged Audit (DeepSeek + Kimi)',
+    cardFooterReceipt: 'Verified on Gonka Network • Verify receipt at {url}',
     // Pipeline error / status messages ({n} is substituted at render time)
     errNotConfigured: 'The verification service is not set up correctly right now. Please try again later.',
     errModelsSlow: 'Our verification models are taking longer than expected — please try again.',
@@ -410,6 +413,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet2: '• 🔍 Bezakan fakta rasmi daripada pandangan editorial atau olahan',
     posterNewsBullet3: '• 📢 Semak silang tajuk berita tular dengan agensi berita rasmi',
     scanToVerify: 'Imbas untuk sahkan',
+    gonkaVerifiedBadge: 'CivicPulse  •  Disahkan Rangkaian Gonka',
+    cardFooterConsensus: 'ID Konsensus: {id} • Audit Berpagar Dwi-Node (DeepSeek + Kimi)',
+    cardFooterReceipt: 'Disahkan di Rangkaian Gonka • Sahkan resit di {url}',
     errNotConfigured: 'Perkhidmatan pengesahan tidak disediakan dengan betul buat masa ini. Sila cuba sebentar lagi.',
     errModelsSlow: 'Model pengesahan kami mengambil masa lebih lama daripada jangkaan — sila cuba lagi.',
     errBadInput: 'Input itu tidak dapat dianalisis. Sila tampal teks penuh artikel atau pautan berita yang sah.',
@@ -510,6 +516,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet2: '• 🔍 注意区分官方事实与主观评论或舆论引导',
     posterNewsBullet3: '• 📢 将热搜标题与权威新闻机构的报道进行交叉对比',
     scanToVerify: '扫码核验',
+    gonkaVerifiedBadge: 'CivicPulse  •  Gonka 网络已核验',
+    cardFooterConsensus: '共识运行 ID: {id} • 双节点对冲审计 (DeepSeek + Kimi)',
+    cardFooterReceipt: '已在 Gonka 网络完成验证 • 查验凭证: {url}',
     errNotConfigured: '验证服务目前配置不正确，请稍后再试。',
     errModelsSlow: '我们的验证模型响应时间比预期长，请重试。',
     errBadInput: '无法分析该输入。请粘贴完整的文章内容或有效的新闻链接。',
@@ -608,6 +617,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
     posterNewsBullet2: '• 🔍 அதிகாரப்பூர்வ உண்மைகளை கருத்துகளிலிருந்து வேறுபடுத்திப் பார்க்கவும்',
     posterNewsBullet3: '• 📢 பரவலான செய்திகளை சரிபார்க்கப்பட்ட செய்தி நிறுவனங்களுடன் சரிபார்க்கவும்',
     scanToVerify: 'சரிபார்க்க ஸ்கேன் செய்க',
+    gonkaVerifiedBadge: 'CivicPulse  •  Gonka நெட்வொர்க் சரிபார்க்கப்பட்டது',
+    cardFooterConsensus: 'ஒருமித்த இயக்க ID: {id} • இரட்டை முனை தணிக்கை (DeepSeek + Kimi)',
+    cardFooterReceipt: 'Gonka நெட்வொர்க்கில் சரிபார்க்கப்பட்டது • ரசீதைச் சரிபார்க்க: {url}',
     errNotConfigured: 'சரிபார்ப்புச் சேவை தற்போது சரியாக அமைக்கப்படவில்லை. சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும்.',
     errModelsSlow: 'எங்கள் சரிபார்ப்பு மாதிரிகள் எதிர்பார்த்ததை விட அதிக நேரம் எடுக்கின்றன — மீண்டும் முயற்சிக்கவும்.',
     errBadInput: 'அந்த உள்ளீட்டைப் பகுப்பாய்வு செய்ய முடியவில்லை. முழு கட்டுரை உரையையோ சரியான செய்தி இணைப்பையோ ஒட்டவும்.',
@@ -799,10 +811,11 @@ export default function Home() {
     ctx.lineWidth = 5;
     ctx.strokeRect(18, 18, 1164, 594);
 
-    // Top Header Pill: CivicPulse Logo + Gonka Network Verified
+    // Top Header Pill: CivicPulse Logo + Localized Gonka Network Verified
+    const headerPillWidth = language === 'Tamil' ? 480 : language === 'Bahasa Melayu' ? 440 : 420;
     ctx.fillStyle = isHighRisk ? '#ffe4e6' : '#faf6ee';
     ctx.beginPath();
-    ctx.roundRect(50, 45, 450, 42, 21);
+    ctx.roundRect(50, 45, headerPillWidth, 42, 21);
     ctx.fill();
     ctx.strokeStyle = isHighRisk ? '#e11d48' : '#d97706';
     ctx.lineWidth = 2;
@@ -814,10 +827,11 @@ export default function Home() {
     ctx.arc(74, 66, 7, 0, Math.PI * 2);
     ctx.fill();
 
-    // Header Text: Razor Sharp Dark Brown #1c1917
+    // Header Text
     ctx.fillStyle = '#1c1917';
-    ctx.font = 'bold 18px system-ui, sans-serif';
-    ctx.fillText('CivicPulse  •  Gonka Network Verified', 94, 72);
+    const headerFontSize = language === 'Tamil' ? '15px' : '17px';
+    ctx.font = `bold ${headerFontSize} system-ui, sans-serif`;
+    ctx.fillText(t('gonkaVerifiedBadge'), 94, 72);
 
     // Score Badge Pill (Top Right)
     ctx.fillStyle = isHighRisk ? '#dc2626' : '#059669';
@@ -825,11 +839,33 @@ export default function Home() {
     ctx.roundRect(830, 45, 320, 66, 14);
     ctx.fill();
 
+    const getLocalizedBadgeLabel = (label: string): string => {
+      const upper = (label || '').toUpperCase().trim();
+      if (upper === 'SAFE') return t('safe');
+      if (upper === 'HIGH RISK') return t('highRisk');
+      if (upper === 'SUSPICIOUS') return t('suspicious');
+      if (upper === 'VERIFIED') {
+        return language === 'Bahasa Melayu' ? 'DISAHKAN' :
+               language === 'Chinese' ? '已核实' :
+               language === 'Tamil' ? 'சரிபார்க்கப்பட்டது' : 'VERIFIED';
+      }
+      if (upper === 'MIXED') {
+        return language === 'Bahasa Melayu' ? 'CAMPURAN' :
+               language === 'Chinese' ? '混合' :
+               language === 'Tamil' ? 'கலப்பு' : 'MIXED';
+      }
+      return upper;
+    };
+
+    const rawBadgeLabel = isScam
+      ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
+      : getLocalizedBadgeLabel(result.verification.score_label || 'MIXED');
+
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 13px system-ui, sans-serif';
     ctx.fillText(scoreTitle.toUpperCase(), 850, 68);
     ctx.font = 'bold 28px system-ui, sans-serif';
-    ctx.fillText(`${scoreDisplay}% (${scoreBadgeLabel})`, 850, 98);
+    ctx.fillText(`${scoreDisplay}% (${rawBadgeLabel.toUpperCase()})`, 850, 98);
 
     // Action Directive Banner
     const actionDirective = isHighRisk ? t('shareScamWarning') : t('shareSafeNotice');
@@ -933,16 +969,19 @@ export default function Home() {
     ctx.fillText(bullet2, 75, 498);
     ctx.fillText(bullet3, 75, 528);
 
-    // Footer: Sharp Sepia Monospace #57534e
+    // Footer: Sharp Sepia Monospace #57534e (Localized)
     const m1Id = result?.model1RequestId || 'unavailable';
     const m2Id = result?.model2RequestId || 'unavailable';
     const verificationUrl = `https://civicpulse-hackathon.vercel.app/verify/${m1Id}?m2=${m2Id}`;
     const displayUrl = `civicpulse-hackathon.vercel.app/verify/${m1Id}`;
 
+    const footerLine1 = t('cardFooterConsensus').replace('{id}', result.model1RequestId);
+    const footerLine2 = t('cardFooterReceipt').replace('{url}', displayUrl);
+
     ctx.fillStyle = '#57534e';
-    ctx.font = '12px monospace';
-    ctx.fillText(`Consensus Run ID: ${result.model1RequestId} • Dual-Node Hedged Audit (DeepSeek + Kimi)`, 50, 584);
-    ctx.fillText(`Verified on Gonka Network • Verify receipt at ${displayUrl}`, 50, 602);
+    ctx.font = '12px system-ui, monospace, sans-serif';
+    ctx.fillText(footerLine1, 50, 584);
+    ctx.fillText(footerLine2, 50, 602);
 
     // Generate valid QR code directly onto the canvas
     try {
@@ -1777,7 +1816,14 @@ export default function Home() {
                   <span className={`text-[0.5625rem] font-bold px-2.5 py-0.5 rounded-full tracking-wide uppercase ${styles.badge}`}>
                     {isScam
                       ? (scamRiskScore >= 75 ? t('highRisk') : scamRiskScore >= 40 ? t('suspicious') : t('safe'))
-                      : (result.verification.score_label || 'MIXED')}
+                      : (
+                          result.verification.score_label === 'SAFE' ? t('safe') :
+                          result.verification.score_label === 'HIGH RISK' ? t('highRisk') :
+                          result.verification.score_label === 'SUSPICIOUS' ? t('suspicious') :
+                          result.verification.score_label === 'VERIFIED' ? (language === 'Bahasa Melayu' ? 'DISAHKAN' : language === 'Chinese' ? '已核实' : language === 'Tamil' ? 'சரிபார்க்கப்பட்டது' : 'VERIFIED') :
+                          result.verification.score_label === 'MIXED' ? (language === 'Bahasa Melayu' ? 'CAMPURAN' : language === 'Chinese' ? '混合' : language === 'Tamil' ? 'கலப்பு' : 'MIXED') :
+                          (result.verification.score_label || 'MIXED')
+                        )}
                   </span>
 
                   {/* Gauge Severity Bar */}
