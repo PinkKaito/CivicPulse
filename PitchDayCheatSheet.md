@@ -201,7 +201,7 @@ Judges respect "I'll get you the right answer" far more than a confident wrong o
 ## 1. Executive Summary & Core Narrative
 
 ### The 60-Second Pitch
-> **"CivicPulse is a dual-AI public fact-checker and phishing guard. Any citizen can paste a suspicious message, news link, or job pitch, and get an instant, plain-language verdict on whether it's trustworthy — audited independently by two different AI models on a decentralized network, with a cryptographic receipt proving the check actually happened."**
+> **"CivicPulse is a dual-AI public fact-checker and phishing guard. Any citizen can paste a suspicious message, news link, or job pitch, and get an instant, plain-language verdict on whether it's trustworthy — audited independently by two different AI models on a decentralized network, with a receipt proving the check actually happened."**
 
 ### Why CivicPulse Matters (The Public-Value Narrative)
 1. **The Scam & Misinformation Epidemic:** Vulnerable citizens (seniors, non-native speakers, youth) are bombarded with phishing SMS, fake government aid notices, and viral WhatsApp hoaxes designed to induce panic or urgency.
@@ -218,9 +218,9 @@ Judges respect "I'll get you the right answer" far more than a confident wrong o
 | Time | Topic | Presenter | Key Talking Points & Exact Phrasing |
 |---|---|---|---|
 | **0:00 - 0:30** (30s) | **1. Problem & Hook** | Presenter C | "Every day, millions of citizens receive fake bank warnings or WhatsApp hoaxes designed to create panic. Scams move faster than traditional fact-checkers, and centralized tools demand blind trust: *'Who decides what's true?'*" |
-| **0:30 - 1:30** (60s) | **2. Live Demo** | Presenter B | "CivicPulse solves this. Watch us paste a live phishing SMS. In real time, CivicPulse checks the claim across **two independent AI models** on the decentralized Gonka network. Result: 0% Truth, 100% Scam Risk. It extracts specific red flags—fake URL, urgency—gives plain safety advice, and shows a public Gonka Request ID receipt." |
-| **1:30 - 2:30** (60s) | **3. Dual-AI & Gonka** | Presenter C | "Under the hood: **Model 1 (DeepSeek-V4-Flash)** extracts context while **Model 2 (MiniMax-M2.7)** audits credibility independently. If scores diverge by >25 points, we flag the uncertainty. Why Gonka? Decentralized inference guarantees execution isn't locked in a private black box—every check leaves an auditable cryptographic receipt." |
-| **2:30 - 3:00** (30s) | **4. Impact & Call to Action** | Presenter B | "CivicPulse supports 4 languages (EN, BM, ZH, TA), generates 1-click visual share cards for family group chats, and works as an offline PWA. We are building AI for society that empowers citizens with transparent, auditable truth. Thank you!" |
+| **0:30 - 1:30** (60s) | **2. Live Demo** | Presenter B | "CivicPulse solves this. Watch us paste a live phishing SMS—or switch to 'News Link' for server-side URL body extraction. In real time, CivicPulse checks the claim across **two independent AI models** on the Gonka network. Result: 0% Truth, 100% Scam Risk. It extracts specific red flags—fake URL, urgency—gives plain safety advice, shows a public Gonka Request ID receipt, and generates a visual Share Card with a scannable verification QR code." |
+| **1:30 - 2:30** (60s) | **3. Dual-AI & Gonka** | Presenter C | "Under the hood: **Model 1 (DeepSeek-V4-Flash)** extracts context while **Model 2 (MiniMax-M2.7)** audits credibility independently. If model scores diverge by >25 points, our divergence engine explicitly flags it for human double-checking. Our 3-second hedged pipeline prevents rate-limits and ensures node failover. Every check leaves an auditable Gonka Request ID receipt." |
+| **2:30 - 3:00** (30s) | **4. Impact & Accessibility** | Presenter B | "CivicPulse supports 4 languages (EN, BM, ZH, TA), features Sepia, High Contrast, and font scaling for seniors, and works as an offline PWA. We are building AI for society that turns passive rumor readers into active, verified truth defenders. Thank you!" |
 
 ---
 
@@ -230,16 +230,16 @@ Judges respect "I'll get you the right answer" far more than a confident wrong o
 > **Rule for 1-Minute Q&A:** The clock is ticking! Give a **15-second bullet answer**. State the direct fact first, then stop. Do not ramble!
 
 * **Q: Why two AI models instead of one?**  
-  👉 *"Single models have blind spots and hallucinate with confidence. We cross-audit across two different model families (DeepSeek + MiniMax) and explicitly flag when they disagree."* (12s)
+  👉 *"Single models have blind spots and hallucinate with confidence. We cross-audit across two different model families (DeepSeek + MiniMax) and use a divergence engine to flag score gaps >25 points."* (13s)
 
-* **Q: Why decentralized on Gonka Router?**  
-  👉 *"Fact-checking has an execution authority problem. Decentralized execution means no single company controls the truth, and every check outputs a verifiable Request ID receipt."* (14s)
+* **Q: How do you handle news URL links?**  
+  👉 *"Our backend uses server-side Cheerio HTML parsing to extract clean article text in real time before passing it to the dual AI models for credibility auditing."* (13s)
 
-* **Q: Why does a cold check take 30–70s?**  
-  👉 *"It queries two AI models across four hedged network calls for maximum reliability. Upstream caching makes repeat checks instant (~1s)—which is why our live demo was instant."* (14s)
+* **Q: What happens if a network node is slow or fails?**  
+  👉 *"We built a 3-second intelligent hedged pipeline and cross-model failover. If DeepSeek is unreachable, MiniMax automatically takes over as backup."* (13s)
 
-* **Q: How is this different from ChatGPT?**  
-  👉 *"ChatGPT is a single black box model. CivicPulse uses dual cross-auditing models, public cryptographic receipts, 4-language support, and purpose-built red flag extraction."* (13s)
+* **Q: How do senior citizens use this app?**  
+  👉 *"It's built for zero friction—supporting 4 languages, 1-click WhatsApp share cards with verification QR codes, Sepia reading mode, High Contrast, and font scaling."* (14s)
 
 * **Q: What is your business model?**  
   👉 *"Free public tier for citizens, B2B API licensing for telcos (SMS filtering) and banks (fraud triage), and developer middleware on Gonka Router."* (11s)
