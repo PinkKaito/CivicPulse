@@ -4,7 +4,9 @@
 
 **Built for:** MUBA Blockchain Hackathon 2026 — **Gonka Track ("AI for Society")**.
 
-**Live Demo URL:** https://civicpulse-hackathon.vercel.app
+**Live Website URL:** https://civicpulse-hackathon.vercel.app
+
+**Youtube Demo Link** https://youtu.be/suhfEJw5e78
 
 ---
 
