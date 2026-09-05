@@ -233,8 +233,8 @@ Visit `http://localhost:3000/api/verify-gonka` — a JSON response containing `{
 | Name | Role | Responsibilities |
 |---|---|---|
 | **Ivan** | **Backend & Gonka Integration Lead** | Gonka Router API integration, dual-prompt engineering, consensus & divergence engine, 3s hedging pipeline, Vercel deployment. |
-| **Presenter B** | **Frontend & UX Lead** | Next.js 16 App Router UI, PWA configuration (`manifest.json` + `sw.js`), Sepia/High-Contrast themes, 1200x630 Canvas PNG share card with QR matrix. |
-| **Presenter C** | **QA, Content & Pitch Lead** | Real-world scam test case curation, government advisory verification, README, demo video, pitch day presentation. |
+| **Lau Jun Hao** | **Frontend & UX Lead** | Next.js 16 App Router UI, PWA configuration (`manifest.json` + `sw.js`), Sepia/High-Contrast themes, Canvas PNG share card with QR matrix. |
+| **Tang Jing Hong** | **QA, Content & Pitch Lead** | Real-world scam test case curation, government advisory verification, README, demo video, pitch day presentation. |
 
 ---
 
